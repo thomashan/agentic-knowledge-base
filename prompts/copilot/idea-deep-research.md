@@ -131,7 +131,7 @@ Open-source landscape in 2025 now covers web automation robustly, with several t
 **Firecrawl** is especially suited for RAG applications, producing site dumps and clean Markdown optimized for LLMs. Its deep research features and anti-bot measures make it suitable for complex, multi-site aggregation,
 supporting both web API and headless browsing.
 
-**Skyvern** introduces a vision-LMM powered agent, allowing for visual reasoning and web RPA even on sites with heavy JS or dynamic layouts—a marked advantage for complex procedural research across non-standard web
+**Skyvern** introduces a vision-LLM-powered agent, allowing for visual reasoning and web RPA even on sites with heavy JS or dynamic layouts—a marked advantage for complex procedural research across non-standard web
 portals.
 
 **Chrome MCP Server** offers deep, persistent browser integration, operating on your main Chrome profile, maintaining authentication, open tabs, and bookmarks; it is model/LMM-agnostic and enables direct, streamable HTTP
@@ -226,7 +226,7 @@ and UI for human edits. Notably, versioning must occur at the document (not repo
 
 #### Additional DMS Alternatives
 
-For more document management-focused use cases (with strict workflow, audit trails, or more traditional DMS flavor): LogicalDOC, OpenKM, or Mayan EDMS are viable. Mayan and LogicalDOC offer robust versioned workflows,
+For more document management focused use cases (with strict workflow, audit trails, or more traditional DMS flavor): LogicalDOC, OpenKM, or Mayan EDMS are viable. Mayan and LogicalDOC offer robust versioned workflows,
 audit trails, and metadata-driven search.
 
 #### Recommendation
