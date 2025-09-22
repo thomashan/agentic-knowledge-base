@@ -105,7 +105,7 @@ functions of summarization, structuring, and quality enhancement.
   explanations; (3) Specific examples and use cases; (4) Limitations and considerations. The summarization process should preserve crucial nuances while eliminating redundancy .
 
 - **Information Structuring**: Agents should organize content into **consistent templates** appropriate for different knowledge types (API documentation, conceptual explanations, tutorial content, etc.). This includes: (
-  1) Applying consistent heading hierarchies; (2) Creating standardized metadata fields; (3) Establishing cross-references between related content; (4) Applying appropriate semantic tagging for future retrieval .
+    1) Applying consistent heading hierarchies; (2) Creating standardized metadata fields; (3) Establishing cross-references between related content; (4) Applying appropriate semantic tagging for future retrieval .
 
 - **LLM Agnosticism**: To maintain flexibility and avoid vendor lock-in, the intelligence layer should implement a **unified LLM interface** that can connect to various open-source models (Llama 3, Mistral, etc.) through
   standardized APIs like OpenLLM or Ollama. The system should include fallback mechanisms and the ability to route different types of content to specialized models optimized for specific tasks (code documentation,
