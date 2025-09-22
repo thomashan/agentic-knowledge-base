@@ -31,3 +31,39 @@ Whilst some platform/tool are agnostic, initial implementation decisions have to
 | research agent web crawler/scraper | AgenticSeek              |
 | documentation platform             | Outline                  |
 | all LLMs                           | start with Llama 3.2 11B |
+
+## Project structure
+
+None of the LLM responses really fit into the structure I was thinking.
+I came up with the following structure.
+
+```
+agentic-knowledge-base/
+├── environment.yml
+├── Makefile
+├── README.md
+├── app/
+│   ├── __init__.py
+│   ├── agents/
+│   │   ├── core/
+│   │   ├── intelligence/
+│   │   ├── knowledge/
+│   │   ├── orchestrator/
+│   │   ├── planner/
+│   │   ├── research/
+│   │   └── retrieval/
+│   └── integration/
+│       ├── documentation/
+│       ├── llm/
+│       ├── scraper/
+│       ├── search/
+│       └── vectordb/
+├── config/
+│   └── config.mk
+├── docs/
+│   ├── decisions.md
+│   ... 
+└── prompts/
+    ├── chatgpt
+    ...
+```
