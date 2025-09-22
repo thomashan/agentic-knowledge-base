@@ -109,7 +109,7 @@ app/agents/core/
 └── tests/                 # unit and contract tests for the core
 
 app/agents/orchestrator/
-├── crewa i/               # adapter implementing ExecutionAdapter for CrewAI (initial)
+├── crewai/                # adapter implementing ExecutionAdapter for CrewAI (initial)
 │   ├── client_wrapper/    # CrewAI client glue code & transform utilities
 │   ├── adapter_impl.py    # maps Task <-> CrewAI calls
 │   └── tests/             # integration/adapter tests (use a mock CrewAI server)
@@ -212,7 +212,7 @@ app/agents/orchestrator/
 
 ## Observability
 
-* Structured logs (plan\_id, task\_id, event, severity, adapter, error\_code).
+* Structured logs (plan_id, task_id, event, severity, adapter, err_code).
 * Metrics to emit:
 
     * `plans_submitted`, `plans_completed`, `task_dispatched`, `task_completed`, `task_failed`, `retries_attempted`.
