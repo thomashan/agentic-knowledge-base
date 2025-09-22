@@ -1,6 +1,6 @@
 # Agentic Knowledge Base
 
-* Autonomous AI-powered knowledge base for research and documentation*
+**Autonomous AI-powered knowledge base for research and documentation**
 
 As part of building [Agentic](https://github.com/thomashan/agentic) the research and documentation was quite slow.
 To speed up the process, I built an AI-powered knowledge base that can research and document any topic.
