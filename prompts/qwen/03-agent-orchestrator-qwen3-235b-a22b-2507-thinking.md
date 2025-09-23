@@ -39,7 +39,7 @@
                     - Complex queries: `planner` → `research` → `knowledge` → `intelligence`
                     - Knowledge gaps: Trigger `research` before `retrieval`
                 3. **Execution Loop**:
-                   ```python
+                   ```
                    context = ExecutionContext(user_query)
                    for agent_name in workflow_sequence:
                        try:
@@ -105,7 +105,7 @@
 
 - **Agent Registry** (`app/agents/orchestrator/registry.py`):
     - Centralized factory to initialize agents with dependencies:
-      ```python
+      ```
       def get_agent(agent_type: str) -> BaseAgent:
           if agent_type == "retrieval":
               return RetrievalAgent(vectordb=VectorDBIntegration())

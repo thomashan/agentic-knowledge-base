@@ -85,7 +85,7 @@ Each agent implements `execute()` from `BaseAgent`:
 
 ### **7. Execution Flow**
 
-```python  
+```
 # Pseudocode for Orchestrator  
 def execute_query(query):
     plan = planners.decompose(query)

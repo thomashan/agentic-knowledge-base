@@ -79,7 +79,7 @@
     - Location: `app/agents/orchestrator/factory.py`
     - Purpose: Instantiate the correct orchestrator based on runtime config.
     - Function:
-      ```python
+      ```
       def create_orchestrator(
           framework: str, 
           agents: List[AgentConfig], 
@@ -110,7 +110,7 @@
 
 1. **Update `orchestrator/__init__.py`**
     - Expose only the factory and core interfaces:
-      ```python
+      ```
       from .factory import create_orchestrator
       from .validator import validate_configs
       from ..core.orchestrator import AbstractOrchestrator
@@ -121,7 +121,7 @@
     - Location: `app/agents/core/output.py`
     - Purpose: Standardize orchestrator output structure.
     - Class:
-      ```python
+      ```
       class OrchestratorOutput:
           final_result: str
           task_results: Dict[str, str]  # task_id → output
@@ -133,7 +133,7 @@
     - Location: `app/agents/core/logging.py`
     - Purpose: Decouple logging from framework internals.
     - Interface:
-      ```python
+      ```
       class OrchestratorLogger:
           def log_task_start(self, task_id: str): ...
           def log_task_result(self, task_id: str, result: str): ...
