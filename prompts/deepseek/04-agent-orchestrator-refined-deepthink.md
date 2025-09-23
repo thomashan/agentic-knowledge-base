@@ -99,7 +99,7 @@
 
 ### 11. **Example Usage Snippet**
 
-```python
+```
 from app.agents.orchestrator import get_orchestrator
 
 orchestrator = get_orchestrator("crewai")

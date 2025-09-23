@@ -288,7 +288,7 @@ rag-knowledge-base/
 
 Create a centralized configuration system in `config/settings.py`:
 
-```python
+```
 # Example structure
 class Settings:
     # Agent settings

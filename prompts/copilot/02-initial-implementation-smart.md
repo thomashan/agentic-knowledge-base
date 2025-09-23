@@ -143,7 +143,7 @@ a leading open-source orchestrator for collaborative agent workflows, supporting
 
   In `src/agents/`:
     - Import relevant tool libraries, e.g.:
-      ```python
+      ```
       from crewai_tools import SerperDevTool  # For SearXNG
       from crewai_tools import WebCrawlerTool  # For AgenticSeek
       ```
@@ -153,7 +153,7 @@ a leading open-source orchestrator for collaborative agent workflows, supporting
 
 - Use `main.py` as the dynamic project entry point to populate variables and kick off the crew.
 - Example:
-  ```python
+  ```
   from datetime import datetime
   inputs = {'topic': "Open Source AI Agent Frameworks", 'current_year': str(datetime.now().year)}
   # Launch Crew
@@ -434,7 +434,7 @@ documentation. Its Docker Compose support and integration flexibility make it a 
   pip install qdrant-client[fastembed]
   ```
 - In your pipelines, connect with:
-  ```python
+  ```
   client = QdrantClient(url="http://localhost:6333", api_key="yourkey")
   ```
 - Create collections, insert vectors, manage metadata, and perform similarity search as needed (see quickstart docs for full methods).
