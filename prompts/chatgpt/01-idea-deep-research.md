@@ -107,7 +107,7 @@ Agent behavior & templates
 
 Format: content written to documentation platform in **Markdown** (or platform native format) plus a parallel machine manifest JSON for structured metadata and versioning.
 
-**LLM switching:** wrap LLM providers behind an inference adapter interface (model\_name, context\_window, temperature, token\_limits). This makes swapping models trivial.
+**LLM switching:** wrap LLM providers behind an inference adapter interface (model_name, context_window, temperature, token_limits). This makes swapping models trivial.
 
 ---
 
@@ -234,7 +234,7 @@ If you expect to run heavy LLM inference: co-located GPU nodes (NVIDIA) inside a
 
 * Keep everything on private network / VPC.
 * Agent actions that fetch web pages should run in sandboxed containers, sanitized file systems, and with strict resource limits.
-* Audit logs: every agent action should produce an immutable audit event (source, timestamp, agent\_id, action, outcome). Store in Postgres + object store.
+* Audit logs: every agent action should produce an immutable audit event (source, timestamp, agent_id, action, outcome). Store in Postgres + object store.
 
 ---
 

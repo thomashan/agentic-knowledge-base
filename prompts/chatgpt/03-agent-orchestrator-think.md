@@ -41,7 +41,7 @@ For each agent type, define **clear interfaces** in `app/agents/core/agent_inter
 ### Planner agent
 
 * Input: `UserRequest` (query + metadata + optional goals)
-* Output: `Plan` — a structured list of steps (e.g., \["retrieve", "research", "summarize", "verify"]) with parameters (queries, top\_k, tools).
+* Output: `Plan` — a structured list of steps (e.g., ["retrieve", "research", "summarize", "verify"]) with parameters (queries, top_k, tools).
 * Responsibilities:
 
     * Decompose high-level goals into pipeline steps.
@@ -176,7 +176,7 @@ For each agent type, define **clear interfaces** in `app/agents/core/agent_inter
 
 * **RAG frameworks / agent frameworks**:
 
-    * LangChain, LlamaIndex (llama\_index), Haystack — provide prompts, chains, and connectors.
+    * LangChain, LlamaIndex (llama_index), Haystack — provide prompts, chains, and connectors.
     * Trade-offs: LangChain is modular; LlamaIndex focuses on indexing and query interfaces; Haystack has built-in pipelines and evaluation tools.
 
 * **Vector DB**:
@@ -250,7 +250,7 @@ User asks: “Is drug X associated with side effect Y?”
 
 * **Cost & latency blowouts**
 
-    * Mitigation: Planner can enforce budget/cost constraints and choose cheaper models or reduce top\_k.
+    * Mitigation: Planner can enforce budget/cost constraints and choose cheaper models or reduce top_k.
 
 * **Broken external connectors**
 
@@ -271,7 +271,7 @@ User asks: “Is drug X associated with side effect Y?”
 ### Metrics to track
 
 * Answer latency (ms)
-* Retrieval recall\@k / precision\@k
+* Retrieval recall@k / precision@k
 * Answer confidence distribution
 * Grounding rate: % claims with direct supporting citations
 * Ingest throughput (docs/min)

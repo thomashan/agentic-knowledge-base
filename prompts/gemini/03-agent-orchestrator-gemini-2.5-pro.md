@@ -45,7 +45,7 @@ Each agent is a specialized worker with a clearly defined role. They interact wi
 * **Location:** `app/agents/planner/`
 * **Primary Goal:** To decompose a complex query into a structured, actionable plan.
 * **Responsibilities:**
-    * **Task Decomposition:** Breaks down the main query into a sequence of smaller, logical sub-tasks. For example, "Compare A and B" becomes -\> "Research A," "Research B," "Synthesize comparison."
+    * **Task Decomposition:** Breaks down the main query into a sequence of smaller, logical sub-tasks. For example, "Compare A and B" becomes -> "Research A," "Research B," "Synthesize comparison."
     * **Dependency Management:** Creates a directed acyclic graph (DAG) or a simple list of tasks that the orchestrator can execute in order.
 * **Inputs:** `initial_query` and analysis from the `Intelligence` agent.
 * **Outputs:** A structured `plan` object within the `AppState`.
@@ -96,20 +96,20 @@ The orchestrator, built with LangGraph, will wire these agents together. It won'
 
 **Conceptual Workflow Graph:**
 
-1. **[Start] -\> Intelligence Node:** The user query enters the graph and is first analyzed.
-2. **Intelligence Node -\> Planner Node:** The query is passed to the planner to create a step-by-step plan.
-3. **Planner Node -\> Router (Conditional Edge):** This is the main control loop. The router looks at the next task in the plan.
+1. **[Start] -> Intelligence Node:** The user query enters the graph and is first analyzed.
+2. **Intelligence Node -> Planner Node:** The query is passed to the planner to create a step-by-step plan.
+3. **Planner Node -> Router (Conditional Edge):** This is the main control loop. The router looks at the next task in the plan.
 4. **Router Logic:**
     * **If the task requires synthesis (e.g., "summarize findings"):** Go to **Knowledge Node (Synthesis mode)**.
     * **If the task requires information:** Go to **Retrieval Node**.
-5. **Retrieval Node -\> Router (Conditional Edge):**
+5. **Retrieval Node -> Router (Conditional Edge):**
     * After retrieval, the `Intelligence` agent's logic is invoked to check if the retrieved context is sufficient.
     * **If sufficient:** The task is marked complete. Go back to the **Router** for the next task.
     * **If insufficient:** Go to the **Research Node**.
-6. **Research Node -\> Knowledge Node (Ingestion mode):** The new information is processed and added to the VectorDB.
-7. **Knowledge Node (Ingestion mode) -\> Retrieval Node:** The graph immediately re-tries the retrieval for the same task, this time with the newly added knowledge. This creates a powerful **Research -\> Ingest -\>
+6. **Research Node -> Knowledge Node (Ingestion mode):** The new information is processed and added to the VectorDB.
+7. **Knowledge Node (Ingestion mode) -> Retrieval Node:** The graph immediately re-tries the retrieval for the same task, this time with the newly added knowledge. This creates a powerful **Research -> Ingest ->
    Retrieve** loop.
-8. **Knowledge Node (Synthesis mode) -\> [End]:** Once the final task is complete, the `final_answer` is available in the state, and the graph execution finishes.
+8. **Knowledge Node (Synthesis mode) -> [End]:** Once the final task is complete, the `final_answer` is available in the state, and the graph execution finishes.
 
 <!-- end list -->
 
@@ -144,7 +144,7 @@ This project will be built in phases to ensure a stable and incremental developm
 
     * Implement the `RetrievalAgent` to fetch from the VectorDB.
     * Implement the `KnowledgeAgent`'s synthesis capability.
-    * Build a simple, linear orchestrator graph: **Query -\> Retrieve -\> Synthesize -\> End**. Manually populate the VectorDB with a few documents to test the flow.
+    * Build a simple, linear orchestrator graph: **Query -> Retrieve -> Synthesize -> End**. Manually populate the VectorDB with a few documents to test the flow.
 
 * **Phase 3: Adding Advanced Reasoning (The "Brain")**
 
