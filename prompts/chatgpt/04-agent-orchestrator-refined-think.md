@@ -45,7 +45,7 @@ requested.
 5. **Observability**
 
     * Structured logging and traces emitted from core; adapters add implementation-specific logs.
-    * Metrics interface (events: plan\_started, task\_failed, retry, plan\_completed).
+    * Metrics interface (events: plan_started, task_failed, retry, plan_completed).
 
 ---
 
@@ -55,9 +55,9 @@ requested.
 
 ### Domain models
 
-* `Plan` — top-level unit of orchestration (id, metadata, root tasks, inputs, owner, created\_at).
-* `Task` — atomic unit (id, type, payload, dependencies, retry\_policy, attempt\_count, status).
-* `TaskResult` — result container (task\_id, success boolean, output, diagnostics).
+* `Plan` — top-level unit of orchestration (id, metadata, root tasks, inputs, owner, created_at).
+* `Task` — atomic unit (id, type, payload, dependencies, retry_policy, attempt_count, status).
+* `TaskResult` — result container (task_id, success boolean, output, diagnostics).
 * `ExecutionTrace` — chronological logs/events for a plan (task dispatched, response received, errors).
 * `PlanState` — persisted snapshot of `Plan` and all `Task` states.
 
@@ -89,7 +89,7 @@ requested.
 ### Failure and semantics
 
 * Core enforces idempotency: if a task is retried, the adapter must be able to deduplicate or core must detect duplicates via task idempotency keys.
-* Clear retry semantics configured per-task (max\_retries, backoff, jitter).
+* Clear retry semantics configured per-task (max_retries, backoff, jitter).
 * Tasks must be serializable so plan checkpoints can be restored.
 
 ---
@@ -218,7 +218,7 @@ app/agents/orchestrator/
     * `plans_submitted`, `plans_completed`, `task_dispatched`, `task_completed`, `task_failed`, `retries_attempted`.
 * Tracing:
 
-    * Provide correlation IDs (plan\_id/task\_id/trace\_id) for distributed traces.
+    * Provide correlation IDs (plan_id/task_id/trace_id) for distributed traces.
 * Optionally: export traces to OpenTelemetry-compatible collector.
 
 ---

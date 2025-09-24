@@ -70,7 +70,7 @@ capabilities of a LangGraph adapter, preventing it from leveraging its core stre
 Therefore, the core abstraction must be designed with the flexibility to accommodate both paradigms. The AbstractOrchestrator interface will be defined in a way that allows the concrete implementation to interpret a
 collection of agents and tasks in the manner best suited to its underlying model. The CrewAIOrchestrator will interpret a set of tasks as the input for a Crew and its Process. The future LangGraphOrchestrator will
 interpret that same set of tasks—along with their declared dependencies—as a blueprint for compiling a Graph. This design choice is fundamental to the architecture's success and is reflected in the detailed interface
-definitions in Section 2\.
+definitions in Section 2.
 
 To clarify these relationships for developers working within the system, the following conceptual mapping is provided.
 
@@ -100,7 +100,7 @@ the execution.9 By standardizing on a similar structure, the system guarantees t
 
 Python
 
-\# app/agents/core/models.py
+# app/agents/core/models.py
 
 from typing import Any, Dict, List, Optional  
 from pydantic import BaseModel, Field
@@ -109,9 +109,9 @@ class TaskExecutionRecord(BaseModel):
 """  
 A record of the output from a single task execution.  
 """  
-task\_description: str \= Field(..., description="The original description of the task.")  
-raw\_output: str \= Field(..., description="The raw string output of the task.")  
-structured\_output: Optional\] \= Field(None, description="Structured output, if available.")
+task_description: str = Field(..., description="The original description of the task.")  
+raw_output: str = Field(..., description="The raw string output of the task.")  
+structured_output: Optional] = Field(None, description="Structured output, if available.")
 
 class ExecutionResult(BaseModel):  
 """  
@@ -119,20 +119,20 @@ A standardized data model for the final result of an agentic orchestration.
 This model ensures a consistent output format regardless of the underlying  
 orchestration framework (e.g., CrewAI, LangGraph).  
 """  
-raw\_output: str \= Field(  
+raw_output: str = Field(  
 ...,  
 description="The final, raw string output from the entire orchestration process."  
 )  
-structured\_output: Optional\] \= Field(  
+structured_output: Optional] = Field(  
 None,  
 description="The final output parsed into a structured dictionary, if applicable."  
 )  
-task\_outputs: List \= Field(  
-default\_factory=list,  
+task_outputs: List = Field(  
+default_factory=list,  
 description="A list of outputs from each individual task executed during the run."  
 )  
-metadata: Dict\[str, Any\] \= Field(  
-default\_factory=dict,  
+metadata: Dict[str, Any] = Field(  
+default_factory=dict,  
 description=(  
 "A dictionary containing metadata about the execution, such as token usage, "  
 "execution time, cost, etc."  
@@ -150,7 +150,7 @@ This class provides a minimal, universal interface for any tool that an agent ca
 
 Python
 
-\# app/agents/core/abc.py
+# app/agents/core/abc.py
 
 from abc import ABC, abstractmethod  
 from typing import Any, Dict, List, Optional
@@ -163,18 +163,18 @@ Abstract interface for a tool that can be used by an agent.
 """  
 @property  
 @abstractmethod  
-def name(self) \-\> str:  
+def name(self) -> str:  
 """The unique name of the tool."""  
 pass
 
     @property  
     @abstractmethod  
-    def description(self) \-\> str:  
+    def description(self) -> str:  
         """A clear description of what the tool does and its parameters."""  
         pass
 
     @abstractmethod  
-    def execute(self, \*\*kwargs: Any) \-\> Any:  
+    def execute(self, **kwargs: Any) -> Any:  
         """Executes the tool with the given arguments."""  
         pass
 
@@ -185,7 +185,7 @@ role-based agent design with specific goals and backstories to enhance performan
 
 Python
 
-\# app/agents/core/abc.py (continued)
+# app/agents/core/abc.py (continued)
 
 class AbstractAgent(ABC):  
 """  
@@ -194,31 +194,31 @@ in a framework-agnostic way.
 """  
 @property  
 @abstractmethod  
-def role(self) \-\> str:  
+def role(self) -> str:  
 """The specific role of the agent (e.g., 'Senior Researcher')."""  
 pass
 
     @property  
     @abstractmethod  
-    def goal(self) \-\> str:  
+    def goal(self) -> str:  
         """The primary objective of the agent."""  
         pass
 
     @property  
     @abstractmethod  
-    def backstory(self) \-\> str:  
+    def backstory(self) -> str:  
         """A narrative background for the agent to provide context."""  
         pass
 
     @property  
     @abstractmethod  
-    def tools(self) \-\> List:  
+    def tools(self) -> List:  
         """A list of tools the agent is equipped with."""  
         pass
 
     @property  
     @abstractmethod  
-    def llm\_config(self) \-\> Optional\]:  
+    def llm_config(self) -> Optional]:  
         """Configuration for the language model, if specific to this agent."""  
         pass
 
@@ -233,7 +233,7 @@ both declarative and imperative orchestration paradigms without modification.
 
 Python
 
-\# app/agents/core/abc.py (continued)
+# app/agents/core/abc.py (continued)
 
 class AbstractTask(ABC):  
 """  
@@ -241,25 +241,25 @@ Abstract definition of a task to be performed by an agent.
 """  
 @property  
 @abstractmethod  
-def description(self) \-\> str:  
+def description(self) -> str:  
 """A detailed description of the task."""  
 pass
 
     @property  
     @abstractmethod  
-    def expected\_output(self) \-\> str:  
+    def expected_output(self) -> str:  
         """A clear description of the expected output format."""  
         pass
 
     @property  
     @abstractmethod  
-    def agent(self) \-\> AbstractAgent:  
+    def agent(self) -> AbstractAgent:  
         """The agent assigned to perform this task."""  
         pass
 
     @property  
     @abstractmethod  
-    def dependencies(self) \-\> Optional\]:  
+    def dependencies(self) -> Optional]:  
         """  
         A list of other tasks that must be completed before this one can start.  
         This is crucial for defining non-sequential workflows.  
@@ -273,7 +273,7 @@ interface.
 
 Python
 
-\# app/agents/core/abc.py (continued)
+# app/agents/core/abc.py (continued)
 
 class AbstractOrchestrator(ABC):  
 """  
@@ -282,7 +282,7 @@ This class defines the contract that all framework-specific adapters
 (e.g., CrewAIOrchestrator, LangGraphOrchestrator) must implement.  
 """  
 @abstractmethod  
-def \_\_init\_\_(self, config: Optional\] \= None):  
+def __init__(self, config: Optional] = None):  
 """  
 Initializes the orchestrator with framework-specific configuration.  
 :param config: A dictionary containing settings like process type,  
@@ -291,7 +291,7 @@ memory configuration, LLM details, etc.
 pass
 
     @abstractmethod  
-    def add\_agent(self, agent: AbstractAgent) \-\> None:  
+    def add_agent(self, agent: AbstractAgent) -> None:  
         """  
         Registers an abstract agent with the orchestrator. The implementation  
         will convert this to a framework-specific agent object.  
@@ -300,7 +300,7 @@ pass
         pass
 
     @abstractmethod  
-    def add\_task(self, task: AbstractTask) \-\> None:  
+    def add_task(self, task: AbstractTask) -> None:  
         """  
         Registers an abstract task with the orchestrator. The implementation  
         will convert this to a framework-specific task object.  
@@ -309,7 +309,7 @@ pass
         pass
 
     @abstractmethod  
-    def execute(self) \-\> ExecutionResult:  
+    def execute(self) -> ExecutionResult:  
         """  
         Executes the defined orchestration process. This is the primary  
         method that kicks off the agentic workflow.  
@@ -329,12 +329,12 @@ crewai.Agent and crewai.Task counterparts and to manage the lifecycle of a crewa
 
 **Mapping Core to Concrete**
 
-* **\_\_init\_\_:** The constructor will receive a configuration dictionary. It will parse this dictionary to extract CrewAI-specific settings such as the desired process (e.g., sequential or hierarchical), manager\_llm
+* **__init__:** The constructor will receive a configuration dictionary. It will parse this dictionary to extract CrewAI-specific settings such as the desired process (e.g., sequential or hierarchical), manager_llm
   configuration for hierarchical processes, and memory settings.7 These settings will be stored as instance attributes for later use.
-* **add\_agent:** This method will accept an AbstractAgent object. Inside the method, it will instantiate a crewai.Agent, mapping the properties from the abstract object directly to the parameters of the crewai.Agent
-  constructor (e.g., role=agent.role, goal=agent.goal, backstory=agent.backstory). The created crewai.Agent instance will be stored in an internal list, self.\_crewai\_agents.
-* **add\_task:** Similarly, this method will accept an AbstractTask object. It will instantiate a crewai.Task by mapping the description and expected\_output properties. It will also look up the corresponding
-  crewai.Agent from its internal list to assign the task correctly. The resulting crewai.Task object will be appended to an internal self.\_crewai\_tasks list.
+* **add_agent:** This method will accept an AbstractAgent object. Inside the method, it will instantiate a crewai.Agent, mapping the properties from the abstract object directly to the parameters of the crewai.Agent
+  constructor (e.g., role=agent.role, goal=agent.goal, backstory=agent.backstory). The created crewai.Agent instance will be stored in an internal list, self._crewai_agents.
+* **add_task:** Similarly, this method will accept an AbstractTask object. It will instantiate a crewai.Task by mapping the description and expected_output properties. It will also look up the corresponding
+  crewai.Agent from its internal list to assign the task correctly. The resulting crewai.Task object will be appended to an internal self._crewai_tasks list.
 
 The internal state of a CrewAIOrchestrator instance will thus consist of the parsed configuration and two lists: one holding the concrete crewai.Agent objects and another holding the crewai.Task objects, ready for
 execution.
@@ -343,14 +343,14 @@ execution.
 
 The execute method is the heart of the adapter, where the actual orchestration is initiated and the results are standardized. The implementation will follow a clear, three-step process.
 
-* **Step 1: Instantiate the Crew:** The method will first create an instance of the crewai.Crew class. It will pass the internally stored lists of agents and tasks (self.\_crewai\_agents, self.\_crewai\_tasks) to the
-  constructor. It will also pass any relevant configuration parameters that were parsed in the \_\_init\_\_ method, such as process, manager\_llm, or memory.7 For example:  
-  crew \= Crew(agents=self.\_crewai\_agents, tasks=self.\_crewai\_tasks, process=self.config.get('process', Process.sequential)).
+* **Step 1: Instantiate the Crew:** The method will first create an instance of the crewai.Crew class. It will pass the internally stored lists of agents and tasks (self._crewai_agents, self._crewai_tasks) to the
+  constructor. It will also pass any relevant configuration parameters that were parsed in the __init__ method, such as process, manager_llm, or memory.7 For example:  
+  crew = Crew(agents=self._crewai_agents, tasks=self._crewai_tasks, process=self.config.get('process', Process.sequential)).
 * **Step 2: Kickoff Execution:** With the Crew object configured and instantiated, the method will call crew.kickoff() to start the agentic workflow. This call is blocking and will return only when the crew has completed
   all its assigned tasks.
 * **Step 3: Adapt the Output:** The kickoff method returns a CrewOutput object.9 The final and most critical step for this adapter is to translate this framework-specific output into the system's standardized  
-  ExecutionResult data model. This involves a meticulous one-to-one mapping of fields: the raw output from CrewOutput will populate ExecutionResult.raw\_output, token\_usage will go into ExecutionResult.metadata, and the
-  list of tasks\_output will be transformed into a list of TaskExecutionRecord objects. This final translation enforces the abstraction boundary and ensures the application layer receives a consistent, predictable
+  ExecutionResult data model. This involves a meticulous one-to-one mapping of fields: the raw output from CrewOutput will populate ExecutionResult.raw_output, token_usage will go into ExecutionResult.metadata, and the
+  list of tasks_output will be transformed into a list of TaskExecutionRecord objects. This final translation enforces the abstraction boundary and ensures the application layer receives a consistent, predictable
   result.
 
 ### **3.3. Handling Configuration and Dependencies**
@@ -361,7 +361,7 @@ JSON
 
 {  
 "process": "hierarchical",  
-"manager\_llm": {  
+"manager_llm": {  
 "provider": "openai",  
 "model": "gpt-4-turbo"  
 },  
@@ -374,7 +374,7 @@ JSON
 
 This configuration demonstrates how to specify the execution process and configure underlying services like LLMs and embedders, leveraging CrewAI's support for various providers.1
 
-Python dependencies will be managed to ensure modularity. The crewai library and its optional extras, such as crewai\[tools\], will be defined as optional dependency groups in the project's pyproject.toml file.10 This
+Python dependencies will be managed to ensure modularity. The crewai library and its optional extras, such as crewai[tools], will be defined as optional dependency groups in the project's pyproject.toml file.10 This
 allows users of the system to install the CrewAI-specific dependencies only if they intend to use the
 
 CrewAIOrchestrator, keeping the core installation lightweight.
@@ -397,7 +397,7 @@ langgraph.graph.StatefulGraph that implements the intended workflow. The design 
 
 The implementation of the LangGraphOrchestrator would differ significantly from its CrewAI counterpart, particularly within the execute method.
 
-* The add\_agent and add\_task methods will function similarly, storing the abstract objects in internal lists without immediate translation.
+* The add_agent and add_task methods will function similarly, storing the abstract objects in internal lists without immediate translation.
 * The execute method will be a multi-step compilation and execution process:
     1. **Graph Scaffolding:** Initialize a langgraph.graph.StatefulGraph. A Pydantic or TypedDict object will be defined to represent the state of the graph, which will track the outputs of completed tasks and any other
        necessary information for routing and final result synthesis.
@@ -442,7 +442,7 @@ A phased approach is recommended to manage complexity and deliver value incremen
       or a fast, inexpensive LLM.
     * **Task 3:** Write clear documentation on how to configure and use the CrewAIOrchestrator, including example configuration files.
 * **Phase 3: Demonstration and Refinement (Estimated 1 Sprint)**
-    * **Task 1:** Build a sample application or proof-of-concept within the agentic-knowledge-base project. This application should use the fully implemented system (core interfaces \+ CrewAI adapter) to solve a concrete
+    * **Task 1:** Build a sample application or proof-of-concept within the agentic-knowledge-base project. This application should use the fully implemented system (core interfaces + CrewAI adapter) to solve a concrete
       business problem, such as a research-and-summarize workflow.
     * **Task 2:** Based on the experience of building the sample application, review and refine the core interfaces and configuration mechanisms to improve ergonomics and address any unforeseen issues.
 
@@ -453,7 +453,7 @@ To enhance the robustness and usability of the system, the following strategic p
 **Dependency Injection for LLMs**
 
 The system should avoid hardcoding LLM clients or providers. The configuration dictionary passed to an orchestrator's constructor should be the single source of truth for LLM selection. The adapter should be responsible
-for dynamically instantiating the correct LLM client (e.g., from langchain\_openai, langchain\_anthropic, langchain\_google\_genai) based on this configuration. This practice keeps the core system and the adapters clean
+for dynamically instantiating the correct LLM client (e.g., from langchain_openai, langchain_anthropic, langchain_google_genai) based on this configuration. This practice keeps the core system and the adapters clean
 of specific SDKs and allows for maximum flexibility in model selection.6
 
 **Centralized Configuration**
@@ -467,8 +467,8 @@ Both CrewAI and LangGraph offer strong observability features. CrewAI provides l
 tracing of agent execution.4 To avoid fragmented and inconsistent monitoring, the architecture can be enhanced by making observability a first-class, abstract concept.
 
 This can be achieved by extending the AbstractOrchestrator interface to accept an optional, standardized Tracer or Logger object in its constructor. This object would conform to a simple, internally defined interface (
-e.g., with methods like on\_task\_start, on\_agent\_step, on\_tool\_use). The concrete adapter (CrewAIOrchestrator, LangGraphOrchestrator) would then be responsible for wiring up the underlying framework's native
-callbacks (e.g., CrewAI's step\_callback or LangGraph's tracing mechanisms) to this provided Tracer object. This approach provides the application with a single, unified view of agent execution traces, creating a "single
+e.g., with methods like on_task_start, on_agent_step, on_tool_use). The concrete adapter (CrewAIOrchestrator, LangGraphOrchestrator) would then be responsible for wiring up the underlying framework's native
+callbacks (e.g., CrewAI's step_callback or LangGraph's tracing mechanisms) to this provided Tracer object. This approach provides the application with a single, unified view of agent execution traces, creating a "single
 pane of glass" for monitoring, debugging, and performance analysis, regardless of which backend is orchestrating the workflow.
 
 | Table 2: Core Abstract Base Class (ABC) Summary |                                                                                             |
@@ -480,26 +480,26 @@ pane of glass" for monitoring, debugging, and performance analysis, regardless o
 | AbstractOrchestrator                            | The central interface for executing an agentic workflow; implemented by framework adapters. |
 | ExecutionResult (Model)                         | The standardized data structure for returning results from any orchestrator.                |
 
-| Table 3: Orchestrator Configuration Parameters |                                         |                                                                      |                                                               |
-|:-----------------------------------------------|:----------------------------------------|:---------------------------------------------------------------------|:--------------------------------------------------------------|
-| **Abstract Config Key**                        | **CrewAI Parameter**                    | **LangGraph Interpretation**                                         | **Notes**                                                     |
-| mode: 'sequential'                             | process=Process.sequential              | Compiles a linear graph where each task depends on the previous one. | This is the expected default behavior for simple workflows.   |
-| mode: 'hierarchical'                           | process=Process.hierarchical            | Compiles a manager-worker graph topology.                            | Requires a manager\_llm to be specified in the configuration. |
-| memory: {...}                                  | memory=... (e.g., Memory(embedder=...)) | Configures the Checkpointer for the graph to enable persistence.     | The structure of the memory config object may vary.           |
-| llm\_provider: {...}                           | Passed to Agent and Crew LLM settings.  | Passed to nodes for their individual LLM calls.                      | Defines the default LLM to be used across the workflow.       |
+| Table 3: Orchestrator Configuration Parameters |                                         |                                                                      |                                                              |
+|:-----------------------------------------------|:----------------------------------------|:---------------------------------------------------------------------|:-------------------------------------------------------------|
+| **Abstract Config Key**                        | **CrewAI Parameter**                    | **LangGraph Interpretation**                                         | **Notes**                                                    |
+| mode: 'sequential'                             | process=Process.sequential              | Compiles a linear graph where each task depends on the previous one. | This is the expected default behavior for simple workflows.  |
+| mode: 'hierarchical'                           | process=Process.hierarchical            | Compiles a manager-worker graph topology.                            | Requires a manager_llm to be specified in the configuration. |
+| memory: {...}                                  | memory=... (e.g., Memory(embedder=...)) | Configures the Checkpointer for the graph to enable persistence.     | The structure of the memory config object may vary.          |
+| llm_provider: {...}                            | Passed to Agent and Crew LLM settings.  | Passed to nodes for their individual LLM calls.                      | Defines the default LLM to be used across the workflow.      |
 
 #### **Works cited**
 
-1. CrewAI \- AWS Prescriptive Guidance, accessed on September 23,
+1. CrewAI - AWS Prescriptive Guidance, accessed on September 23,
    2025, [https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-frameworks/crewai.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-frameworks/crewai.html)
-2. LangGraph \- LangChain, accessed on September 23, 2025, [https://www.langchain.com/langgraph](https://www.langchain.com/langgraph)
-3. Introduction \- CrewAI Documentation, accessed on September 23, 2025, [https://docs.crewai.com/introduction](https://docs.crewai.com/introduction)
-4. LangGraph \- GitHub Pages, accessed on September 23, 2025, [https://langchain-ai.github.io/langgraph/](https://langchain-ai.github.io/langgraph/)
-5. Agents \- ️ LangChain, accessed on September 23, 2025, [https://python.langchain.com/docs/concepts/agents/](https://python.langchain.com/docs/concepts/agents/)
-6. Build an Agent \- ️ LangChain, accessed on September 23, 2025, [https://python.langchain.com/docs/tutorials/agents/](https://python.langchain.com/docs/tutorials/agents/)
-7. Processes \- CrewAI Documentation, accessed on September 23, 2025, [https://docs.crewai.com/concepts/processes](https://docs.crewai.com/concepts/processes)
-8. Workflows and agents \- Docs by LangChain, accessed on September 23, 2025, [https://docs.langchain.com/oss/python/langgraph/workflows-agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
-9. Crews \- CrewAI Documentation, accessed on September 23, 2025, [https://docs.crewai.com/concepts/crews](https://docs.crewai.com/concepts/crews)
-10. Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks. \- GitHub, accessed on September
+2. LangGraph - LangChain, accessed on September 23, 2025, [https://www.langchain.com/langgraph](https://www.langchain.com/langgraph)
+3. Introduction - CrewAI Documentation, accessed on September 23, 2025, [https://docs.crewai.com/introduction](https://docs.crewai.com/introduction)
+4. LangGraph - GitHub Pages, accessed on September 23, 2025, [https://langchain-ai.github.io/langgraph/](https://langchain-ai.github.io/langgraph/)
+5. Agents - ️ LangChain, accessed on September 23, 2025, [https://python.langchain.com/docs/concepts/agents/](https://python.langchain.com/docs/concepts/agents/)
+6. Build an Agent - ️ LangChain, accessed on September 23, 2025, [https://python.langchain.com/docs/tutorials/agents/](https://python.langchain.com/docs/tutorials/agents/)
+7. Processes - CrewAI Documentation, accessed on September 23, 2025, [https://docs.crewai.com/concepts/processes](https://docs.crewai.com/concepts/processes)
+8. Workflows and agents - Docs by LangChain, accessed on September 23, 2025, [https://docs.langchain.com/oss/python/langgraph/workflows-agents](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
+9. Crews - CrewAI Documentation, accessed on September 23, 2025, [https://docs.crewai.com/concepts/crews](https://docs.crewai.com/concepts/crews)
+10. Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks. - GitHub, accessed on September
     23, 2025, [https://github.com/crewAIInc/crewAI](https://github.com/crewAIInc/crewAI)
-11. CrewAI Documentation \- CrewAI, accessed on September 23, 2025, [https://docs.crewai.com/](https://docs.crewai.com/)
+11. CrewAI Documentation - CrewAI, accessed on September 23, 2025, [https://docs.crewai.com/](https://docs.crewai.com/)

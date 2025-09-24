@@ -217,7 +217,7 @@ The following table provides a comparative summary of the knowledge base platfor
 | Feature                             | BookStack                                        | Docusaurus                                                | Wiki.js                                                                   |
 |:------------------------------------|:-------------------------------------------------|:----------------------------------------------------------|:--------------------------------------------------------------------------|
 | **Core Technology**                 | PHP/Laravel, MySQL 19                            | React, Node.js (Static Site Generator) 21                 | Node.js, various DBs (PostgreSQL, MySQL, etc.) 24                         |
-| **Programmatic API (CRUD)**         | **Excellent:** Built-in, documented REST API 20  | **None:** File-based, requires Git \+ build process 21    | **Uncertain:** API exists but lacks clear documentation for content CRUD. |
+| **Programmatic API (CRUD)**         | **Excellent:** Built-in, documented REST API 20  | **None:** File-based, requires Git + build process 21     | **Uncertain:** API exists but lacks clear documentation for content CRUD. |
 | **Versioning Method**               | **Excellent:** Database-backed page revisions 19 | **Poor Fit:** File-system snapshots tied to releases 23   | **Excellent:** Database-backed version tracking 24                        |
 | **Rich Content (Diagrams)**         | Excellent: Built-in diagrams.net editor 19       | Excellent: Via MDX and custom React components 21         | Excellent: Built-in diagram generation support 24                         |
 | **Suitability for Agentic Updates** | **High:** Designed for API-driven interaction.   | **Very Low:** Workflow is complex and fragile for agents. | **Medium:** Architecturally sound, but API uncertainty is a risk.         |
@@ -249,7 +249,7 @@ The open-source LLM landscape offers several powerful families of models suitabl
 
 The primary constraint for deploying these models on private infrastructure is the significant hardware requirement, particularly GPU VRAM.
 
-* **Entry-Level (e.g., Llama 3 8B, Mistral 7B):** Running smaller models with reasonable performance requires a modern consumer-grade or prosumer GPU. A minimum of 12GB of VRAM (e.g., NVIDIA RTX 3060\) is often cited,
+* **Entry-Level (e.g., Llama 3 8B, Mistral 7B):** Running smaller models with reasonable performance requires a modern consumer-grade or prosumer GPU. A minimum of 12GB of VRAM (e.g., NVIDIA RTX 3060) is often cited,
   with 16-24GB (e.g., NVIDIA RTX 3090/4090) being strongly recommended for smoother operation and handling longer contexts.45 System RAM of 32-64GB is also advisable.46
 * **High-End (e.g., Llama 3 70B, Command R+):** Larger models demand enterprise-grade hardware. A full-precision Llama 3 70B model requires over 140GB of VRAM, necessitating a multi-GPU setup with accelerators like the
   NVIDIA A100 (80GB).48 Similarly, Command R+ and Mixtral 8x22B are in a class that pushes beyond even a dual RTX 3090 setup.49
@@ -293,10 +293,10 @@ The following tables provide a practical comparison of feasible LLMs for self-ho
 
 | Model            | Parameters       | Key Strengths (Summarization/Structuring)                                         | Estimated VRAM (Quantized) | Recommended Hardware Tier                                          |
 |:-----------------|:-----------------|:----------------------------------------------------------------------------------|:---------------------------|:-------------------------------------------------------------------|
-| **Llama 3 8B**   | 8B               | Excellent instruction following, strong reasoning for its size, efficient 33      | \~6-8 GB                   | Consumer (e.g., RTX 3060 12GB) 46                                  |
-| **Mixtral 8x7B** | 47B (13B active) | High efficiency (SMoE), strong multilingual and code performance 37               | \~30-40 GB                 | Prosumer/Workstation (e.g., RTX 3090/4090 24GB) 60                 |
-| **Llama 3 70B**  | 70B              | State-of-the-art performance, excels at complex reasoning and generation 58       | \~40-50 GB                 | High-End Workstation/Server (e.g., 2x RTX 3090 or 1x A100 80GB) 48 |
-| **Command R+**   | 104B             | Optimized for RAG and tool use, provides citations, strong in enterprise tasks 42 | \~60-70 GB                 | High-End Server (e.g., 2x NVIDIA A6000) 49                         |
+| **Llama 3 8B**   | 8B               | Excellent instruction following, strong reasoning for its size, efficient 33      | ~6-8 GB                    | Consumer (e.g., RTX 3060 12GB) 46                                  |
+| **Mixtral 8x7B** | 47B (13B active) | High efficiency (SMoE), strong multilingual and code performance 37               | ~30-40 GB                  | Prosumer/Workstation (e.g., RTX 3090/4090 24GB) 60                 |
+| **Llama 3 70B**  | 70B              | State-of-the-art performance, excels at complex reasoning and generation 58       | ~40-50 GB                  | High-End Workstation/Server (e.g., 2x RTX 3090 or 1x A100 80GB) 48 |
+| **Command R+**   | 104B             | Optimized for RAG and tool use, provides citations, strong in enterprise tasks 42 | ~60-70 GB                  | High-End Server (e.g., 2x NVIDIA A6000) 49                         |
 
 | Feature/Metric         | Qdrant                                                  | Weaviate                             | Milvus                                                      |
 |:-----------------------|:--------------------------------------------------------|:-------------------------------------|:------------------------------------------------------------|
@@ -333,20 +333,20 @@ The following step-by-step process illustrates the system in action, demonstrati
 1. **Trigger:** The workflow is initiated. This can be a scheduled trigger (e.g., a cron job that initiates a daily check on a set of key sources), an event-based trigger (e.g., a low-confidence answer from the RAG
    system flags a knowledge gap), or a manual trigger from a human administrator.
 2. **Planning (LangGraph):** The LangGraph application is invoked and enters a "Planning" state. A "Planner" agent, powered by the Llama 3 model, receives the initial goal (e.g., "Research the latest developments in
-   agentic AI frameworks"). It breaks this goal down into a concrete, multi-step plan, such as: \`\`. This plan is stored in the graph's state object.
-3. **Research (LangGraph \+ Scrapy/Playwright):** The graph transitions to a "Research" state, iterating through the identified source URLs. For each URL, a "Research" agent first performs a lightweight check. If the
+   agentic AI frameworks"). It breaks this goal down into a concrete, multi-step plan, such as: ``. This plan is stored in the graph's state object.
+3. **Research (LangGraph + Scrapy/Playwright):** The graph transitions to a "Research" state, iterating through the identified source URLs. For each URL, a "Research" agent first performs a lightweight check. If the
    content appears to be static HTML, it invokes the **Scrapy** tool for fast extraction. If the check indicates a dynamic, JavaScript-driven site, it escalates and invokes the **Playwright** tool to fully render the
    page and extract the content. The raw, unstructured text from each source is collected and added to the state object. If a tool fails, LangGraph's logic can handle retries or mark the source as inaccessible.
-4. **Synthesis (LangGraph \+ LLM):** Once research is complete, the graph enters a "Synthesis" state. A "Synthesizer" agent takes the collected raw text from all sources. It uses a series of prompts with the **Llama 3**
+4. **Synthesis (LangGraph + LLM):** Once research is complete, the graph enters a "Synthesis" state. A "Synthesizer" agent takes the collected raw text from all sources. It uses a series of prompts with the **Llama 3**
    model to first summarize the key findings from each source and then synthesize them into a single, coherent document. A final prompt instructs the model to structure this synthesized knowledge into a predefined JSON
-   object with fields like title, summary, key\_features, pros, cons, and source\_urls.
-5. **Update Knowledge Base (LangGraph \+ BookStack API):** The graph transitions to an "Update" state. A "Writer" agent takes the structured JSON output. It uses the **BookStack REST API** to first search for an existing
+   object with fields like title, summary, key_features, pros, cons, and source_urls.
+5. **Update Knowledge Base (LangGraph + BookStack API):** The graph transitions to an "Update" state. A "Writer" agent takes the structured JSON output. It uses the **BookStack REST API** to first search for an existing
    page with a similar title.
     * If a relevant page exists, the agent performs a PUT request to the /api/pages/{id} endpoint, providing the new content. BookStack automatically creates a new *page revision*, preserving the old version.
     * If no page exists, the agent performs a POST request to the /api/pages endpoint, creating a new page within the appropriate Book and Chapter.
 6. **Indexing (BookStack → Qdrant):** This process runs asynchronously to the main agent workflow. A separate service (e.g., a webhook receiver or a polling mechanism) detects the creation or update of a page in
    BookStack. This service retrieves the new content, splits it into meaningful chunks, generates vector embeddings for each chunk using an open-source sentence-transformer model, and upserts these vectors into **Qdrant
-   **. Each vector is stored with associated metadata, including the BookStack page\_id, book\_id, and revision\_id.
+   **. Each vector is stored with associated metadata, including the BookStack page_id, book_id, and revision_id.
 7. **Completion:** The LangGraph workflow concludes, logging its success and the URL of the newly updated or created BookStack page. The new, structured knowledge is now fully indexed in Qdrant and immediately available
    to the RAG system for querying.
 
@@ -367,89 +367,89 @@ This proposed architecture is designed not only to meet the immediate requiremen
 
 #### **Works cited**
 
-1. Best AI Agent Frameworks by Category in 2025 (Open-Source & Proprietary) \- Bitcot, accessed on September 19,
+1. Best AI Agent Frameworks by Category in 2025 (Open-Source & Proprietary) - Bitcot, accessed on September 19,
    2025, [https://www.bitcot.com/best-ai-agent-frameworks-by-category/](https://www.bitcot.com/best-ai-agent-frameworks-by-category/)
-2. Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks. \- GitHub, accessed on September 19,
+2. Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks. - GitHub, accessed on September 19,
    2025, [https://github.com/crewAIInc/crewAI](https://github.com/crewAIInc/crewAI)
 3. Autogen vs LangChain vs CrewAI: Our AI Engineers' Ultimate Comparison Guide, accessed on September 19,
    2025, [https://www.instinctools.com/blog/autogen-vs-langchain-vs-crewai/](https://www.instinctools.com/blog/autogen-vs-langchain-vs-crewai/)
-4. OpenAI Agents SDK vs LangGraph vs Autogen vs CrewAI \- Composio, accessed on September 19,
+4. OpenAI Agents SDK vs LangGraph vs Autogen vs CrewAI - Composio, accessed on September 19,
    2025, [https://composio.dev/blog/openai-agents-sdk-vs-langgraph-vs-autogen-vs-crewai](https://composio.dev/blog/openai-agents-sdk-vs-langgraph-vs-autogen-vs-crewai)
-5. My thoughts on the most popular frameworks today: crewAI, AutoGen, LangGraph, and OpenAI Swarm : r/LangChain \- Reddit, accessed on September 19,
-   2025, [https://www.reddit.com/r/LangChain/comments/1g6i7cj/my\_thoughts\_on\_the\_most\_popular\_frameworks\_today/](https://www.reddit.com/r/LangChain/comments/1g6i7cj/my_thoughts_on_the_most_popular_frameworks_today/)
-6. AutoGen \- AWS Prescriptive Guidance, accessed on September 19,
+5. My thoughts on the most popular frameworks today: crewAI, AutoGen, LangGraph, and OpenAI Swarm : r/LangChain - Reddit, accessed on September 19,
+   2025, [https://www.reddit.com/r/LangChain/comments/1g6i7cj/my_thoughts_on_the_most_popular_frameworks_today/](https://www.reddit.com/r/LangChain/comments/1g6i7cj/my_thoughts_on_the_most_popular_frameworks_today/)
+6. AutoGen - AWS Prescriptive Guidance, accessed on September 19,
    2025, [https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-frameworks/autogen.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-frameworks/autogen.html)
 7. LangChain, AutoGen, and CrewAI. Which AI Framework is Right for You in… | by Yashwant Deshmukh | Medium, accessed on September 19,
    2025, [https://medium.com/@yashwant.deshmukh23/langchain-autogen-and-crewai-2593e7645de7](https://medium.com/@yashwant.deshmukh23/langchain-autogen-and-crewai-2593e7645de7)
 8. Microsoft AutoGen: Orchestrating Multi-Agent LLM Systems | Tribe AI, accessed on September 19,
    2025, [https://www.tribe.ai/applied-ai/microsoft-autogen-orchestrating-multi-agent-llm-systems](https://www.tribe.ai/applied-ai/microsoft-autogen-orchestrating-multi-agent-llm-systems)
-9. microsoft/autogen: A programming framework for agentic AI \- GitHub, accessed on September 19, 2025, [https://github.com/microsoft/autogen](https://github.com/microsoft/autogen)
-10. AutoGen \- Microsoft, accessed on September 19,
-    2025, [https://www.microsoft.com/en-us/research/wp-content/uploads/2025/01/WEF-2025\_Leave-Behind\_AutoGen.pdf](https://www.microsoft.com/en-us/research/wp-content/uploads/2025/01/WEF-2025_Leave-Behind_AutoGen.pdf)
-11. AutoGen \- Microsoft Research, accessed on September 19, 2025, [https://www.microsoft.com/en-us/research/project/autogen/](https://www.microsoft.com/en-us/research/project/autogen/)
+9. microsoft/autogen: A programming framework for agentic AI - GitHub, accessed on September 19, 2025, [https://github.com/microsoft/autogen](https://github.com/microsoft/autogen)
+10. AutoGen - Microsoft, accessed on September 19,
+    2025, [https://www.microsoft.com/en-us/research/wp-content/uploads/2025/01/WEF-2025_Leave-Behind_AutoGen.pdf](https://www.microsoft.com/en-us/research/wp-content/uploads/2025/01/WEF-2025_Leave-Behind_AutoGen.pdf)
+11. AutoGen - Microsoft Research, accessed on September 19, 2025, [https://www.microsoft.com/en-us/research/project/autogen/](https://www.microsoft.com/en-us/research/project/autogen/)
 12. LangChain, accessed on September 19, 2025, [https://www.langchain.com/](https://www.langchain.com/)
-13. Best 30+ Open Source Web Agents \- Research AIMultiple, accessed on September 19, 2025, [https://research.aimultiple.com/open-source-web-agents/](https://research.aimultiple.com/open-source-web-agents/)
-14. Scrapy vs Playwright: Web Scraping Comparison Guide \- Bright Data, accessed on September 19,
+13. Best 30+ Open Source Web Agents - Research AIMultiple, accessed on September 19, 2025, [https://research.aimultiple.com/open-source-web-agents/](https://research.aimultiple.com/open-source-web-agents/)
+14. Scrapy vs Playwright: Web Scraping Comparison Guide - Bright Data, accessed on September 19,
     2025, [https://brightdata.com/blog/web-data/scrapy-vs-playwright](https://brightdata.com/blog/web-data/scrapy-vs-playwright)
-15. Scrapy vs. Playwright: A Comparison for Web Scraping \- Medium, accessed on September 19,
+15. Scrapy vs. Playwright: A Comparison for Web Scraping - Medium, accessed on September 19,
     2025, [https://medium.com/@datajournal/scrapy-vs-playwright-4db74c4ebd95](https://medium.com/@datajournal/scrapy-vs-playwright-4db74c4ebd95)
-16. Scrapy vs Playwright \- Medium, accessed on September 19, 2025, [https://medium.com/@amit25173/scrapy-vs-playwright-112e896f7679](https://medium.com/@amit25173/scrapy-vs-playwright-112e896f7679)
-17. Scrapy vs. Selenium for Web Scraping \- Bright Data, accessed on September 19, 2025, [https://brightdata.com/blog/web-data/scrapy-vs-selenium](https://brightdata.com/blog/web-data/scrapy-vs-selenium)
+16. Scrapy vs Playwright - Medium, accessed on September 19, 2025, [https://medium.com/@amit25173/scrapy-vs-playwright-112e896f7679](https://medium.com/@amit25173/scrapy-vs-playwright-112e896f7679)
+17. Scrapy vs. Selenium for Web Scraping - Bright Data, accessed on September 19, 2025, [https://brightdata.com/blog/web-data/scrapy-vs-selenium](https://brightdata.com/blog/web-data/scrapy-vs-selenium)
 18. Read the Docs: Full featured documentation deployment platform, accessed on September 19, 2025, [https://about.readthedocs.com/](https://about.readthedocs.com/)
 19. BookStack, accessed on September 19, 2025, [https://www.bookstackapp.com/](https://www.bookstackapp.com/)
 20. Hacking BookStack, accessed on September 19, 2025, [https://www.bookstackapp.com/docs/admin/hacking-bookstack/](https://www.bookstackapp.com/docs/admin/hacking-bookstack/)
 21. Docusaurus: Build optimized websites quickly, focus on your content, accessed on September 19, 2025, [https://docusaurus.io/](https://docusaurus.io/)
 22. Introduction | Docusaurus, accessed on September 19, 2025, [https://docusaurus.io/docs](https://docusaurus.io/docs)
-23. Versioning \- Docusaurus, accessed on September 19, 2025, [https://docusaurus.io/docs/versioning](https://docusaurus.io/docs/versioning)
+23. Versioning - Docusaurus, accessed on September 19, 2025, [https://docusaurus.io/docs/versioning](https://docusaurus.io/docs/versioning)
 24. Wiki.js, accessed on September 19, 2025, [https://js.wiki/](https://js.wiki/)
-25. Requirements \- Wiki.js \- requarks.io, accessed on September 19, 2025, [https://docs.requarks.io/install/requirements](https://docs.requarks.io/install/requirements)
-26. Git \- Wiki.js \- requarks.io, accessed on September 19, 2025, [https://docs.requarks.io/storage/git](https://docs.requarks.io/storage/git)
-27. Storage \- Wiki.js \- requarks.io, accessed on September 19, 2025, [https://docs.requarks.io/storage](https://docs.requarks.io/storage)
+25. Requirements - Wiki.js - requarks.io, accessed on September 19, 2025, [https://docs.requarks.io/install/requirements](https://docs.requarks.io/install/requirements)
+26. Git - Wiki.js - requarks.io, accessed on September 19, 2025, [https://docs.requarks.io/storage/git](https://docs.requarks.io/storage/git)
+27. Storage - Wiki.js - requarks.io, accessed on September 19, 2025, [https://docs.requarks.io/storage](https://docs.requarks.io/storage)
 28. Wiki.js, accessed on September 19, 2025, [https://beta.js.wiki/](https://beta.js.wiki/)
-29. API Documentation \- BookStack, accessed on September 19, 2025, [https://bookstack.bassopaolo.com/api/docs](https://bookstack.bassopaolo.com/api/docs)
-30. Evaluating Large Language Models for Structured Science Summarization in the Open Research Knowledge Graph \- MDPI, accessed on September 19,
+29. API Documentation - BookStack, accessed on September 19, 2025, [https://bookstack.bassopaolo.com/api/docs](https://bookstack.bassopaolo.com/api/docs)
+30. Evaluating Large Language Models for Structured Science Summarization in the Open Research Knowledge Graph - MDPI, accessed on September 19,
     2025, [https://www.mdpi.com/2078-2489/15/6/328](https://www.mdpi.com/2078-2489/15/6/328)
-31. LLM Summarization: Techniques, Metrics, and Top Models \- ProjectPro, accessed on September 19,
+31. LLM Summarization: Techniques, Metrics, and Top Models - ProjectPro, accessed on September 19,
     2025, [https://www.projectpro.io/article/llm-summarization/1082](https://www.projectpro.io/article/llm-summarization/1082)
-32. The 11 best open-source LLMs for 2025 \- n8n Blog, accessed on September 19, 2025, [https://blog.n8n.io/open-source-llm/](https://blog.n8n.io/open-source-llm/)
+32. The 11 best open-source LLMs for 2025 - n8n Blog, accessed on September 19, 2025, [https://blog.n8n.io/open-source-llm/](https://blog.n8n.io/open-source-llm/)
 33. Introducing Meta Llama 3: The most capable openly available LLM to date, accessed on September 19, 2025, [https://ai.meta.com/blog/meta-llama-3/](https://ai.meta.com/blog/meta-llama-3/)
-34. Unlocking Llama 3.1: Comprehensive Insights & Benchmarks \- MyScale, accessed on September 19,
+34. Unlocking Llama 3.1: Comprehensive Insights & Benchmarks - MyScale, accessed on September 19,
     2025, [https://myscale.com/blog/top-5-insights-llama-3-1-performance-benchmarks/](https://myscale.com/blog/top-5-insights-llama-3-1-performance-benchmarks/)
-35. Benchmarking Llama 3 for Chinese News Summation: Accuracy, Cultural Nuance, and Societal Value Alignment \- ResearchGate, accessed on September 19,
-    2025, [https://www.researchgate.net/publication/381145759\_Benchmarking\_Llama\_3\_for\_Chinese\_News\_Summation\_Accuracy\_Cultural\_Nuance\_and\_Societal\_Value\_Alignment](https://www.researchgate.net/publication/381145759_Benchmarking_Llama_3_for_Chinese_News_Summation_Accuracy_Cultural_Nuance_and_Societal_Value_Alignment)
+35. Benchmarking Llama 3 for Chinese News Summation: Accuracy, Cultural Nuance, and Societal Value Alignment - ResearchGate, accessed on September 19,
+    2025, [https://www.researchgate.net/publication/381145759_Benchmarking_Llama_3_for_Chinese_News_Summation_Accuracy_Cultural_Nuance_and_Societal_Value_Alignment](https://www.researchgate.net/publication/381145759_Benchmarking_Llama_3_for_Chinese_News_Summation_Accuracy_Cultural_Nuance_and_Societal_Value_Alignment)
 36. Evaluating LLMs and Pre-trained Models for Text Summarization Across Diverse Datasets, accessed on September 19, 2025, [https://arxiv.org/html/2502.19339v2](https://arxiv.org/html/2502.19339v2)
-37. Mixtral of experts \- Mistral AI, accessed on September 19, 2025, [https://mistral.ai/news/mixtral-of-experts](https://mistral.ai/news/mixtral-of-experts)
+37. Mixtral of experts - Mistral AI, accessed on September 19, 2025, [https://mistral.ai/news/mixtral-of-experts](https://mistral.ai/news/mixtral-of-experts)
 38. Mixtral | Prompt Engineering Guide, accessed on September 19, 2025, [https://www.promptingguide.ai/models/mixtral](https://www.promptingguide.ai/models/mixtral)
-39. Models Benchmarks \- Mistral AI Documentation, accessed on September 19, 2025, [https://docs.mistral.ai/getting-started/models/benchmark/](https://docs.mistral.ai/getting-started/models/benchmark/)
-40. Mixtral 8x22B by Mistral AI Crushes Benchmarks in 4+ Languages \- Analytics Vidhya, accessed on September 19,
+39. Models Benchmarks - Mistral AI Documentation, accessed on September 19, 2025, [https://docs.mistral.ai/getting-started/models/benchmark/](https://docs.mistral.ai/getting-started/models/benchmark/)
+40. Mixtral 8x22B by Mistral AI Crushes Benchmarks in 4+ Languages - Analytics Vidhya, accessed on September 19,
     2025, [https://www.analyticsvidhya.com/blog/2024/04/mixtral-8x22b-by-mistral-ai/](https://www.analyticsvidhya.com/blog/2024/04/mixtral-8x22b-by-mistral-ai/)
-41. Command R+ vs. Llama 3 vs. Mixtral 8x22B Comparison \- SourceForge, accessed on September 19,
+41. Command R+ vs. Llama 3 vs. Mixtral 8x22B Comparison - SourceForge, accessed on September 19,
     2025, [https://sourceforge.net/software/compare/Command-R-Plus-vs-Llama-3-vs-Mixtral-8x22B/](https://sourceforge.net/software/compare/Command-R-Plus-vs-Llama-3-vs-Mixtral-8x22B/)
 42. Cohere's Command R+ Model, accessed on September 19, 2025, [https://docs.cohere.com/docs/command-r-plus](https://docs.cohere.com/docs/command-r-plus)
-43. CohereLabs/c4ai-command-r-plus \- Hugging Face, accessed on September 19, 2025, [https://huggingface.co/CohereLabs/c4ai-command-r-plus](https://huggingface.co/CohereLabs/c4ai-command-r-plus)
-44. Papers Explained 166: Command Models | by Ritvik Rastogi \- Medium, accessed on September 19,
+43. CohereLabs/c4ai-command-r-plus - Hugging Face, accessed on September 19, 2025, [https://huggingface.co/CohereLabs/c4ai-command-r-plus](https://huggingface.co/CohereLabs/c4ai-command-r-plus)
+44. Papers Explained 166: Command Models | by Ritvik Rastogi - Medium, accessed on September 19,
     2025, [https://ritvik19.medium.com/papers-explained-166-command-r-models-94ba068ebd2b](https://ritvik19.medium.com/papers-explained-166-command-r-models-94ba068ebd2b)
-45. 6 Self-Hosted & Local LLMs \- Budibase, accessed on September 19, 2025, [https://budibase.com/blog/ai-agents/local-llms/](https://budibase.com/blog/ai-agents/local-llms/)
+45. 6 Self-Hosted & Local LLMs - Budibase, accessed on September 19, 2025, [https://budibase.com/blog/ai-agents/local-llms/](https://budibase.com/blog/ai-agents/local-llms/)
 46. LLaMA 3.3 System Requirements: What You Need to Run It Locally, accessed on September 19,
     2025, [https://www.oneclickitsolution.com/centerofexcellence/aiml/llama-3-3-system-requirements-run-locally](https://www.oneclickitsolution.com/centerofexcellence/aiml/llama-3-3-system-requirements-run-locally)
 47. Mistral 7B System Requirements: What You Need to Run It Locally, accessed on September 19,
     2025, [https://www.oneclickitsolution.com/centerofexcellence/aiml/run-mistral-7b-locally-hardware-software-specs](https://www.oneclickitsolution.com/centerofexcellence/aiml/run-mistral-7b-locally-hardware-software-specs)
-48. GPU Requirement Guide for Llama 3 (All Variants) \- ApX Machine Learning, accessed on September 19,
+48. GPU Requirement Guide for Llama 3 (All Variants) - ApX Machine Learning, accessed on September 19,
     2025, [https://apxml.com/posts/ultimate-system-requirements-llama-3-models](https://apxml.com/posts/ultimate-system-requirements-llama-3-models)
-49. Is it possible to run Command R+ with 64GB RAM \+ 12GB VRAM? : r/LocalLLaMA \- Reddit, accessed on September 19,
-    2025, [https://www.reddit.com/r/LocalLLaMA/comments/1c1zdnr/is\_it\_possible\_to\_run\_command\_r\_with\_64gb\_ram/](https://www.reddit.com/r/LocalLLaMA/comments/1c1zdnr/is_it_possible_to_run_command_r_with_64gb_ram/)
-50. Self-Hosting LLMs in 2025: Complete Guide for Privacy & Cost Savings \- Kextcache, accessed on September 19,
+49. Is it possible to run Command R+ with 64GB RAM + 12GB VRAM? : r/LocalLLaMA - Reddit, accessed on September 19,
+    2025, [https://www.reddit.com/r/LocalLLaMA/comments/1c1zdnr/is_it_possible_to_run_command_r_with_64gb_ram/](https://www.reddit.com/r/LocalLLaMA/comments/1c1zdnr/is_it_possible_to_run_command_r_with_64gb_ram/)
+50. Self-Hosting LLMs in 2025: Complete Guide for Privacy & Cost Savings - Kextcache, accessed on September 19,
     2025, [https://kextcache.com/self-hosting-llms-privacy-cost-efficiency-guide/](https://kextcache.com/self-hosting-llms-privacy-cost-efficiency-guide/)
 51. Self-Hosted LLM: A 5-Step Deployment Guide, accessed on September 19, 2025, [https://www.plural.sh/blog/self-hosting-large-language-models/](https://www.plural.sh/blog/self-hosting-large-language-models/)
-52. Qdrant \- Vector Database \- Qdrant, accessed on September 19, 2025, [https://qdrant.tech/](https://qdrant.tech/)
-53. Vector Database Benchmarks \- Qdrant, accessed on September 19, 2025, [https://qdrant.tech/benchmarks/](https://qdrant.tech/benchmarks/)
+52. Qdrant - Vector Database - Qdrant, accessed on September 19, 2025, [https://qdrant.tech/](https://qdrant.tech/)
+53. Vector Database Benchmarks - Qdrant, accessed on September 19, 2025, [https://qdrant.tech/benchmarks/](https://qdrant.tech/benchmarks/)
 54. Picking a vector database: a comparison and guide for 2023, accessed on September 19, 2025, [https://benchmark.vectorview.ai/vectordbs.html](https://benchmark.vectorview.ai/vectordbs.html)
-55. Top Vector Databases for Enterprise AI in 2025: Complete Selection Guide | by Balaram Panda \- Medium, accessed on September 19,
+55. Top Vector Databases for Enterprise AI in 2025: Complete Selection Guide | by Balaram Panda - Medium, accessed on September 19,
     2025, [https://medium.com/@balarampanda.ai/top-vector-databases-for-enterprise-ai-in-2025-complete-selection-guide-39c58cc74c3f](https://medium.com/@balarampanda.ai/top-vector-databases-for-enterprise-ai-in-2025-complete-selection-guide-39c58cc74c3f)
 56. Open Source Vector Database | Weaviate, accessed on September 19, 2025, [https://weaviate.io/platform](https://weaviate.io/platform)
 57. Milvus | High-Performance Vector Database Built for Scale, accessed on September 19, 2025, [https://milvus.io/](https://milvus.io/)
 58. What is Llama 3? The Experts' View on The Next Generation of Open Source LLMs, accessed on September 19,
     2025, [https://www.datacamp.com/blog/meta-announces-llama-3-the-next-generation-of-open-source-llms](https://www.datacamp.com/blog/meta-announces-llama-3-the-next-generation-of-open-source-llms)
-59. Llama 3's Performance Benchmark Values Explained | by Ingrid Stevens \- Medium, accessed on September 19,
+59. Llama 3's Performance Benchmark Values Explained | by Ingrid Stevens - Medium, accessed on September 19,
     2025, [https://medium.com/@ingridwickstevens/more-llm-acronyms-an-explainer-on-llama-3s-performance-benchmark-values-36722c6dcabb](https://medium.com/@ingridwickstevens/more-llm-acronyms-an-explainer-on-llama-3s-performance-benchmark-values-36722c6dcabb)
 60. How to Run a Self-Hosted LLM Without Going Overboard, accessed on September 19, 2025, [https://blog.ishosting.com/en/self-hosted-llm](https://blog.ishosting.com/en/self-hosted-llm)
