@@ -4,8 +4,8 @@ include config/config.mk
 
 # Colors (disable in CI)
 ifeq ($(CI),true)
-ORANGE_BOLD := 
-RESET := 
+ORANGE_BOLD :=
+RESET :=
 else
 ORANGE_BOLD := \033[1;38;5;208m
 RESET := \033[0m
@@ -44,40 +44,44 @@ install-miniforge: install-homebrew
 			echo "Please restart your terminal or run the $(ORANGE_BOLD)conda init$(RESET) command for your shell."; \
 		fi; \
 	elif [ "$(DETECTED_OS)" = "Linux" ]; then \
-		echo "Detected Linux - detecting architecture..."; \
-		ARCH=$$(uname -m); \
-		echo "DEBUG: ARCH is $$ARCH"; \
-		case "$$ARCH" in \
-			x86_64) MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh";; \
-			aarch64) MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-aarch64.sh";; \
-			*) echo "❌ Unsupported Linux architecture: $$ARCH"; exit 1;; \
-		esac; \
-		echo "Checking for wget..."; \
-		if ! command -v wget >/dev/null 2>&1; then \
-			echo "⚠️  wget not found. In CI environments, wget should be pre-installed."; \
-			echo "If running locally, please install wget for your distribution:"; \
-			echo "  Ubuntu/Debian: sudo apt-get install wget"; \
-			echo "  RHEL/CentOS: sudo yum install wget"; \
-			echo "  Fedora: sudo dnf install wget"; \
-			echo "  Arch: sudo pacman -S wget"; \
-			echo "  openSUSE: sudo zypper install wget"; \
-			if [ "$$CI" = "true" ]; then \
-				echo "❌ CI environment should have wget pre-installed"; \
-				exit 1; \
-			else \
-				echo "❌ Please install wget and try again"; \
-				exit 1; \
-			fi; \
-		fi; \
-		wget $$MINIFORGE_URL -O miniforge.sh; \
-		echo "Installing Miniforge to $$HOME/miniforge3..."; \
-		bash miniforge.sh -b -u -p $$HOME/miniforge3 || { echo "❌ Miniforge installation failed"; exit 1; }; \
-		rm miniforge.sh; \
-		echo "✅ Miniforge installed successfully"; \
-		if [ "$$CI" = "true" ]; then \
-			echo "In CI: Miniforge installed at $$HOME/miniforge3"; \
+		if [ -x "$$HOME/miniforge3/bin/conda" ]; then \
+			echo "✅ Miniforge is already installed."; \
 		else \
-			echo "Please restart your terminal or run the $(ORANGE_BOLD)conda init$(RESET) command for your shell."; \
+			echo "Detected Linux - detecting architecture..."; \
+			ARCH=$$(uname -m); \
+			echo "DEBUG: ARCH is $$ARCH"; \
+			case "$$ARCH" in \
+				x86_64) MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh";; \
+				aarch64) MINIFORGE_URL="https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-aarch64.sh";; \
+				*) echo "❌ Unsupported Linux architecture: $$ARCH"; exit 1;; \
+			esac; \
+			echo "Checking for wget..."; \
+			if ! command -v wget >/dev/null 2>&1; then \
+				echo "⚠️  wget not found. In CI environments, wget should be pre-installed."; \
+				echo "If running locally, please install wget for your distribution:"; \
+				echo "  Ubuntu/Debian: sudo apt-get install wget"; \
+				echo "  RHEL/CentOS: sudo yum install wget"; \
+				echo "  Fedora: sudo dnf install wget"; \
+				echo "  Arch: sudo pacman -S wget"; \
+				echo "  openSUSE: sudo zypper install wget"; \
+				if [ "$$CI" = "true" ]; then \
+					echo "❌ CI environment should have wget pre-installed"; \
+					exit 1; \
+				else \
+					echo "❌ Please install wget and try again"; \
+					exit 1; \
+				fi; \
+			fi; \
+			wget $$MINIFORGE_URL -O miniforge.sh; \
+			echo "Installing Miniforge to $$HOME/miniforge3..."; \
+			bash miniforge.sh -b -u -p $$HOME/miniforge3 || { echo "❌ Miniforge installation failed"; exit 1; }; \
+			rm miniforge.sh; \
+			echo "✅ Miniforge installed successfully"; \
+			if [ "$$CI" = "true" ]; then \
+				echo "In CI: Miniforge installed at $$HOME/miniforge3"; \
+			else \
+				echo "Please restart your terminal or run the $(ORANGE_BOLD)conda init$(RESET) command for your shell."; \
+			fi; \
 		fi; \
 	else \
 		echo "❌ Unsupported operating system: $(DETECTED_OS)"; \
