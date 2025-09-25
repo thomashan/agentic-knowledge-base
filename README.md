@@ -19,4 +19,4 @@ The feature is enabled by setting the `GEMINI_SYSTEM_MD` environment variable wi
 When the variable is set to true or 1, the CLI searches for a file named `system.md` within a `.gemini` directory at the project's
 root. This approach is recommended for project-specific configurations.
 
-We can use `.gemini.plan.example.md` file which can be used as a template for the `.gemini/system.md` file.
+We can use the files in `prompts/template/**` and can be used as a template for the `.gemini/system.md` file.
