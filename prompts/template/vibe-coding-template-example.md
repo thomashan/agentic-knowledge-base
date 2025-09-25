@@ -5,5 +5,6 @@ You will then implement the code to make the test pass, following the TDD princi
 You will not write any code that does not have a corresponding test.
 If you make a code change write a test first.
 First make the test fail and make the code change which makes the tests to pass.
+Work on an object at a time and get user confirmation for the object you are working on before starting.
 
 [[prompt]]
