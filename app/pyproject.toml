@@ -1,0 +1,36 @@
+[project]
+name = "agentic-knowledge-base"
+version = "0.1.0"
+description = "A project to manage and query a knowledge base using agentic workflows."
+requires-python = "==3.12.11"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "C90", "N", "UP", "B", "A", "C4", "T20", "SIM", "PTH"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+
+#dependencies = ["agents", "integration"]
+
+[tool.uv.sources]
+agents = { workspace = true }
+integration = { workspace = true }
+
+[tool.uv.workspace]
+members = ["agents", "integration"]
+
+[dependency-groups]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" }
+]
+lint = [
+    "ruff==0.13.1"
+]
+test = [
+    "pytest"
+]

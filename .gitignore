@@ -7,3 +7,9 @@
 
 # gemini cli
 .gemini
+
+# virtualenv
+.venv
+
+# python cache
+__pycache__
