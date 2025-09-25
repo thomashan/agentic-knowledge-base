@@ -1,5 +1,6 @@
 from app.agents.core.core import add
 
+
 def test_add():
     """Tests the add function."""
     assert add(2, 3) == 5

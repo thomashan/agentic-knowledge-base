@@ -22,20 +22,17 @@ jobs:
           activate-environment: agentic-knowledge-base
 
       - name: Install dependencies
-        working-directory: app
         shell: bash -el {0}
         run: uv sync
 
       - name: Lint with Ruff
-        working-directory: app
         shell: bash -el {0}
         run: uv run -- ruff check .
 
       - name: Check formatting with Ruff
-        working-directory: app
         shell: bash -el {0}
         run: uv run -- ruff format --check .
 
       - name: Run tests with pytest
         shell: bash -el {0}
-        run: pytest
+        run: uv run pytest
