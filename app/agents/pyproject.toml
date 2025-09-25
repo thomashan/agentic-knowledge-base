@@ -2,4 +2,6 @@
 name = "agents"
 version = "0.1.0"
 
-dependencies = []
+dependencies = [
+    "pydantic==2.11.9",
+]
