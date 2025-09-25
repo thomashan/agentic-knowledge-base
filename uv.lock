@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = "==3.12.11"
 
 [manifest]
@@ -39,7 +39,7 @@ test = [{ name = "pytest" }]
 [[package]]
 name = "agents"
 version = "0.1.0"
-source = { editable = "agents" }
+source = { editable = "app/agents" }
 
 [[package]]
 name = "colorama"
@@ -53,7 +53,7 @@ wheels = [
 [[package]]
 name = "inegration"
 version = "0.1.0"
-source = { virtual = "integration" }
+source = { virtual = "app/integration" }
 
 [[package]]
 name = "iniconfig"
