@@ -52,3 +52,35 @@ dev = [
     "pytest==8.4.2",
     "ruff==0.13.2",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "app/agents-core/src",
+    "app/agents-intelligence/src",
+    "app/agents-knowledge/src",
+    "app/agents-orchestrator/crewai/src",
+    "app/agents-orchestrator/langchain/src",
+    "app/agents-planner/src",
+    "app/agents-research/src",
+    "app/agents-retrieval/src",
+    "app/integration-documentation/src",
+    "app/integration-llm/src",
+    "app/integration-scraper/src",
+    "app/integration-search/src",
+    "app/integration-vectordb/src",
+]
+testpaths = [
+    "app/agents-core/tests",
+    "app/agents-intelligence/tests",
+    "app/agents-knowledge/tests",
+    "app/agents-orchestrator/crewai/tests",
+    "app/agents-orchestrator/langchain/tests",
+    "app/agents-planner/tests",
+    "app/agents-research/tests",
+    "app/agents-retrieval/tests",
+    "app/integration-documentation/tests",
+    "app/integration-llm/tests",
+    "app/integration-scraper/tests",
+    "app/integration-search/tests",
+    "app/integration-vectordb/tests",
+]
