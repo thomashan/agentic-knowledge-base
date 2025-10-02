@@ -11,7 +11,7 @@ ORANGE_BOLD := \033[1;38;5;208m
 RESET := \033[0m
 endif
 
-.PHONY: install-homebrew install-miniforge create-conda-env activate-conda-env help
+.PHONY: install-homebrew install-miniforge create-conda-env activate-conda-env clean help
 
 # OS Detection
 DETECTED_OS := $(shell uname -s)
@@ -122,6 +122,16 @@ activate-conda-env: create-conda-env
 	@echo "conda activate agentic-knowledge-base"
 
 
+CLEAN_DIRS ?= .venv __pycache__ .pytest_cache .ruff_cache build *.egg-info
+
+clean:
+	@echo "Cleaning up build artifacts..."
+	@for dir in $(CLEAN_DIRS); do \
+		find . -name "$$dir" -exec rm -rf {} +; \
+	done
+	@echo "Clean up complete."
+
+
 help:
 	@echo "Usage: make [target]"
 	@echo "All targets should be executed from the root directory. (i.e., where this Makefile is located)"
@@ -131,5 +141,6 @@ help:
 	@printf $(HELP_FORMAT) "install-miniforge" "Installs Miniforge."
 	@printf $(HELP_FORMAT) "create-conda-env" "Creates the conda environment 'agentic-knowledge-base'."
 	@printf $(HELP_FORMAT) "activate-conda-env" "Shows the command to activate the conda environment."
+	@printf $(HELP_FORMAT) "clean" "Removes transient directories."
 	@printf $(HELP_FORMAT) "help" "Shows this help message."
 	@echo ""
