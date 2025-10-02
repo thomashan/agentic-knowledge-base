@@ -2,6 +2,8 @@
 name = "agentic-knowledge-base"
 version = "0.1.0"
 description = "A project to manage and query a knowledge base using agentic workflows."
+readme = "README.md"
+
 requires-python = "==3.12.11"
 
 [tool.ruff]
