@@ -33,6 +33,6 @@ jobs:
         shell: bash -el {0}
         run: uv run -- ruff format --check .
 
-      - name: Run tests with pytest
+      - name: Run tests
         shell: bash -el {0}
         run: uv run pytest
