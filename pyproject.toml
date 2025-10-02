@@ -6,6 +6,22 @@ readme = "README.md"
 
 requires-python = "==3.12.11"
 
+dependencies = [
+    "agents-core",
+    "agents-intelligence",
+    "agents-knowledge",
+    "agents-orchestrator-crewai",
+    "agents-orchestrator-langchain",
+    "agents-planner",
+    "agents-research",
+    "agents-retrieval",
+    "integration-documentation",
+    "integration-llm",
+    "integration-scraper",
+    "integration-search",
+    "integration-vectordb",
+]
+
 [tool.ruff]
 line-length = 200
 
@@ -17,20 +33,22 @@ ignore = []
 quote-style = "double"
 
 [tool.uv.sources]
-agents = { workspace = true }
-integration = { workspace = true }
-
-[tool.uv.workspace]
-members = ["app/agents", "app/integration"]
+agents-core = { path = "app/agents-core" }
+agents-intelligence = { path = "app/agents-intelligence" }
+agents-knowledge = { path = "app/agents-knowledge" }
+agents-orchestrator-crewai = { path = "app/agents-orchestrator/crewai" }
+agents-orchestrator-langchain = { path = "app/agents-orchestrator/langchain" }
+agents-planner = { path = "app/agents-planner" }
+agents-research = { path = "app/agents-research" }
+agents-retrieval = { path = "app/agents-retrieval" }
+integration-documentation = { path = "app/integration-documentation" }
+integration-llm = { path = "app/integration-llm" }
+integration-scraper = { path = "app/integration-scraper" }
+integration-search = { path = "app/integration-search" }
+integration-vectordb = { path = "app/integration-vectordb" }
 
 [dependency-groups]
 dev = [
-    { include-group = "lint" },
-    { include-group = "test" }
-]
-lint = [
-    "ruff==0.13.1"
-]
-test = [
-    "pytest"
+    "pytest==8.4.2",
+    "ruff==0.13.2",
 ]
