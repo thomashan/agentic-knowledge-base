@@ -1,4 +1,4 @@
-from app.agents.core.core import add
+from agents.core.core import add
 
 
 def test_add():

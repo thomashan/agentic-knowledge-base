@@ -1,0 +1,10 @@
+[project]
+name = "agents-intelligence"
+version = "0.1.0"
+
+dependencies = [
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"] # Add src to python path for imports
+testpaths = ["tests"] # Tell pytest where to find tests
