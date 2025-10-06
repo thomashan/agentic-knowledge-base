@@ -20,6 +20,7 @@ dependencies = [
     "integration-scraper",
     "integration-search",
     "integration-vectordb",
+    "runner",
 ]
 
 [tool.ruff]
@@ -46,6 +47,7 @@ integration-llm = { path = "app/integration-llm" }
 integration-scraper = { path = "app/integration-scraper" }
 integration-search = { path = "app/integration-search" }
 integration-vectordb = { path = "app/integration-vectordb" }
+runner = { path = "app/runner" }
 
 [dependency-groups]
 dev = [
@@ -68,6 +70,7 @@ pythonpath = [
     "app/integration-scraper/src",
     "app/integration-search/src",
     "app/integration-vectordb/src",
+    "app/runner/src",
 ]
 testpaths = [
     "app/agents-core/tests",
@@ -83,4 +86,5 @@ testpaths = [
     "app/integration-scraper/tests",
     "app/integration-search/tests",
     "app/integration-vectordb/tests",
+    "app/runner/tests",
 ]
