@@ -4,7 +4,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-class CoreException(Exception):
+class CoreError(Exception):
     """Base exception for the core module."""
 
     pass
