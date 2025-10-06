@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -22,15 +22,15 @@ class ExecutionResult(BaseModel):
         ...,
         description="The final, raw string output from the entire orchestration process.",
     )
-    structured_output: Optional[Any] = Field(  # noqa: UP045
+    structured_output: Any | None = Field(
         None,
         description="The final output parsed into a structured format, if applicable.",
     )
-    task_outputs: list[TaskExecutionRecord] = Field(
+    task_outputs: list[TaskExecutionRecord] | None = Field(
         default_factory=list,
         description="A list of outputs from each individual task executed during the run.",
     )
-    metadata: dict[str, Any] = Field(
+    metadata: dict[str, Any] | None = Field(
         default_factory=dict,
         description="A dictionary containing metadata about the execution (e.g., token usage, cost, execution time).",
     )
@@ -80,13 +80,13 @@ class AbstractAgent(ABC):
 
     @property
     @abstractmethod
-    def tools(self) -> list[AbstractTool]:
+    def tools(self) -> list[AbstractTool] | None:
         """A list of tools the agent is equipped with."""
         pass
 
     @property
     @abstractmethod
-    def llm_config(self) -> dict[str, Any]:
+    def llm_config(self) -> dict[str, Any] | None:
         """Configuration for the language model, if specific to this agent."""
         pass
 
@@ -114,7 +114,7 @@ class AbstractTask(ABC):
 
     @property
     @abstractmethod
-    def dependencies(self) -> list["""AbstractTask"""]:
+    def dependencies(self) -> list["AbstractTask"]:
         """
         A list of other tasks that must be completed before this one can start.
         This is crucial for defining non-sequential, graph-based workflows.
@@ -126,7 +126,7 @@ class AbstractOrchestrator(ABC):
     """The core abstract interface for an agent orchestrator."""
 
     @abstractmethod
-    def __init__(self, config: dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         """Initializes the orchestrator with framework-specific configuration."""
         pass
 
