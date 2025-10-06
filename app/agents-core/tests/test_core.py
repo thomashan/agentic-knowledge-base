@@ -1,6 +1,6 @@
 from typing import Any
 
-from agents.core import (
+from agents_core.core import (
     AbstractAgent,
     AbstractOrchestrator,
     AbstractTask,
