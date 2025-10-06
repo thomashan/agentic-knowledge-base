@@ -14,29 +14,36 @@ But it will be helpful for managing research and documentation tasks at a person
 
 We use the workspace layout directory structure from [uv](https://docs.astral.sh/uv/concepts/projects/workspaces/#workspace-sources).
 ```
-agentic-knowledge-base
-├── app
-│   ├── agents-core
+agentic-knowledge-base/
+├── app/
+│   ├── agents-core/
 │   │   ├── pyproject.toml
-│   │   └── src
-│   │   │   └── agents
-│   │   │      └── core
-│   │   │           ├── __init__.py
-│   │   │           └── ...
-│	│	└── tests
-│	│	    ├── __init__.py
-│	│	    └── test_core.py
-│   ├── agents-intelligence
-│   │   ├── ...
-│   ├── agents-knowledge
-│   │   ├── ...
-│   └── ...
+│   │   └── src/
+│   │       └── agents_core/
+│   │           ├── __init__.py
+│   │           └── core.py
+│   │   └── tests/
+│   │       └── test_core.py
+│   │
+│   ├── agents-orchestrator/
+│   │   ├── crewai/
+│   │   │   ├── pyproject.toml
+│   │   │   └── src/
+│   │   │       └── crewai_adapter/
+│   │   │           └── adapter.py
+│   │   │   └── tests/
+│   │   │       └── ...
+│   │   └── factory/
+│   │       ├── pyproject.toml
+│   │       └── src/
+│   │           └── factory/
+│   │               └── factory.py
+│   │
+│   └── (other packages like agents-intelligence, etc.)
+│
 ├── pyproject.toml
 ├── README.md
-├── uv.lock
-└── src
-    └── albatross
-        └── main.py
+└── uv.lock
 ```
 
 
