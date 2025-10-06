@@ -4,6 +4,12 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
+class CoreException(Exception):
+    """Base exception for the core module."""
+
+    pass
+
+
 class TaskExecutionRecord(BaseModel):
     """A record of the output from a single task execution."""
 
