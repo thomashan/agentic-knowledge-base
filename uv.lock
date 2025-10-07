@@ -32,21 +32,21 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agents-core", directory = "app/agents-core" },
-    { name = "agents-intelligence", directory = "app/agents-intelligence" },
-    { name = "agents-knowledge", directory = "app/agents-knowledge" },
-    { name = "agents-orchestrator-crewai", directory = "app/agents-orchestrator-crewai" },
-    { name = "agents-orchestrator-factory", directory = "app/agents-orchestrator-factory" },
-    { name = "agents-orchestrator-langchain", directory = "app/agents-orchestrator-langchain" },
-    { name = "agents-planner", directory = "app/agents-planner" },
-    { name = "agents-research", directory = "app/agents-research" },
-    { name = "agents-retrieval", directory = "app/agents-retrieval" },
-    { name = "integration-documentation", directory = "app/integration-documentation" },
-    { name = "integration-llm", directory = "app/integration-llm" },
-    { name = "integration-scraper", directory = "app/integration-scraper" },
-    { name = "integration-search", directory = "app/integration-search" },
-    { name = "integration-vectordb", directory = "app/integration-vectordb" },
-    { name = "runner", directory = "app/runner" },
+    { name = "agents-core", editable = "app/agents-core" },
+    { name = "agents-intelligence", editable = "app/agents-intelligence" },
+    { name = "agents-knowledge", editable = "app/agents-knowledge" },
+    { name = "agents-orchestrator-crewai", editable = "app/agents-orchestrator-crewai" },
+    { name = "agents-orchestrator-factory", editable = "app/agents-orchestrator-factory" },
+    { name = "agents-orchestrator-langchain", editable = "app/agents-orchestrator-langchain" },
+    { name = "agents-planner", editable = "app/agents-planner" },
+    { name = "agents-research", editable = "app/agents-research" },
+    { name = "agents-retrieval", editable = "app/agents-retrieval" },
+    { name = "integration-documentation", editable = "app/integration-documentation" },
+    { name = "integration-llm", editable = "app/integration-llm" },
+    { name = "integration-scraper", editable = "app/integration-scraper" },
+    { name = "integration-search", editable = "app/integration-search" },
+    { name = "integration-vectordb", editable = "app/integration-vectordb" },
+    { name = "runner", editable = "app/runner" },
 ]
 
 [package.metadata.requires-dev]
@@ -58,7 +58,7 @@ dev = [
 [[package]]
 name = "agents-core"
 version = "0.1.0"
-source = { directory = "app/agents-core" }
+source = { editable = "app/agents-core" }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -69,42 +69,42 @@ requires-dist = [{ name = "pydantic", specifier = "==2.11.9" }]
 [[package]]
 name = "agents-intelligence"
 version = "0.1.0"
-source = { directory = "app/agents-intelligence" }
+source = { editable = "app/agents-intelligence" }
 
 [[package]]
 name = "agents-knowledge"
 version = "0.1.0"
-source = { directory = "app/agents-knowledge" }
+source = { editable = "app/agents-knowledge" }
 
 [[package]]
 name = "agents-orchestrator-crewai"
 version = "0.1.0"
-source = { directory = "app/agents-orchestrator-crewai" }
+source = { editable = "app/agents-orchestrator-crewai" }
 
 [[package]]
 name = "agents-orchestrator-factory"
 version = "0.1.0"
-source = { directory = "app/agents-orchestrator-factory" }
+source = { editable = "app/agents-orchestrator-factory" }
 
 [[package]]
 name = "agents-orchestrator-langchain"
 version = "0.1.0"
-source = { directory = "app/agents-orchestrator-langchain" }
+source = { editable = "app/agents-orchestrator-langchain" }
 
 [[package]]
 name = "agents-planner"
 version = "0.1.0"
-source = { directory = "app/agents-planner" }
+source = { editable = "app/agents-planner" }
 
 [[package]]
 name = "agents-research"
 version = "0.1.0"
-source = { directory = "app/agents-research" }
+source = { editable = "app/agents-research" }
 
 [[package]]
 name = "agents-retrieval"
 version = "0.1.0"
-source = { directory = "app/agents-retrieval" }
+source = { editable = "app/agents-retrieval" }
 
 [[package]]
 name = "annotated-types"
@@ -136,27 +136,27 @@ wheels = [
 [[package]]
 name = "integration-documentation"
 version = "0.1.0"
-source = { directory = "app/integration-documentation" }
+source = { editable = "app/integration-documentation" }
 
 [[package]]
 name = "integration-llm"
 version = "0.1.0"
-source = { directory = "app/integration-llm" }
+source = { editable = "app/integration-llm" }
 
 [[package]]
 name = "integration-scraper"
 version = "0.1.0"
-source = { directory = "app/integration-scraper" }
+source = { editable = "app/integration-scraper" }
 
 [[package]]
 name = "integration-search"
 version = "0.1.0"
-source = { directory = "app/integration-search" }
+source = { editable = "app/integration-search" }
 
 [[package]]
 name = "integration-vectordb"
 version = "0.1.0"
-source = { directory = "app/integration-vectordb" }
+source = { editable = "app/integration-vectordb" }
 
 [[package]]
 name = "packaging"
@@ -270,7 +270,7 @@ wheels = [
 [[package]]
 name = "runner"
 version = "0.1.0"
-source = { directory = "app/runner" }
+source = { editable = "app/runner" }
 
 [[package]]
 name = "typing-extensions"

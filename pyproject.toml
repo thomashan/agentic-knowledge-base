@@ -35,21 +35,21 @@ ignore = []
 quote-style = "double"
 
 [tool.uv.sources]
-agents-core = { path = "app/agents-core" }
-agents-intelligence = { path = "app/agents-intelligence" }
-agents-knowledge = { path = "app/agents-knowledge" }
-agents-orchestrator-crewai = { path = "app/agents-orchestrator-crewai" }
-agents-orchestrator-factory = { path = "app/agents-orchestrator-factory" }
-agents-orchestrator-langchain = { path = "app/agents-orchestrator-langchain" }
-agents-planner = { path = "app/agents-planner" }
-agents-research = { path = "app/agents-research" }
-agents-retrieval = { path = "app/agents-retrieval" }
-integration-documentation = { path = "app/integration-documentation" }
-integration-llm = { path = "app/integration-llm" }
-integration-scraper = { path = "app/integration-scraper" }
-integration-search = { path = "app/integration-search" }
-integration-vectordb = { path = "app/integration-vectordb" }
-runner = { path = "app/runner" }
+agents-core = { path = "app/agents-core", editable = true }
+agents-intelligence = { path = "app/agents-intelligence", editable = true }
+agents-knowledge = { path = "app/agents-knowledge", editable = true }
+agents-orchestrator-crewai = { path = "app/agents-orchestrator-crewai", editable = true }
+agents-orchestrator-factory = { path = "app/agents-orchestrator-factory", editable = true }
+agents-orchestrator-langchain = { path = "app/agents-orchestrator-langchain", editable = true }
+agents-planner = { path = "app/agents-planner", editable = true }
+agents-research = { path = "app/agents-research", editable = true }
+agents-retrieval = { path = "app/agents-retrieval", editable = true }
+integration-documentation = { path = "app/integration-documentation", editable = true }
+integration-llm = { path = "app/integration-llm", editable = true }
+integration-scraper = { path = "app/integration-scraper", editable = true }
+integration-search = { path = "app/integration-search", editable = true }
+integration-vectordb = { path = "app/integration-vectordb", editable = true }
+runner = { path = "app/runner", editable = true }
 
 [dependency-groups]
 dev = [
