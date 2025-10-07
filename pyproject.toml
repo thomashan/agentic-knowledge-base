@@ -11,6 +11,7 @@ dependencies = [
     "agents-intelligence",
     "agents-knowledge",
     "agents-orchestrator-crewai",
+    "agents-orchestrator-factory",
     "agents-orchestrator-langchain",
     "agents-planner",
     "agents-research",
@@ -37,8 +38,9 @@ quote-style = "double"
 agents-core = { path = "app/agents-core" }
 agents-intelligence = { path = "app/agents-intelligence" }
 agents-knowledge = { path = "app/agents-knowledge" }
-agents-orchestrator-crewai = { path = "app/agents-orchestrator/crewai" }
-agents-orchestrator-langchain = { path = "app/agents-orchestrator/langchain" }
+agents-orchestrator-crewai = { path = "app/agents-orchestrator-crewai" }
+agents-orchestrator-factory = { path = "app/agents-orchestrator-factory" }
+agents-orchestrator-langchain = { path = "app/agents-orchestrator-langchain" }
 agents-planner = { path = "app/agents-planner" }
 agents-research = { path = "app/agents-research" }
 agents-retrieval = { path = "app/agents-retrieval" }
@@ -60,8 +62,9 @@ pythonpath = [
     "app/agents-core/src",
     "app/agents-intelligence/src",
     "app/agents-knowledge/src",
-    "app/agents-orchestrator/crewai/src",
-    "app/agents-orchestrator/langchain/src",
+    "app/agents-orchestrator-crewai/src",
+    "app/agents-orchestrator-factory/src",
+    "app/agents-orchestrator-langchain/src",
     "app/agents-planner/src",
     "app/agents-research/src",
     "app/agents-retrieval/src",
@@ -76,8 +79,9 @@ testpaths = [
     "app/agents-core/tests",
     "app/agents-intelligence/tests",
     "app/agents-knowledge/tests",
-    "app/agents-orchestrator/crewai/tests",
-    "app/agents-orchestrator/langchain/tests",
+    "app/agents-orchestrator-crewai/tests",
+    "app/agents-orchestrator-factory/tests",
+    "app/agents-orchestrator-langchain/tests",
     "app/agents-planner/tests",
     "app/agents-research/tests",
     "app/agents-retrieval/tests",
