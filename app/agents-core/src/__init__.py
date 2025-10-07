@@ -1,5 +1,5 @@
 """
-Public API for the agents.core package.
+Public API for the agents_core package.
 Exposes abstract interfaces and models for testing and external use.
 """
 

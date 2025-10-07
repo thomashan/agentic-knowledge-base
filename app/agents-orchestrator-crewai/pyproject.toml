@@ -3,8 +3,6 @@ name = "agents-orchestrator-crewai"
 version = "0.1.0"
 
 dependencies = [
+    "agents-core",
+    "crewai==0.201.1",
 ]
-
-[tool.pytest.ini_options]
-pythonpath = ["src"] # Add src to python path for imports
-testpaths = ["tests"] # Tell pytest where to find tests
