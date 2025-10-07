@@ -11,6 +11,7 @@ dependencies = [
     { name = "agents-intelligence" },
     { name = "agents-knowledge" },
     { name = "agents-orchestrator-crewai" },
+    { name = "agents-orchestrator-factory" },
     { name = "agents-orchestrator-langchain" },
     { name = "agents-planner" },
     { name = "agents-research" },
@@ -34,8 +35,9 @@ requires-dist = [
     { name = "agents-core", directory = "app/agents-core" },
     { name = "agents-intelligence", directory = "app/agents-intelligence" },
     { name = "agents-knowledge", directory = "app/agents-knowledge" },
-    { name = "agents-orchestrator-crewai", directory = "app/agents-orchestrator/crewai" },
-    { name = "agents-orchestrator-langchain", directory = "app/agents-orchestrator/langchain" },
+    { name = "agents-orchestrator-crewai", directory = "app/agents-orchestrator-crewai" },
+    { name = "agents-orchestrator-factory", directory = "app/agents-orchestrator-factory" },
+    { name = "agents-orchestrator-langchain", directory = "app/agents-orchestrator-langchain" },
     { name = "agents-planner", directory = "app/agents-planner" },
     { name = "agents-research", directory = "app/agents-research" },
     { name = "agents-retrieval", directory = "app/agents-retrieval" },
@@ -77,12 +79,17 @@ source = { directory = "app/agents-knowledge" }
 [[package]]
 name = "agents-orchestrator-crewai"
 version = "0.1.0"
-source = { directory = "app/agents-orchestrator/crewai" }
+source = { directory = "app/agents-orchestrator-crewai" }
+
+[[package]]
+name = "agents-orchestrator-factory"
+version = "0.1.0"
+source = { directory = "app/agents-orchestrator-factory" }
 
 [[package]]
 name = "agents-orchestrator-langchain"
 version = "0.1.0"
-source = { directory = "app/agents-orchestrator/langchain" }
+source = { directory = "app/agents-orchestrator-langchain" }
 
 [[package]]
 name = "agents-planner"
