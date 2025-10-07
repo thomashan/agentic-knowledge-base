@@ -11,9 +11,9 @@ e.g., CrewAI, LangChain). This mitigates the risk of framework lock-in, ensuring
 
 The architecture will be formally modeled on the **Adapter Pattern**.
 
-- **`app/agents/core/`**: This directory will contain the **target interfaces**—a set of Abstract Base Classes (ABCs) and Pydantic models that define the system's internal, framework-agnostic representation of agents,
-  tasks, and orchestration.
-- **`app/agents/orchestrator/`**: This directory will house the **Adapters**. Each subdirectory (e.g., `crewai/`, `langchain/`) will contain a concrete implementation of the core orchestrator interface, responsible for
+- **`app/agents-core/`**: This package contains the **target interfaces**—a set of Abstract Base Classes (ABCs) and Pydantic models that define the system's internal, framework-agnostic representation of agents,
+  tasks, and orchestration. All core abstractions are currently defined in `src/agents_core/core.py`.
+- **`app/agents-orchestrator-*/`**: These packages house the **Adapters**. Each package (e.g., `agents-orchestrator-crewai/`, `agents-orchestrator-langchain/`) contains a concrete implementation of the core orchestrator interface, responsible for
   translating the system's abstract concepts into the specific API calls of the target framework.
 
 The application's business logic will interact exclusively with the core interfaces. The core interface will delegate calls to the configured adapter, which manages the underlying framework's components.
@@ -27,37 +27,49 @@ The application's business logic will interact exclusively with the core interfa
 
 ## 2. Proposed Directory Structure
 
-This structure promotes a clean separation of concerns.
+This structure reflects the current project layout, with each component as a separate package.
 
 ```
-app/agents/
-├── core/
-│   ├── __init__.py
-│   ├── abc.py          # Abstract Base Classes for core contracts
-│   ├── models.py       # Pydantic data models for standardized data transfer
-│   └── exceptions.py   # Custom exception hierarchy
+app/
+├── agents-core/
+│   ├── pyproject.toml
+│   └── src/
+│       └── agents_core/
+│           ├── __init__.py
+│           └── core.py         # Contains all core abstractions (ABC, Models, Exceptions)
 │
-└── orchestrator/
-    ├── __init__.py
-    ├── factory.py      # OrchestratorFactory for creating instances
-    ├── crewai/
-    │   ├── __init__.py
-    │   └── adapter.py  # Concrete implementation for CrewAI
-    └── langchain/
-        ├── __init__.py
-        └── adapter.py  # Skeleton for future LangChain implementation
+├── agents-orchestrator-factory/
+│   ├── pyproject.toml
+│   └── src/
+│       └── factory/
+│           ├── __init__.py
+│           └── factory.py      # OrchestratorFactory for creating instances
+│
+├── agents-orchestrator-crewai/
+│   ├── pyproject.toml
+│   └── src/
+│       └── crewai_adapter/
+│           ├── __init__.py
+│           └── adapter.py      # Concrete implementation for CrewAI
+│
+└── agents-orchestrator-langchain/
+    ├── pyproject.toml
+    └── src/
+        └── langchain_adapter/
+            ├── __init__.py
+            └── adapter.py      # Skeleton for future LangChain implementation
 ```
 
-## 3. Core Abstractions (`app/agents/core/`)
+## 3. Core Abstractions (from `app/agents-core/`)
 
 This is the definitive contract for all components interacting with the orchestration layer.
 
-### 3.1. `models.py`: Standardized Data Models
+### 3.1. Data Models (in `core.py`)
 
 Using Pydantic ensures robust data validation and serialization.
 
 ```
-# app/agents/core/models.py
+# Excerpt from app/agents-core/src/agents_core/core.py
 
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
@@ -80,12 +92,12 @@ class ExecutionResult(BaseModel):
 
 ```
 
-### 3.2. `abc.py`: Core Contracts
+### 3.2. Core Contracts (in `core.py`)
 
 These ABCs define the essential components of the agentic system.
 
 ```
-# app/agents/core/abc.py
+# Excerpt of ABCs from app/agents-core/src/agents_core/core.py
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
@@ -225,14 +237,14 @@ The `CrewAIOrchestrator` will be the first concrete implementation of `AbstractO
 ## 5. Phased Implementation Roadmap
 
 - **Phase 1: Core Foundation (1-2 Sprints)**
-    1. Implement all Pydantic data models in `app/agents/core/models.py`.
-    2. Define all Abstract Base Classes (ABCs) in `app/agents/core/abc.py`.
-    3. Define the custom exception hierarchy in `app/agents/core/exceptions.py`.
+    1. Implement all Pydantic data models in `app/agents-core/src/agents_core/core.py`.
+    2. Define all Abstract Base Classes (ABCs) in `app/agents-core/src/agents_core/core.py`.
+    3. Define the custom exception hierarchy in `app/agents-core/src/agents_core/core.py`.
     4. Develop unit tests for the core components using a mock orchestrator.
 
 - **Phase 2: CrewAI Integration (2-3 Sprints)**
-    1. Implement the `CrewAIOrchestrator` adapter in `app/agents/orchestrator/crewai/adapter.py`.
-    2. Implement the `OrchestratorFactory` in `app/agents/orchestrator/factory.py`.
+    1. Implement the `CrewAIOrchestrator` adapter in `app/agents-orchestrator-crewai/src/crewai_adapter/adapter.py`.
+    2. Implement the `OrchestratorFactory` in `app/agents-orchestrator-factory/src/factory/factory.py`.
     3. Develop integration tests for the adapter, using a mock or inexpensive LLM.
     4. Write documentation on configuring and using the `CrewAIOrchestrator`.
 
