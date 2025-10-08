@@ -234,7 +234,53 @@ The `CrewAIOrchestrator` will be the first concrete implementation of `AbstractO
     - It will call `crew.kickoff()` to run the workflow.
     - **Crucially**, it will then translate the returned `CrewOutput` object into the system's standardized `ExecutionResult` data model, ensuring the abstraction boundary is maintained.
 
-## 5. Phased Implementation Roadmap
+## 5. Integration Testing with Local LLMs
+
+To ensure the system's compatibility and functionality with local Large Language Models, a dedicated integration testing strategy will be implemented. This strategy focuses on verifying end-to-end flows using locally hosted LLMs.
+
+### 5.1. Integration Strategy
+
+Support for local LLMs (e.g., via Ollama, LM Studio, vLLM) will be a first-class citizen. The LLM configuration within `AbstractAgent` or the orchestrator's global configuration will allow specifying a local endpoint (e.g., `http://localhost:11434/v1` for Ollama).
+
+### 5.2. Testing Implementation
+
+1.  **Dedicated Test Suite**: The integration test suite located at `app/integration-llm/tests/` will be utilized.
+2.  **Configurable LLM Provider**: The `conftest.py` fixture for `real_llm_client` will be updated to support a `local` provider option. When `INTEGRATION_TEST_LLM_PROVIDER` is set to `local`, the fixture will instantiate an LLM client configured to connect to a local endpoint specified by an environment variable (e.g., `LOCAL_LLM_ENDPOINT`).
+3.  **Existing Test Reusability**: The existing integration tests (`test_llm_api.py`, `test_llm_agent_flow.py`, `test_llm_tool_use.py`) are designed to be reusable. They will run against the local LLM, verifying API connectivity, end-to-end agent flows, and the LLM's ability to use and interpret tools.
+
+### 5.3. Steps to Run Local LLM Integration Tests
+
+To execute the integration tests against a local LLM, follow these steps:
+
+1.  **Prerequisites**: Ensure a local LLM inference server (e.g., Ollama, LM Studio) is running and accessible. For Ollama, this typically means running `ollama serve` and having a model pulled (e.g., `ollama pull llama3`).
+2.  **Set Environment Variables**:
+    *   Set `INTEGRATION_TEST_LLM_PROVIDER=local`.
+    *   Set `LOCAL_LLM_ENDPOINT` to the URL of your local LLM server (e.g., `http://localhost:11434/v1`).
+3.  **Install Dependencies**: Ensure all project dependencies, including `pytest`, are installed.
+4.  **Execute Tests**: Navigate to the project root directory and run the tests using `pytest`:
+    ```bash
+    pytest -m integration app/integration-llm/tests/
+    ```
+    This command will execute all tests marked with `@pytest.mark.integration` within the `app/integration-llm/tests/` directory, using the locally configured LLM.
+
+### 5.4. Expected Outcomes
+
+Successful execution of these tests will confirm:
+*   The system's ability to connect to and communicate with a local LLM inference server.
+*   The correct functioning of agentic workflows when powered by a local LLM.
+*   The LLM's capability to effectively utilize defined tools within the orchestration process.
+*   The robustness of the adapter pattern in abstracting LLM implementation details.
+
+### 5.5. Troubleshooting Guide
+
+*   **LLM Server Not Reachable**: Ensure your local LLM inference server (e.g., Ollama) is running and that the `LOCAL_LLM_ENDPOINT` environment variable is correctly set to its accessible URL (e.g., `http://localhost:11434/v1`). Check firewall settings if connection issues persist.
+*   **Model Not Found**: If using Ollama, ensure the required model (e.g., `llama3`) has been pulled using `ollama pull <model_name>`.
+*   **API Key Errors**: Although local LLMs typically don't require API keys, if you're switching between local and cloud LLMs, ensure that any cloud-specific API key environment variables (e.g., `OPENAI_API_KEY`, `GEMINI_API_KEY`) are correctly set or unset as needed.
+*   **Test Failures - Unexpected Output**: LLM outputs can be non-deterministic. If a test fails due to unexpected output, first verify the prompt and expected output. Consider adjusting assertions to be more flexible (e.g., checking for keywords instead of exact phrases) or re-running the test to account for variability.
+*   **Performance Issues**: Local LLMs can be resource-intensive. Ensure your machine meets the recommended specifications for the model you are running. Close other demanding applications if tests are running slowly.
+*   **Dependency Issues**: Confirm all Python dependencies are installed (`pip install -r requirements.txt` or `uv pip install -r requirements.txt`).
+
+## 6. Phased Implementation Roadmap
 
 - **Phase 1: Core Foundation (1-2 Sprints)**
     1. Implement all Pydantic data models in `app/agents-core/src/agents_core/core.py`.
@@ -245,7 +291,7 @@ The `CrewAIOrchestrator` will be the first concrete implementation of `AbstractO
 - **Phase 2: CrewAI Integration (2-3 Sprints)**
     1. Implement the `CrewAIOrchestrator` adapter in `app/agents-orchestrator-crewai/src/crewai_adapter/adapter.py`.
     2. Implement the `OrchestratorFactory` in `app/agents-orchestrator-factory/src/factory/factory.py`.
-    3. Develop integration tests for the adapter, using a mock or inexpensive LLM.
+    3. Develop integration tests for the adapter, using a mock, inexpensive cloud LLM, or a local LLM.
     4. Write documentation on configuring and using the `CrewAIOrchestrator`.
 
 - **Phase 3: Demonstration & Refinement (1 Sprint)**
@@ -253,7 +299,7 @@ The `CrewAIOrchestrator` will be the first concrete implementation of `AbstractO
     2. Create the skeleton for the `LangChainOrchestrator` to validate the abstraction.
     3. Refine the core interfaces based on the experience of building the PoC.
 
-## 6. Strategic Recommendations
+## 7. Strategic Recommendations
 
 - **Dependency Injection for LLMs**: The orchestrator configuration should be the single source of truth for LLM selection. The adapter should be responsible for dynamically instantiating the correct LLM client (e.g.,
   from `langchain_openai`, `langchain_google_genai`) based on this configuration.
