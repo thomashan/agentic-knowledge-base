@@ -11,7 +11,7 @@ ORANGE_BOLD := \033[1;38;5;208m
 RESET := \033[0m
 endif
 
-.PHONY: install-homebrew install-miniforge create-conda-env activate-conda-env clean help
+.PHONY: install-homebrew install-miniforge create-conda-env activate-conda-env clean help fix-ruff
 
 # OS Detection
 DETECTED_OS := $(shell uname -s)
@@ -132,6 +132,13 @@ clean:
 	@echo "Clean up complete."
 
 
+fix-ruff:
+	@echo "Fixing Ruff issues..."
+	@uv run -- ruff check . --fix
+	@uv run -- ruff format
+	@echo "✅ Ruff fixes applied successfully"
+
+
 help:
 	@echo "Usage: make [target]"
 	@echo "All targets should be executed from the root directory. (i.e., where this Makefile is located)"
@@ -142,5 +149,6 @@ help:
 	@printf $(HELP_FORMAT) "create-conda-env" "Creates the conda environment 'agentic-knowledge-base'."
 	@printf $(HELP_FORMAT) "activate-conda-env" "Shows the command to activate the conda environment."
 	@printf $(HELP_FORMAT) "clean" "Removes transient directories."
+	@printf $(HELP_FORMAT) "fix-ruff" "Automatically fixes Ruff issues in the codebase."
 	@printf $(HELP_FORMAT) "help" "Shows this help message."
 	@echo ""
