@@ -92,3 +92,6 @@ testpaths = [
     "app/integration-vectordb/tests",
     "app/runner/tests",
 ]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
