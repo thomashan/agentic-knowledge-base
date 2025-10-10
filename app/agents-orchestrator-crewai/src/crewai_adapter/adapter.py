@@ -1,7 +1,23 @@
 from typing import Any
 
-from agents_core.core import AbstractAgent, AbstractOrchestrator, AbstractTask, ExecutionResult
+from agents_core.core import AbstractAgent, AbstractOrchestrator, AbstractTask, AbstractTool, ExecutionResult
 from crewai import Agent, Crew, Task
+from crewai.tools import BaseTool
+
+
+class CrewAITool(BaseTool):
+    """A wrapper for AbstractTool to be used with CrewAI."""
+    name: str
+    description: str
+    _abstract_tool: AbstractTool
+
+    def __init__(self, abstract_tool: AbstractTool):
+        super().__init__(name=abstract_tool.name, description=abstract_tool.description)
+        self._abstract_tool = abstract_tool
+
+    def _run(self, *args: Any, **kwargs: Any) -> Any:
+        """Executes the wrapped AbstractTool's execute method."""
+        return self._abstract_tool.execute(*args, **kwargs)
 
 
 class CrewAIOrchestrator(AbstractOrchestrator):
@@ -16,12 +32,17 @@ class CrewAIOrchestrator(AbstractOrchestrator):
 
     def add_agent(self, agent: AbstractAgent) -> None:
         """Registers an abstract agent with the orchestrator."""
+        crewai_tools = [
+            CrewAITool(abstract_tool=tool)
+            for tool in agent.tools or []
+        ]
+        llm = agent.llm_config.get("client") if agent.llm_config else None
         crewai_agent = Agent(
             role=agent.role,
             goal=agent.goal,
             backstory=agent.backstory,
-            tools=list(agent.tools),
-            llm=agent.llm_config,
+            tools=crewai_tools,
+            llm=llm,
         )
         self.crewai_agents.append(crewai_agent)
         self.agent_map[id(agent)] = crewai_agent

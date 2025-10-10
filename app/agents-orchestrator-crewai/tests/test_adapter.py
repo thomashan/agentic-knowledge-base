@@ -1,8 +1,17 @@
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from agents_core.core import AbstractAgent, AbstractTask, AbstractTool, ExecutionResult
 from crewai_adapter.adapter import CrewAIOrchestrator
+
+
+class MockLLM:
+    """A mock LLM for testing purposes."""
+    def supports_stop_words(self) -> bool:
+        return True
+
+    def call(self, *args, **kwargs) -> str:
+        return "Mocked LLM response from MockLLM"
 
 
 class MockAgent(AbstractAgent):
@@ -24,7 +33,8 @@ class MockAgent(AbstractAgent):
 
     @property
     def llm_config(self) -> dict[str, Any] | None:
-        return None
+        # Return a mock LLM client that CrewAI can accept
+        return {"client": MockLLM()}
 
 
 class MockTask(AbstractTask):
