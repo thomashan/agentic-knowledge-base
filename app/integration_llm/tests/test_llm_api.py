@@ -1,4 +1,5 @@
 import os
+import litellm
 
 import pytest
 
@@ -14,7 +15,8 @@ def test_llm_connectivity(real_llm_client):
     # This part needs to be adapted based on the actual LLM client's API
     # For CrewAI-compatible LLMs (MockCrewAILLM):
     try:
-        response_text = real_llm_client._call("Hello, LLM!")
+        response = litellm.completion(model="custom_llm", custom_llm_provider=real_llm_client, messages=[{"role": "user", "content": "Hello, LLM!"}])
+        response_text = response.choices[0].message.content
         assert response_text is not None
         print(f"MockCrewAILLM response: {response_text}")  # noqa: T201
     except Exception as e:

@@ -23,8 +23,8 @@ class MockCalculatorTool(AbstractTool):
 
 # Define an agent that has access to the calculator tool
 class ToolUsingAgent(AbstractAgent):
-    def __init__(self, llm_client: Mock):
-        self._llm_client = llm_client
+    def __init__(self, llm_name: str):
+        self._llm_name = llm_name
 
     @property
     def role(self) -> str:
@@ -44,7 +44,7 @@ class ToolUsingAgent(AbstractAgent):
 
     @property
     def llm_config(self) -> dict[str, Any] | None:
-        return {"client": self._llm_client}
+        return {"client": self._llm_name}
 
 
 # Define a task that requires tool usage
@@ -78,7 +78,7 @@ def test_llm_tool_use_with_real_llm(real_llm_client):
     """
     print(f"\nTesting LLM tool use with provider: {os.getenv('INTEGRATION_TEST_LLM_PROVIDER', 'mock')}")  # noqa: T201
 
-    agent = ToolUsingAgent(llm_client=real_llm_client)
+    agent = ToolUsingAgent(llm_name="mock_llm")
     task = ToolUsingTask(agent=agent)
 
     orchestrator_config = {

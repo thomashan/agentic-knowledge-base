@@ -20,8 +20,8 @@ class MockSearchTool(AbstractTool):
 
 # Define a mock agent that uses the real LLM client
 class RealLLMAgent(AbstractAgent):
-    def __init__(self, llm_client: Mock):
-        self._llm_client = llm_client
+    def __init__(self, llm_name: str):
+        self._llm_name = llm_name
 
     @property
     def role(self) -> str:
@@ -42,7 +42,7 @@ class RealLLMAgent(AbstractAgent):
     @property
     def llm_config(self) -> dict[str, Any] | None:
         # Pass the real LLM client directly or its configuration
-        return {"client": self._llm_client}
+        return {"client": self._llm_name}
 
 
 # Define a mock task
@@ -77,7 +77,7 @@ def test_llm_agent_flow_with_real_llm(real_llm_client):
     print(f"\nTesting LLM agent flow with provider: {os.getenv('INTEGRATION_TEST_LLM_PROVIDER', 'mock')}")  # noqa: T201
 
     # Instantiate the agent with the real LLM client
-    agent = RealLLMAgent(llm_client=real_llm_client)
+    agent = RealLLMAgent(llm_name="mock_llm")
     task = RealLLMTask(agent=agent)
 
     # Configure the orchestrator to use the real LLM (if CrewAI needs it directly)

@@ -1,13 +1,12 @@
 import pytest
 from crewai import Agent, Task, Crew
-from app.integration-llm.tests.conftest import MockCrewAILLM
 
 def test_litellm_with_mock_llm():
     agent = Agent(
         role="Test Agent",
         goal="Test Goal",
         backstory="Test Backstory",
-        llm=MockCrewAILLM()
+        llm="mock_llm"
     )
     task = Task(
         description="Test Task",

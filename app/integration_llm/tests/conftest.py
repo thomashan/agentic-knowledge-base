@@ -1,29 +1,35 @@
 import os
+import litellm
 from typing import Any, List, Optional
 from unittest.mock import Mock
 
 import pytest
 from langchain_core.language_models.llms import BaseLLM
 from langchain_core.messages import BaseMessage
-from langchain_core.outputs import LLMResult
+from langchain_core.outputs import LLMResult, Generation
+from litellm.utils import ModelResponse
 
 
-class MockCrewAILLM:
+class MockCrewAILLM(BaseLLM):
     """A mock LLM that mimics a crewai compatible LLM."""
     mock_response: str = "Mocked LLM response"
-    stop: list[str] = []
 
     def __init__(self, mock_response: str = "Mocked LLM response", **kwargs: Any):
+        super().__init__(**kwargs)
         self.mock_response = mock_response
 
-    def __call__(self, *args, **kwargs):
-        return self.mock_response
+    def _generate(self, prompts: List[str], stop: Optional[List[str]] = None, **kwargs: Any) -> LLMResult:
+        return LLMResult(generations=[[Generation(text=self.mock_response)] for _ in prompts], llm_output={})
 
-    def supports_stop_words(self) -> bool:
-        return True
+    def completion(self, *args, **kwargs):
+        return ModelResponse(choices=[{"message": {"content": self.mock_response}}])
+
+    @property
+    def _llm_type(self) -> str:
+        return "mock_crewai_llm"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def real_llm_client():
     """
     Fixture to provide a configured real LLM client for integration tests.
@@ -31,6 +37,14 @@ def real_llm_client():
     """
     # Example: Using an environment variable to determine which LLM to use
     llm_provider = os.getenv("INTEGRATION_TEST_LLM_PROVIDER", "mock")
+
+    mock_llm_instance = MockCrewAILLM(mock_response="Mocked LLM response from conftest")
+    litellm.register_model({
+        "mock_llm": {
+            "custom_llm": mock_llm_instance,
+            "custom_llm_provider": "custom_openai",
+        }
+    })
 
     if llm_provider == "openai":
         print("Using OpenAI LLM client (placeholder)")  # noqa: T201
@@ -49,7 +63,6 @@ def real_llm_client():
         return mock_llm_instance
     else:
         print("Using Mock LLM client for integration tests. Set INTEGRATION_TEST_LLM_PROVIDER to 'openai' or 'gemini' for real LLM tests.")  # noqa: T201
-        mock_llm_instance = MockCrewAILLM(mock_response="Mocked LLM response from conftest")
         return mock_llm_instance
 
 

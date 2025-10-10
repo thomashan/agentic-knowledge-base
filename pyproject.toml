@@ -86,7 +86,7 @@ testpaths = [
     "app/agents-research/tests",
     "app/agents-retrieval/tests",
     "app/integration-documentation/tests",
-    "app/integration-llm/tests",
+    "app/integration_llm/tests",
     "app/integration-scraper/tests",
     "app/integration-search/tests",
     "app/integration-vectordb/tests",
