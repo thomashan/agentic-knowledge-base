@@ -45,7 +45,7 @@ agents-planner = { path = "app/agents-planner", editable = true }
 agents-research = { path = "app/agents-research", editable = true }
 agents-retrieval = { path = "app/agents-retrieval", editable = true }
 integration-documentation = { path = "app/integration-documentation", editable = true }
-integration-llm = { path = "app/integration-llm", editable = true }
+integration-llm = { path = "app/integration_llm", editable = true }
 integration-scraper = { path = "app/integration-scraper", editable = true }
 integration-search = { path = "app/integration-search", editable = true }
 integration-vectordb = { path = "app/integration-vectordb", editable = true }

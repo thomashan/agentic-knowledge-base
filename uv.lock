@@ -42,7 +42,7 @@ requires-dist = [
     { name = "agents-research", editable = "app/agents-research" },
     { name = "agents-retrieval", editable = "app/agents-retrieval" },
     { name = "integration-documentation", editable = "app/integration-documentation" },
-    { name = "integration-llm", editable = "app/integration-llm" },
+    { name = "integration-llm", editable = "app/integration_llm" },
     { name = "integration-scraper", editable = "app/integration-scraper" },
     { name = "integration-search", editable = "app/integration-search" },
     { name = "integration-vectordb", editable = "app/integration-vectordb" },
@@ -986,7 +986,7 @@ source = { editable = "app/integration-documentation" }
 [[package]]
 name = "integration-llm"
 version = "0.1.0"
-source = { editable = "app/integration-llm" }
+source = { editable = "app/integration_llm" }
 dependencies = [
     { name = "langchain-core" },
 ]
