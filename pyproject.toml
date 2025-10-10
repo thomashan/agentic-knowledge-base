@@ -100,4 +100,5 @@ testpaths = [
     "app/integration-search/tests",
     "app/integration-vectordb/tests",
     "app/runner/tests",
+    "app/utils/tests",
 ]

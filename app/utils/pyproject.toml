@@ -1,0 +1,8 @@
+[project]
+name = "utils"
+version = "0.1.0"
+
+dependencies = [
+    "docker==7.1.0",
+    "testcontainers==4.13.2"
+]

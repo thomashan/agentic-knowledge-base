@@ -3,4 +3,9 @@ name = "integration-llm"
 version = "0.1.0"
 
 dependencies = [
+    "agents-core",
+    "agentic-knowledge-base[crewai]",
+    "python-dotenv==1.1.1",
+    "testcontainers==4.6.0",
+    "requests==2.32.5",
 ]
