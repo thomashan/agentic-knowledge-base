@@ -39,31 +39,33 @@ I came up with the following structure.
 
 ```
 agentic-knowledge-base/
-├── environment.yml
-├── Makefile
-├── README.md
 ├── app/
-│   ├── __init__.py
-│   ├── agents/
-│   │   ├── core/
-│   │   ├── intelligence/
-│   │   ├── knowledge/
-│   │   ├── orchestrator/
-│   │   ├── planner/
-│   │   ├── research/
-│   │   └── retrieval/
-│   └── integration/
-│       ├── documentation/
-│       ├── llm/
-│       ├── scraper/
-│       ├── search/
-│       └── vectordb/
-├── config/
-│   └── config.mk
-├── docs/
-│   ├── decisions.md
-│   ... 
-└── prompts/
-    ├── chatgpt
-    ...
+│   ├── agents-core/
+│   │   ├── pyproject.toml
+│   │   └── src/
+│   │       └── agents_core/
+│   │           ├── __init__.py
+│   │           └── core.py
+│   │   └── tests/
+│   │       └── test_core.py
+│   │
+│   ├── agents-orchestrator/
+│   │   ├── crewai/
+│   │   │   ├── pyproject.toml
+│   │   │   └── src/
+│   │   │       └── crewai_adapter/
+│   │   │           └── adapter.py
+│   │   │   └── tests/
+│   │   │       └── ...
+│   │   └── factory/
+│   │       ├── pyproject.toml
+│   │       └── src/
+│   │           └── factory/
+│   │               └── factory.py
+│   │
+│   └── (agents-intelligence, etc.)
+│
+├── pyproject.toml
+├── README.md
+└── uv.lock
 ```
