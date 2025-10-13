@@ -24,6 +24,11 @@ dependencies = [
     { name = "runner" },
 ]
 
+[package.optional-dependencies]
+crewai = [
+    { name = "crewai" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
@@ -41,6 +46,7 @@ requires-dist = [
     { name = "agents-planner", editable = "app/agents-planner" },
     { name = "agents-research", editable = "app/agents-research" },
     { name = "agents-retrieval", editable = "app/agents-retrieval" },
+    { name = "crewai", marker = "extra == 'crewai'", specifier = "==0.201.1" },
     { name = "integration-documentation", editable = "app/integration-documentation" },
     { name = "integration-llm", editable = "app/integration-llm" },
     { name = "integration-scraper", editable = "app/integration-scraper" },
@@ -48,6 +54,7 @@ requires-dist = [
     { name = "integration-vectordb", editable = "app/integration-vectordb" },
     { name = "runner", editable = "app/runner" },
 ]
+provides-extras = ["crewai"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -81,14 +88,14 @@ name = "agents-orchestrator-crewai"
 version = "0.1.0"
 source = { editable = "app/agents-orchestrator-crewai" }
 dependencies = [
+    { name = "agentic-knowledge-base", extra = ["crewai"] },
     { name = "agents-core" },
-    { name = "crewai" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "agentic-knowledge-base", extras = ["crewai"] },
     { name = "agents-core" },
-    { name = "crewai", specifier = "==0.201.1" },
 ]
 
 [[package]]

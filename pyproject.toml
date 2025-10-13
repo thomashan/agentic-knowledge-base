@@ -57,7 +57,15 @@ dev = [
     "ruff==0.14.0",
 ]
 
+[project.optional-dependencies]
+crewai = [
+    "crewai==0.201.1",
+]
+
 [tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests",
+]
 pythonpath = [
     "app/agents-core/src",
     "app/agents-intelligence/src",
