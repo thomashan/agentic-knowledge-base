@@ -1,7 +1,28 @@
 from typing import Any
 
-from agents_core.core import AbstractAgent, AbstractOrchestrator, AbstractTask, ExecutionResult
+from agents_core.core import AbstractAgent, AbstractOrchestrator, AbstractTask, AbstractTool, ExecutionResult
 from crewai import Agent, Crew, Task
+from crewai.tools import BaseTool
+from pydantic import BaseModel
+
+
+class NoArgs(BaseModel):
+    """No arguments needed for this tool."""
+
+    pass
+
+
+class CrewAITool(BaseTool):
+    """A wrapper to make an AbstractTool compatible with CrewAI."""
+
+    args_schema: type[BaseModel] = NoArgs
+
+    def __init__(self, tool: AbstractTool):
+        super().__init__(name=tool.name, description=tool.description)
+        self._tool = tool
+
+    def _run(self, **kwargs: Any) -> str:
+        return self._tool.execute(**kwargs)
 
 
 class CrewAIOrchestrator(AbstractOrchestrator):
@@ -16,12 +37,18 @@ class CrewAIOrchestrator(AbstractOrchestrator):
 
     def add_agent(self, agent: AbstractAgent) -> None:
         """Registers an abstract agent with the orchestrator."""
+        crewai_tools = [CrewAITool(tool) for tool in agent.tools]
+
+        # The new pattern is to pass the llm to the agent constructor.
+        # The llm_config property of the agent should contain the llm instance.
+        llm_to_use = agent.llm_config
+
         crewai_agent = Agent(
             role=agent.role,
             goal=agent.goal,
             backstory=agent.backstory,
-            tools=list(agent.tools),
-            llm=agent.llm_config,
+            tools=crewai_tools,
+            llm=llm_to_use,
         )
         self.crewai_agents.append(crewai_agent)
         self.agent_map[id(agent)] = crewai_agent
@@ -47,4 +74,5 @@ class CrewAIOrchestrator(AbstractOrchestrator):
 
         result = crew.kickoff()
 
-        return ExecutionResult(raw_output=result)
+        raw_output = result.raw if hasattr(result, "raw") else result
+        return ExecutionResult(raw_output=raw_output)
