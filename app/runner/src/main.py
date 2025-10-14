@@ -1,5 +1,10 @@
+import structlog
+
+log = structlog.get_logger()
+
+
 def main():
-    print("hello world main!")  # noqa: T201
+    log.info("hello world main!")
 
 
 if __name__ == "__main__":
