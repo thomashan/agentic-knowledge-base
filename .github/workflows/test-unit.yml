@@ -19,7 +19,10 @@ jobs:
         with:
           auto-update-conda: true
           environment-file: environment.yml
+          channels: conda-forge,defaults
+          auto-activate-base: false
           activate-environment: agentic-knowledge-base
+          conda-remove-defaults: true
 
       - name: Install dependencies
         shell: bash -el {0}
