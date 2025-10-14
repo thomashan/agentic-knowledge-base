@@ -1,0 +1,28 @@
+name: Test
+
+on: [ push ]
+
+jobs:
+  integration:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # we can't run docker on macos-latest. For more info read macos-docker.md
+        os: [ ubuntu-latest ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          environment-file: environment.yml
+          activate-environment: agentic-knowledge-base
+
+      - name: Run integration tests
+        shell: bash -el {0}
+        # `--capture=no` is equivalent to `-s`
+        run: uv sync; uv run pytest -m "integration" --capture=no
