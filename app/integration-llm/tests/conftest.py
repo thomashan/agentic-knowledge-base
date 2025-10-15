@@ -50,35 +50,35 @@ def ollama_service():
     A session-scoped fixture that starts, manages, and stops an
     Ollama Docker container for the entire test session.
     """
-    log.debug("\n[DEBUG] Setting up ollama_service fixture...")
-    log.debug("[DEBUG] Checking for Docker...")
+    log.debug("Setting up ollama_service fixture...")
+    log.debug("Checking for Docker...")
     try:
         client = docker.from_env(timeout=5)
         client.ping()
-        log.debug("[DEBUG] Docker check passed.")
+        log.debug("Docker check passed.")
     except Exception as e:
         pytest.fail(f"Docker is not running or not installed. Failing integration tests. Error: {e}")
 
-    log.debug("[DEBUG] Creating Ollama container...")
+    log.debug("Creating Ollama container...")
     # Create a GenericContainer for the ollama/ollama image
     container = GenericContainer(image="ollama/ollama:latest")
-    log.debug("[DEBUG] Ollama container created.")
+    log.debug("Ollama container created.")
 
     # Expose the default Ollama port
     container.with_exposed_ports(11434)
 
-    log.debug("[DEBUG] Starting Ollama container...")
+    log.debug("Starting Ollama container...")
     with container as ollama:
-        log.debug("[DEBUG] Waiting for Ollama server to be ready...")
+        log.debug("Waiting for Ollama server to be ready...")
         # Wait until the log message indicates the server is ready
         wait_for_logs(ollama, r"Listening on \[::\]:11434", timeout=120)
-        log.debug("[DEBUG] Ollama server is ready.")
+        log.debug("Ollama server is ready.")
 
         # Get the dynamically mapped host and port
         host = ollama.get_container_host_ip()
         port = ollama.get_exposed_port(11434)
         base_url = f"http://{host}:{port}"
-        log.debug(f"[DEBUG] Ollama service URL: {base_url}")
+        log.debug(f"Ollama service URL: {base_url}")
 
         yield base_url
 
@@ -89,12 +89,12 @@ def llm_factory(ollama_service):
     This fixture provides a factory to create LLM clients for different models.
     It also handles pulling the model if it's not already available.
     """
-    log.debug("[DEBUG] Setting up llm_factory fixture...")
+    log.debug("Setting up llm_factory fixture...")
 
     @cache
     def pull_model(model_name: str):
         """Pull the model using the REST API and cache the result."""
-        log.debug(f"[DEBUG] Pulling model: {model_name}...")
+        log.debug(f"Pulling model: {model_name}...")
         pull_url = f"{ollama_service}/api/pull"
         try:
             response = requests.post(pull_url, json={"name": model_name}, stream=True)
@@ -107,7 +107,7 @@ def llm_factory(ollama_service):
                     if "error" in data:
                         raise Exception(f"Error pulling model: {data['error']}")
                     if data.get("status") == "success":
-                        log.debug(f"[DEBUG] Model {model_name} pulled successfully.")
+                        log.debug(f"Model {model_name} pulled successfully.")
                         return
             else:
                 raise Exception(f"Model {model_name} not pulled successfully")
@@ -115,10 +115,10 @@ def llm_factory(ollama_service):
             pytest.fail(f"Failed to pull model '{model_name}': {e}")
 
     def _factory(model_name: str):
-        log.debug(f"[DEBUG] Creating LLM for model: {model_name}...")
+        log.debug(f"Creating LLM for model: {model_name}...")
         pull_model(model_name)
         llm = LLM(model=f"ollama/{model_name}", base_url=ollama_service)
-        log.debug(f"[DEBUG] LLM for model {model_name} created.")
+        log.debug(f"LLM for model {model_name} created.")
         return llm
 
     return _factory

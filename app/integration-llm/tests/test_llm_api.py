@@ -11,15 +11,15 @@ def test_llm_connectivity(llm_factory):
     """
     Tests basic connectivity to the configured real LLM and verifies a simple response.
     """
-    log.debug("\n[DEBUG] Getting LLM from factory...")
+    log.debug("Getting LLM from factory...")
     llm = llm_factory("qwen2:0.5b")
-    log.debug("[DEBUG] LLM obtained from factory.")
-    log.debug(f"\nTesting LLM connectivity with provider: {os.getenv('INTEGRATION_TEST_LLM_PROVIDER', 'mock')}")
+    log.debug("LLM obtained from factory.")
+    log.debug(f"Testing LLM connectivity with provider: {os.getenv('INTEGRATION_TEST_LLM_PROVIDER', 'mock')}")
 
     try:
-        log.debug("[DEBUG] Calling LLM...")
+        log.debug("Calling LLM...")
         response_text = llm.call("Hello, LLM! Respond with just 'Hello' and nothing else.")
-        log.debug("[DEBUG] LLM call finished.")
+        log.debug("LLM call finished.")
 
         assert response_text is not None
         assert isinstance(response_text, str)
