@@ -47,7 +47,7 @@ requires-dist = [
     { name = "agents-planner", editable = "app/agents-planner" },
     { name = "agents-research", editable = "app/agents-research" },
     { name = "agents-retrieval", editable = "app/agents-retrieval" },
-    { name = "crewai", marker = "extra == 'crewai'", specifier = "==0.201.1" },
+    { name = "crewai", marker = "extra == 'crewai'", specifier = "==0.203.1" },
     { name = "integration-documentation", editable = "app/integration-documentation" },
     { name = "integration-llm", editable = "app/integration-llm" },
     { name = "integration-scraper", editable = "app/integration-scraper" },
@@ -445,7 +445,7 @@ wheels = [
 
 [[package]]
 name = "crewai"
-version = "0.201.1"
+version = "0.203.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
@@ -475,9 +475,9 @@ dependencies = [
     { name = "tomli-w" },
     { name = "uv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c6/85/fee06c332662b025762b89431f232b564a8b078ccd9eb935f0d2ed264eb9/crewai-0.201.1.tar.gz", hash = "sha256:8ed336a7c31c8eb2beb312a94e31c6b8ca54dc5178a76413bfcb5707eb5481c6", size = 6596906, upload-time = "2025-09-26T16:57:53.713Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1a/4a/9d4f97f382df3a7963ccfc1687823619e8f37a3a192b6268f8b53607434e/crewai-0.203.1.tar.gz", hash = "sha256:f77a0cb872a2e6b634fc9b10f641cc9a1ac40cb651bde2af207f001384c9302b", size = 4000260, upload-time = "2025-10-13T18:46:00.503Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/5e/1f9696284c3d5af770b9ea3bfa5ce096d08a94cdc999f9182ca33d5ac888/crewai-0.201.1-py3-none-any.whl", hash = "sha256:798cb882da1d113b0322a574b9ae4b893821fd42a952f9ebcb239d66a68ee5de", size = 472588, upload-time = "2025-09-26T16:57:51.671Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/23/b036ebabf26c0e6f1e5eae2787ba41b751814d963f6be88bc6ae786950b2/crewai-0.203.1-py3-none-any.whl", hash = "sha256:40c7e09e2687f143dc289274e973d23bc7ae9e3ccc20f17d3bad42ebcca0b4e8", size = 473210, upload-time = "2025-10-13T18:45:56.584Z" },
 ]
 
 [[package]]

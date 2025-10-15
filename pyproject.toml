@@ -60,7 +60,7 @@ dev = [
 
 [project.optional-dependencies]
 crewai = [
-    "crewai==0.201.1",
+    "crewai==0.203.1",
 ]
 
 [tool.pytest.ini_options]
