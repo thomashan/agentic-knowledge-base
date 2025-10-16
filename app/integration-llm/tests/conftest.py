@@ -9,7 +9,7 @@ import requests
 import structlog
 from crewai import LLM
 from testcontainers.core.container import DockerContainer as GenericContainer
-from testcontainers.core.waiting_utils import wait_for_logs
+from testcontainers.core.wait_strategies import LogMessageWaitStrategy
 
 # Docker Host Configuration
 # The following logic ensures that the DOCKER_HOST environment variable is set
@@ -66,12 +66,10 @@ def ollama_service():
 
     # Expose the default Ollama port
     container.with_exposed_ports(11434)
+    container.waiting_for(LogMessageWaitStrategy(r"Listening on \[::\]:11434").with_startup_timeout(120))
 
     log.debug("Starting Ollama container...")
     with container as ollama:
-        log.debug("Waiting for Ollama server to be ready...")
-        # Wait until the log message indicates the server is ready
-        wait_for_logs(ollama, r"Listening on \[::\]:11434", timeout=120)
         log.debug("Ollama server is ready.")
 
         # Get the dynamically mapped host and port
