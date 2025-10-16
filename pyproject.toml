@@ -64,6 +64,10 @@ crewai = [
 ]
 
 [tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:The @wait_container_is_ready decorator is deprecated:DeprecationWarning",
+    "ignore:Pydantic serializer warnings:UserWarning",
+]
 markers = [
     "integration: marks tests as integration tests",
 ]
