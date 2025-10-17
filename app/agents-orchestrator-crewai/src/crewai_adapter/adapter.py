@@ -40,8 +40,7 @@ class CrewAIOrchestrator(AbstractOrchestrator):
         crewai_tools = [CrewAITool(tool) for tool in agent.tools]
 
         # The new pattern is to pass the llm to the agent constructor.
-        # The llm_config property of the agent should contain the llm instance.
-        llm_to_use = agent.llm_config
+        llm_to_use = agent.llm
 
         crewai_agent = Agent(
             role=agent.role,

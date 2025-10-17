@@ -30,8 +30,12 @@ class SimpleAgent(AbstractAgent):
         return []
 
     @property
-    def llm_config(self) -> dict[str, Any] | None:
+    def llm(self) -> LLM | None:
         return self._llm
+
+    @property
+    def llm_config(self) -> dict[str, Any] | None:
+        return None
 
 
 class SimpleTask(AbstractTask):

@@ -50,7 +50,7 @@ class ToolAgent(AbstractAgent):
         return [SimpleTool()]
 
     @property
-    def llm_config(self) -> dict[str, Any] | None:
+    def llm(self) -> LLM:
         return self._llm
 
 
