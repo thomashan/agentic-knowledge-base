@@ -59,3 +59,8 @@ agentic-knowledge-base/
 - Create a branch for experimental AI-generated code ("vibe coding")
 - Cherry-pick quality changes into clean feature branches
 - Submit polished PRs to `main` branch
+
+## Flaky Integration Tests
+
+Since using LLM (especially in smaller models) can be flaky, integration tests may fail intermittently.
+This is a known issue and will be addressed in the future.

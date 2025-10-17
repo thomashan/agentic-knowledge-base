@@ -44,6 +44,18 @@ if "DOCKER_HOST" not in os.environ:
             log.warning("Could not find Docker socket.")
 
 
+# Check if the local ollama models directory exists and mount it if it does
+def __setup_ollama_model(container: GenericContainer = None):
+    ollama_models_path = Path("~/.ollama/models").expanduser()
+    if ollama_models_path.exists():
+        log.debug(f"Found local Ollama models at {ollama_models_path}, mounting to container.")
+        container.with_volume_mapping(str(ollama_models_path), "/root/.ollama", "rw")
+    else:
+        log.debug(f"Local Ollama models directory not found at {ollama_models_path}, creating it and mounting to container.")
+        ollama_models_path.mkdir(parents=True, exist_ok=True)
+        container.with_volume_mapping(str(ollama_models_path), "/root/.ollama", "rw")
+
+
 @pytest.fixture(scope="session")
 def ollama_service():
     """
@@ -62,6 +74,7 @@ def ollama_service():
     log.debug("Creating Ollama container...")
     # Create a GenericContainer for the ollama/ollama image
     container = GenericContainer(image="ollama/ollama:latest")
+    __setup_ollama_model(container)
     log.debug("Ollama container created.")
 
     # Expose the default Ollama port
