@@ -66,12 +66,12 @@ class Task(BaseModel):
     description: str
     expected_output: str
     agent: str
-    context: List[int] = []
-    tools: List[str] = []
+    context: list[int] = []
+    tools: list[str] = []
 
 class Plan(BaseModel):
     goal: str
-    tasks: List[Task]
+    tasks: list[Task]
 
 The plan should be a logical sequence of tasks. The 'context' field for a task should list the 'task_id's of any tasks that must be completed before it.
 
