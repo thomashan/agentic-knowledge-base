@@ -1,5 +1,9 @@
 # Agentic Knowledge Base
 
+[![Run Make](https://github.com/thomashan/agentic-knowledge-base/actions/workflows/make.yml/badge.svg)](https://github.com/thomashan/agentic-knowledge-base/actions/workflows/make.yml)
+[![Test - Integration](https://github.com/thomashan/agentic-knowledge-base/actions/workflows/test-integration.yml/badge.svg)](https://github.com/thomashan/agentic-knowledge-base/actions/workflows/test-integration.yml)
+[![Test- Unit](https://github.com/thomashan/agentic-knowledge-base/actions/workflows/test-unit.yml/badge.svg)](https://github.com/thomashan/agentic-knowledge-base/actions/workflows/test-unit.yml)
+
 **Autonomous AI-powered knowledge base for research and documentation**
 
 Built to accelerate research and documentation for [Agentic](https://github.com/thomashan/agentic), this AI-powered knowledge base automates topic research and documentation generation.
