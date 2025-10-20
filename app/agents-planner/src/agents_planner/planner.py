@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Any
 
 from agents_core.core import AbstractAgent, AbstractTool
@@ -16,6 +17,13 @@ class PlannerAgent(AbstractAgent):
 
     def __init__(self, llm):
         self.llm = llm
+        self.prompt_template = self._load_prompt_template()
+
+    @staticmethod
+    def _load_prompt_template() -> str:
+        base_path = Path(__file__).parent.parent.parent.parent.parent / "agent-prompts"
+        prompt_path = base_path / "agents-planner.md"
+        return prompt_path.read_text()
 
     @property
     def role(self) -> str:
@@ -47,68 +55,10 @@ class PlannerAgent(AbstractAgent):
         return None
 
     def generate_plan(self, goal: str) -> Plan:
-        prompt = self._create_prompt(goal)
-        return self._get_plan(goal, prompt)
-
-    def _get_plan(self, goal: str, prompt: str) -> Plan:
-        try:
-            response_text = self.llm.call(prompt)
-            return self._parse_response(response_text, goal)
-        except Exception:
-            return self._get_plan(goal, prompt)
-
-    def _create_prompt(self, goal: str) -> str:
-        # This prompt engineering is crucial. It instructs the LLM on its role,
-        # the desired output format, and the available agent roles.
-        return f"""
-As an expert project planner, create a step-by-step plan to achieve the following goal: '{goal}'
-
-The available specialist agents are:
-- 'Research Agent': Gathers information from the web.
-- 'Intelligence Agent': Analyzes information and synthesizes insights.
-- 'Knowledge Agent': Manages and stores information in the knowledge base.
-
-Your response MUST be a JSON object that strictly follows this Pydantic model:
-
-class Task(BaseModel):
-    task_id: int
-    description: str
-    expected_output: str
-    agent: str
-    context: list[int] = []
-    tools: list[str] = []
-
-class Plan(BaseModel):
-    goal: str
-    tasks: list[Task]
-
-The plan should be a logical sequence of tasks. The 'context' field for a task should list the 'task_id's of any tasks that must be completed before it.
-
-Example:
-{{
-    "goal": "Example Goal",
-    "tasks": [
-        {{
-            "task_id": 1,
-            "description": "First step of the plan.",
-            "expected_output": "A document summarizing the first step.",
-            "agent": "Research Agent",
-            "context": [],
-            "tools": ["search_tool"]
-        }},
-        {{
-            "task_id": 2,
-            "description": "Second step, which depends on the first.",
-            "expected_output": "A report based on the summary from task 1.",
-            "agent": "Intelligence Agent",
-            "context": [1],
-            "tools": []
-        }}
-    ]
-}}
-
-Now, generate the plan for the goal provided above.
-"""
+        prompt = self.prompt_template.format(goal=goal)
+        response_text = self.llm.call(prompt)
+        plan = self._parse_response(response_text, goal)
+        return plan
 
     def _parse_response(self, response_text: str, goal: str) -> Plan:
         try:

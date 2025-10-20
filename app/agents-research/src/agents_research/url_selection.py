@@ -75,7 +75,7 @@ Summarised Content: {result.summarised_content}
         return self.prompt_template.format(topic=self.topic, url_list_section=url_list_section)
 
     def _json_to_url_relevance_scores(self, llm_response: str) -> dict[str, UrlRelevanceScore]:
-        json_object: list[dict[str, str]] = to_json_object(llm_response)
+        json_object = to_json_object(llm_response)
         return self._list_to_dict(json_object)
 
     @staticmethod

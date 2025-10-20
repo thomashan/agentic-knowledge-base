@@ -1,4 +1,4 @@
-from unittest.mock import Mock, PropertyMock
+from unittest.mock import Mock, PropertyMock, patch
 
 import pytest
 from agents_research.models import ResearchOutput
@@ -31,26 +31,59 @@ def mock_scrape_tool():
     return scrape_tool
 
 
-def test_research_agent_instantiation(mock_llm, mock_search_tool, mock_scrape_tool):
-    agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
+def test_research_agent_instantiation(mock_llm, mock_search_tool, mock_scrape_tool, tmp_path):
+    # Create a dummy agent file for the unit test
+    agent_file = tmp_path / "research_agent_unit.md"
+    agent_file.write_text("""
+## Role
+
+The role of the research agent for unit tests.
+
+## Goal
+
+The goal of the research agent for unit tests.
+
+## Backstory
+
+The backstory of the research agent for unit tests.
+""")
+    agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool, agent_file=str(agent_file))
     assert agent is not None
 
 
-def test_llm_driven_url_selection(mock_llm, mock_search_tool, mock_scrape_tool):
-    agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
+@patch("agents_research.url_selection.completion")
+def test_llm_driven_url_selection(mock_completion, mock_llm, mock_search_tool, mock_scrape_tool, tmp_path):
+    # Create a dummy agent file for the unit test
+    agent_file = tmp_path / "research_agent_unit.md"
+    agent_file.write_text("""
+## Role
 
-    # Mock the UrlSelectionAgent
-    agent.url_selection_agent = Mock()
-    agent.url_selection_agent.select_urls.return_value = ["https://example.com/1"]
+The role of the research agent for unit tests.
 
+## Goal
+
+The goal of the research agent for unit tests.
+
+## Backstory
+
+The backstory of the research agent for unit tests.
+""")
+    agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool, agent_file=str(agent_file))
     topic = "test topic"
+
+    mock_response = Mock()
+    mock_choice = Mock()
+    mock_choice.message.content = '["https://example.com/1"]'
+    mock_response.choices = [mock_choice]
+    mock_completion.return_value = mock_response
+
     research_output = agent.run_research(topic)
 
     # Assert that the search tool was called once
     mock_search_tool.execute.assert_called_once_with(query=topic)
 
-    # Assert that the url_selection_agent was called once
-    agent.url_selection_agent.select_urls.assert_called_once()
+    # Assert that the LLM was called once to decide which URLs to scrape
+    mock_completion.assert_called_once()
 
     # Assert that the scrape tool was only called for the URL selected by the LLM
     mock_scrape_tool.execute.assert_called_once_with(url="https://example.com/1")

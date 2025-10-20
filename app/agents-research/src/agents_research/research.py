@@ -1,5 +1,6 @@
 from typing import Any
 
+from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractTool
 
 from .models import ResearchOutput, ResearchResult, SearchResult
@@ -12,29 +13,28 @@ class ResearchAgent(AbstractAgent):
     scraping tools to gather information from the web.
     """
 
-    def __init__(self, llm, search_tool: AbstractTool, scrape_tool: AbstractTool):
+    def __init__(self, llm, search_tool: AbstractTool, scrape_tool: AbstractTool, agent_file: str):
         self.llm = llm
         self.search_tool = search_tool
         self.scrape_tool = scrape_tool
         self.url_selection_agent = UrlSelectionAgent(topic="", llm=llm)
+        reader = AgentDefinitionReader(AgentSchema)
+        agent_data = reader.read_agent(agent_file)
+        self._role = agent_data.role
+        self._goal = agent_data.goal
+        self._backstory = agent_data.backstory
 
     @property
     def role(self) -> str:
-        return "Senior Research Analyst"
+        return self._role
 
     @property
     def goal(self) -> str:
-        return "To conduct thorough, unbiased, and data-driven research on any given topic."
+        return self._goal
 
     @property
     def backstory(self) -> str:
-        return (
-            "You are a master of digital investigation, known for your ability to "
-            "quickly find the most relevant and trustworthy information on the web. "
-            "You are skilled at sifting through noise to find the signal, and you "
-            "use a combination of advanced search techniques and intelligent content "
-            "analysis to build a comprehensive overview of any subject."
-        )
+        return self._backstory
 
     @property
     def prompt_template(self) -> None:

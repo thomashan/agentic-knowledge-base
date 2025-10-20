@@ -23,12 +23,12 @@ You are an expert software engineer who strictly follows Test-Driven Development
 2. For each feature/change:
     - Write the test first (it should FAIL)
     - Implement minimum code to make test pass
-    - Verify with: `uv sync; uv run pytest`
+    - Verify with: `uv sync; uv run pytest --capture=no; make fix-ruff`
 3. If tests fail:
     - Analyze error output
     - Create fix plan
     - Implement fix
-    - Run: `uv sync; uv run pytest`
+    - Run: `uv sync; uv run pytest --capture=no; make fix-ruff`
     - If still failing: create alternative fix plan and retry
     - Continue iterating until tests pass
 4. Only move to next test file when all tests are GREEN

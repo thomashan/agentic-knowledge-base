@@ -46,7 +46,7 @@ def mock_scrape_tool():
 
 
 @pytest.mark.integration
-def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_scrape_tool):
+def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_scrape_tool, tmp_path):
     """
     Tests the ResearchAgent with a real LLM but mock tools to ensure
     the LLM can make a decision without network dependencies.
@@ -54,8 +54,24 @@ def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_
     # 1. Get a real LLM from the factory
     llm = llm_factory("gemma2:2b")
 
+    # Create a dummy agent file for the integration test
+    agent_file = tmp_path / "research_agent_integration.md"
+    agent_file.write_text("""
+## Role
+
+The role of the research agent for integration tests.
+
+## Goal
+
+The goal of the research agent for integration tests.
+
+## Backstory
+
+The backstory of the research agent for integration tests.
+""")
+
     # 2. Instantiate the ResearchAgent
-    agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
+    agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool, agent_file=str(agent_file))
 
     # 3. Define a research topic
     topic = "What is CrewAI?"
