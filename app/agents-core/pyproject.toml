@@ -3,5 +3,5 @@ name = "agents-core"
 version = "0.1.0"
 
 dependencies = [
-    "pydantic==2.12.2",
+    "pydantic==2.12.3",
 ]
