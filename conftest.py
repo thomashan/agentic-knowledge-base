@@ -1,5 +1,7 @@
 import json
 import os
+import subprocess
+import time
 from functools import cache
 from pathlib import Path
 
@@ -60,38 +62,90 @@ def __setup_ollama_model(container: GenericContainer = None):
 def ollama_service():
     """
     A session-scoped fixture that starts, manages, and stops an
-    Ollama Docker container for the entire test session.
+    Ollama Docker container for the entire test session, or uses a local
+    Ollama instance if available and/or running.
     """
     log.debug("Setting up ollama_service fixture...")
-    log.debug("Checking for Docker...")
-    try:
-        client = docker.from_env(timeout=5)
-        client.ping()
-        log.debug("Docker check passed.")
-    except Exception as e:
-        pytest.fail(f"Docker is not running or not installed. Failing integration tests. Error: {e}")
 
-    log.debug("Creating Ollama container...")
-    # Create a GenericContainer for the ollama/ollama image
-    container = GenericContainer(image="ollama/ollama:latest")
-    __setup_ollama_model(container)
-    log.debug("Ollama container created.")
+    ollama_base_url = "http://localhost:11434"
+    ollama_process = None
 
-    # Expose the default Ollama port
-    container.with_exposed_ports(11434)
-    container.waiting_for(LogMessageWaitStrategy(r"Listening on \[::\]:11434").with_startup_timeout(120))
+    # Function to check if local Ollama server is ready
+    def is_ollama_ready(url):
+        try:
+            response = requests.get(f"{url}/api/tags", timeout=5)
+            response.raise_for_status()
+            return True
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.HTTPError):
+            return False
 
-    log.debug("Starting Ollama container...")
-    with container as ollama:
-        log.debug("Ollama server is ready.")
+    # 1. Check if ollama command is available
+    if subprocess.run(["which", "ollama"], capture_output=True).returncode == 0:
+        log.debug("Local ollama command found.")
 
-        # Get the dynamically mapped host and port
-        host = ollama.get_container_host_ip()
-        port = ollama.get_exposed_port(11434)
-        base_url = f"http://{host}:{port}"
-        log.debug(f"Ollama service URL: {base_url}")
+        # 2. Check if local ollama serve is already running
+        if is_ollama_ready(ollama_base_url):
+            log.debug("Local Ollama server is already running. Using existing instance.")
+            yield ollama_base_url
+            return
+        else:
+            log.debug("Local ollama command found, but server not running. Starting local ollama serve.")
+            try:
+                # Start ollama serve in the background
+                ollama_process = subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                log.debug("Started 'ollama serve' in background.")
 
-        yield base_url
+                # Wait for Ollama to be ready
+                max_retries = 10
+                for i in range(max_retries):
+                    if is_ollama_ready(ollama_base_url):
+                        log.debug("Local Ollama server is ready.")
+                        break
+                    log.debug(f"Waiting for local Ollama server to be ready (attempt {i + 1}/{max_retries})...")
+                    time.sleep(2)  # Wait 2 seconds before retrying
+                else:
+                    pytest.fail("Local Ollama server did not become ready within the expected time.")
+
+                yield ollama_base_url
+            finally:
+                if ollama_process:
+                    log.debug("Terminating local ollama serve process.")
+                    ollama_process.terminate()
+                    ollama_process.wait(timeout=5)
+                    if ollama_process.poll() is None:
+                        ollama_process.kill()
+                        ollama_process.wait()
+    else:
+        log.debug("Local ollama command not found. Falling back to Docker container.")
+        log.debug("Checking for Docker...")
+        try:
+            client = docker.from_env(timeout=5)
+            client.ping()
+            log.debug("Docker check passed.")
+        except Exception as e:
+            pytest.fail(f"Docker is not running or not installed. Failing integration tests. Error: {e}")
+
+        log.debug("Creating Ollama container...")
+        # Create a GenericContainer for the ollama/ollama image
+        container = GenericContainer(image="ollama/ollama:latest")
+        __setup_ollama_model(container)
+        log.debug("Ollama container created.")
+
+        # Expose the default Ollama port
+        container.with_exposed_ports(11434)
+        container.waiting_for(LogMessageWaitStrategy(r"Listening on \[::\]:11434").with_startup_timeout(120))
+
+        log.debug("Starting Ollama container...")
+        with container as ollama:
+            log.debug("Ollama server is ready.")
+
+            # Get the dynamically mapped host and port
+            host = ollama.get_container_host_ip()
+            port = ollama.get_exposed_port(11434)
+            base_url = f"http://{host}:{port}"
+            log.debug(f"Ollama service URL: {base_url}")
+
+            yield base_url
 
 
 @pytest.fixture(scope="session")
