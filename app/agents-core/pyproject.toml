@@ -4,4 +4,5 @@ version = "0.1.0"
 
 dependencies = [
     "pydantic==2.12.3",
+    "mistune==3.1.4",
 ]
