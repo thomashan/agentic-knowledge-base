@@ -54,9 +54,20 @@ class ResearchAgent(AbstractAgent):
 
         research_results = []
         for url in selected_urls:
-            content = self.scrape_tool.execute(url=url)
-            if content and "Failed to scrape" not in content:
-                research_results.append(ResearchResult(url=url, content=content))
+            # Basic URL validation
+            if re.match(
+                r"^(?:http|ftp)s?://"  # http:// or https://
+                r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+                r"localhost|"  # localhost...
+                r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+                r"(?::\d+)?"  # optional port
+                r"(?:/?|[/?]\S+)$",
+                url,
+                re.IGNORECASE,
+            ):
+                content = self.scrape_tool.execute(url=url)
+                if content and "Failed to scrape" not in content:
+                    research_results.append(ResearchResult(url=url, content=content))
 
         return ResearchOutput(topic=topic, results=research_results)
 
@@ -71,6 +82,7 @@ You have already conducted an initial search and have the following results:
 
 Based on the titles and snippets, identify the most promising URLs to investigate further.
 Your response MUST be a JSON array of strings, containing only the URLs you have selected.
+Do not include any f-strings or other Python code in your response.
 
 Example:
 ["http://example.com/url1", "http://example.com/url2"]

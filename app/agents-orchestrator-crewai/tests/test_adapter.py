@@ -23,6 +23,10 @@ class MockAgent(AbstractAgent):
         return []
 
     @property
+    def llm(self) -> Any:
+        return None
+
+    @property
     def llm_config(self) -> dict[str, Any] | None:
         return None
 
