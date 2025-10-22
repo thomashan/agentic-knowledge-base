@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
+make clean
+uv sync
+
 while true
 do
   echo "Running integration tests..."
-  make clean
-  uv sync
-  time uv run pytest -m "integration"
-  make fix-ruff
-  echo "Tests finished. Waiting 5 seconds before next run..."
+  time uv run pytest -m "integration" "$@"
+  echo "Tests finished."
 done
