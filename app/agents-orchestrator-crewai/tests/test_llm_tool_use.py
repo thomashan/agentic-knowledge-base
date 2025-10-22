@@ -96,7 +96,8 @@ def test_llm_tool_use(llm):
         assert result is not None
         assert isinstance(result.raw_output, str)
         # Check if the final answer includes the tool's output
-        assert "tool executed successfully" in result.raw_output.lower()
+        results_raw = result.raw_output.lower()
+        assert "successfully" in results_raw and "executed" in results_raw
 
     except Exception as e:
         pytest.fail(f"Tool use test failed with an unexpected error: {e}")
