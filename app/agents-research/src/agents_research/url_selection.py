@@ -1,27 +1,12 @@
-import json
-import re
-from pathlib import Path
-
-import structlog
 from litellm import completion
-
-from agents_research.models import SearchResult, UrlRelevanceScore
+import structlog
 
 log = structlog.get_logger()
 
-
 class UrlSelectionAgent:
-    def __init__(self, topic: str, llm: object = None, relevance_threshold: int = 5):
+    def __init__(self, topic: str, llm: object = None):
         self.topic = topic
         self.llm = llm
-        self.relevance_threshold = relevance_threshold
-        self.prompt_template = self._load_prompt_template()
-
-    @staticmethod
-    def _load_prompt_template() -> str:
-        base_path = Path(__file__).parent.parent.parent.parent.parent / "agent-prompts"
-        prompt_path = base_path / "agents-research-url-selector-prompt.md"
-        return prompt_path.read_text()
 
     def _call_llm(self, prompt: str) -> str:
         if not self.llm:
@@ -39,51 +24,33 @@ class UrlSelectionAgent:
         log.info("LLM Response", response=response_content)
         return response_content
 
-    def select_urls(self, search_results: list[SearchResult]) -> list[str]:
-        prompt = self._build_selection_prompt(search_results)
-        # Convert the search results to a dictionary for quick lookup as LLM may return hallucinated URLs.
-        search_results_dict = {value.url: value for value in search_results}
-        return self._get_relevance_scores(prompt, search_results_dict)
-
-    def _get_relevance_scores(self, prompt: str, search_results_dict: dict[str, SearchResult]) -> list[str]:
+    def select_urls(self, search_results: list[dict]) -> list[str]:
+        prompt = self._build_prompt(search_results)
         llm_response = self._call_llm(prompt)
-        try:
-            relevance_scores = self._json_to_url_relevance_scores(llm_response)
-            # check if all URLs are present in the relevance scores
-            if not all(url in relevance_scores for url in search_results_dict):
-                return self._get_relevance_scores(prompt, search_results_dict)
-            return [str(url) for url, relevance_score in relevance_scores.items() if float(relevance_score.relevance) > self.relevance_threshold]
-        except Exception:
-            return self._get_relevance_scores(prompt, search_results_dict)
+        relevant_urls = self._parse_llm_response(llm_response, search_results)
+        return relevant_urls
 
-    @staticmethod
-    def _build_url_list_section(search_results: list[SearchResult]) -> str:
-        formatted_results = []
-        for i, result in enumerate(search_results):
-            formatted_results.append(f"""--- Result {i + 1} ---
-URL: {result.url}
-Title: {result.title}
-Summarised Content: {result.summarised_content}
+    def _build_prompt(self, search_results: list[dict]) -> str:
+        url_list = "\n".join([f"{i+1}. {result['url']} - YES or NO?" for i, result in enumerate(search_results)])
+        return f"Topic: {self.topic}\n\nRate each URL as relevant (YES) or not relevant (NO):\n\n{url_list}\n\nAnswer format:\n1. YES\n2. NO\n3. YES"
 
-""")
-        url_list_section = "\n".join(formatted_results)
-        return url_list_section
+    def _parse_llm_response(self, llm_response: str, search_results: list[dict]) -> list[str]:
+        relevant_urls = []
+        for i, line in enumerate(llm_response.splitlines()):
+            if "YES" in line.upper():
+                if i < len(search_results):
+                    relevant_urls.append(search_results[i]["url"])
+        return relevant_urls
 
-    def _build_selection_prompt(self, search_results: list[SearchResult]) -> str:
-        url_list_section = self._build_url_list_section(search_results)
-        return self.prompt_template.format(topic=self.topic, url_list_section=url_list_section)
+    def _build_simple_prompt(self, url: str) -> str:
+        return f'Is this URL relevant to the topic "{self.topic}"?\n\nURL: https://www.google.com\nAnswer: NO\n\nURL: {url}\n\nAnswer with only YES or NO.'
 
-    def _json_to_url_relevance_scores(self, llm_response: str) -> dict[str, UrlRelevanceScore]:
-        json_object = self._to_json_object(llm_response)
-        return self._list_to_dict(json_object)
-
-    @staticmethod
-    def _to_json_object(llm_response: str) -> list[dict[str, str]]:
-        json_match = re.search(r"```json\n([\s\S]*?)\n```", llm_response)
-        if json_match:
-            return json.loads(json_match.group(1))
-        return json.loads(llm_response)
-
-    @staticmethod
-    def _list_to_dict(list_of_scores: list[dict[str, str]]) -> dict[str, UrlRelevanceScore]:
-        return {score["url"]: UrlRelevanceScore(url=score["url"], relevance=float(score["relevance"]), rationale=score["rationale"]) for score in list_of_scores}
+    def select_urls_simple(self, search_results: list[dict]) -> list[str]:
+        relevant_urls = []
+        for result in search_results:
+            url = result["url"]
+            prompt = self._build_simple_prompt(url)
+            response = self._call_llm(prompt)
+            if "YES" in response.upper():
+                relevant_urls.append(url)
+        return relevant_urls
