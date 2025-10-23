@@ -67,6 +67,7 @@ crewai = [
 filterwarnings = [
     "ignore:The @wait_container_is_ready decorator is deprecated:DeprecationWarning",
     "ignore:Pydantic serializer warnings:UserWarning",
+    "ignore:Use 'content=<...>' to upload raw bytes/text content.:DeprecationWarning",
 ]
 markers = [
     "integration: marks tests as integration tests",

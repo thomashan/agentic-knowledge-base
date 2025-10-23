@@ -70,6 +70,9 @@ You have already conducted an initial search and have the following results:
 {results_str}
 
 Based on the titles and snippets, identify the most promising URLs to investigate further.
+Only select URLs that appear to be valid, real, and directly relevant to the research topic.
+Exclude any URLs that are clearly placeholders, invalid, or not directly related to the topic.
+You MUST only select URLs that are present in the provided search results. Do NOT introduce any new URLs.
 Your response MUST be a JSON array of strings, containing only the URLs you have selected.
 
 Example:

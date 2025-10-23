@@ -7,7 +7,7 @@
 **Autonomous AI-powered knowledge base for research and documentation**
 
 Built to accelerate research and documentation for [Agentic](https://github.com/thomashan/agentic), this AI-powered knowledge base automates topic research and documentation generation.
-This project practices dogfooding—using the tool to build itself.
+This project practices dogfooding using the tool to build itself.
 
 **Current Status:** Early development, optimized for personal use rather than enterprise scale.
 
@@ -62,5 +62,7 @@ agentic-knowledge-base/
 
 ## Flaky Integration Tests
 
-Since using LLM (especially in smaller models) can be flaky, integration tests may fail intermittently.
-This is a known issue and will be addressed in the future.
+Smaller language models can exhibit intermittent instability, which may lead to occasional failures during integration testing.
+This is a known limitation and will be addressed in future updates.
+To reduce the impact of hallucinations, all LLM-generated outputs—especially structured formats like JSON are treated as untrusted and should undergo strict validation.
+For smaller models, one effective mitigation strategy is to implement retries until a valid response is obtained.
