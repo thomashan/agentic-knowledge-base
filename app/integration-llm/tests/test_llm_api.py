@@ -12,7 +12,7 @@ def test_llm_connectivity(llm_factory):
     Tests basic connectivity to the configured real LLM and verifies a simple response.
     """
     log.debug("Getting LLM from factory...")
-    llm = llm_factory("qwen2:0.5b")
+    llm = llm_factory("gemma2:2b")
     log.debug("LLM obtained from factory.")
     log.debug(f"Testing LLM connectivity with provider: {os.getenv('INTEGRATION_TEST_LLM_PROVIDER', 'mock')}")
 

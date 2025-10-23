@@ -10,9 +10,21 @@ def mock_search_tool():
     search_tool = Mock()
     # Mock search tool to return a realistic set of search results
     search_tool.execute.return_value = [
-        {"url": "https://www.crewai.com/", "title": "CrewAI - The AI Crew Framework", "snippet": "A framework for building multi-agent systems."},
-        {"url": "https://github.com/crewAI/crewAI", "title": "crewAI/crewAI: GitHub", "snippet": "The source code for the CrewAI framework."},
-        {"url": "https://invalid-url.example.com", "title": "Not a real page", "snippet": "This page does not exist."},
+        {
+            "url": "https://www.crewai.com/",
+            "title": "CrewAI - The AI Crew Framework",
+            "summarised_content": "CrewAI helps you build sophisticated multi-agent systems to solve complex problems. Get started with our documentation and examples today.",
+        },
+        {
+            "url": "https://github.com/crewAI/crewAI",
+            "title": "crewAI/crewAI: GitHub",
+            "summarised_content": "The official GitHub repository for CrewAI. Find the source code, report issues, and contribute to the project. Join our community!",
+        },
+        {
+            "url": "https://invalid-url.example.com",
+            "title": "Not a real page",
+            "summarised_content": "This page does not exist and is used for testing purposes. It should not be selected by the agent.",
+        },
     ]
     return search_tool
 
@@ -40,7 +52,7 @@ def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_
     the LLM can make a decision without network dependencies.
     """
     # 1. Get a real LLM from the factory
-    llm = llm_factory("qwen2:0.5b")
+    llm = llm_factory("gemma2:2b")
 
     # 2. Instantiate the ResearchAgent
     agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)

@@ -61,7 +61,7 @@ class ResearchAgent(AbstractAgent):
         return ResearchOutput(topic=topic, results=research_results)
 
     def _create_url_selection_prompt(self, topic: str, search_results: list[dict]) -> str:
-        results_str = "\n".join([f"- {res['title']}: {res['snippet']} ({res['url']})" for res in search_results])
+        results_str = "\n".join([f"- {res['title']}: {res['summarised_content']} ({res['url']})" for res in search_results])
 
         return f"""
 As a Senior Research Analyst, you have been tasked with researching the topic: '{topic}'.
