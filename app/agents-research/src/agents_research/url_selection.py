@@ -52,6 +52,8 @@ class UrlSelectionAgent:
             # check if all URLs are present in the relevance scores
             if not all(url in relevance_scores for url in search_results_dict):
                 return self._get_relevance_scores(prompt, search_results_dict)
+            if len(relevance_scores) != len(search_results_dict):
+                return self._get_relevance_scores(prompt, search_results_dict)
             return [str(url) for url, relevance_score in relevance_scores.items() if float(relevance_score.relevance) > self.relevance_threshold]
         except Exception:
             return self._get_relevance_scores(prompt, search_results_dict)

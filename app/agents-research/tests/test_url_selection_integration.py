@@ -4,9 +4,9 @@ from agents_research.url_selection import UrlSelectionAgent
 
 
 @pytest.mark.integration
-def test_url_selection_agent_integration_simple(llm_factory):
+def test_url_selection_agent_integration(llm_factory):
     # Arrange
-    llm = llm_factory("qwen2:0.5b")
+    llm = llm_factory("gemma2:2b")
     agent = UrlSelectionAgent(topic="artificial intelligence", llm=llm, relevance_threshold=6)
     search_results = [
         SearchResult(
