@@ -1,8 +1,8 @@
 import json
-import re
 from typing import Any
 
 from agents_core.core import AbstractAgent, AbstractTool
+from agents_core.json_utils import to_json_object
 from pydantic import ValidationError
 
 from .models import Plan
@@ -44,9 +44,14 @@ class PlannerAgent(AbstractAgent):
 
     def generate_plan(self, goal: str) -> Plan:
         prompt = self._create_prompt(goal)
-        response_text = self.llm.call(prompt)
-        plan = self._parse_response(response_text, goal)
-        return plan
+        return self._get_plan(goal, prompt)
+
+    def _get_plan(self, goal: str, prompt: str) -> Plan:
+        try:
+            response_text = self.llm.call(prompt)
+            return self._parse_response(response_text, goal)
+        except Exception:
+            return self._get_plan(goal, prompt)
 
     def _create_prompt(self, goal: str) -> str:
         # This prompt engineering is crucial. It instructs the LLM on its role,
@@ -103,10 +108,7 @@ Now, generate the plan for the goal provided above.
 
     def _parse_response(self, response_text: str, goal: str) -> Plan:
         try:
-            # The LLM might return markdown with a JSON block, so we need to extract it.
-            json_match = re.search(r"```json\n({.*})\n```", response_text, re.DOTALL)
-            response_json = json_match.group(1) if json_match else response_text
-            plan_data = json.loads(response_json)
+            plan_data = to_json_object(response_text)
 
             # Ensure the goal in the plan matches the requested goal
             plan_data["goal"] = goal

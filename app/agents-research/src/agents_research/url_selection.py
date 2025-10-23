@@ -1,8 +1,7 @@
-import json
-import re
 from pathlib import Path
 
 import structlog
+from agents_core.json_utils import to_json_object
 from litellm import completion
 
 from agents_research.models import SearchResult, UrlRelevanceScore
@@ -54,7 +53,7 @@ class UrlSelectionAgent:
                 return self._get_relevance_scores(prompt, search_results_dict)
             if len(relevance_scores) != len(search_results_dict):
                 return self._get_relevance_scores(prompt, search_results_dict)
-            return [str(url) for url, relevance_score in relevance_scores.items() if float(relevance_score.relevance) > self.relevance_threshold]
+            return [str(url) for url, relevance_score in relevance_scores.items() if float(relevance_score.relevance) >= self.relevance_threshold]
         except Exception:
             return self._get_relevance_scores(prompt, search_results_dict)
 
@@ -76,15 +75,8 @@ Summarised Content: {result.summarised_content}
         return self.prompt_template.format(topic=self.topic, url_list_section=url_list_section)
 
     def _json_to_url_relevance_scores(self, llm_response: str) -> dict[str, UrlRelevanceScore]:
-        json_object = self._to_json_object(llm_response)
+        json_object: list[dict[str, str]] = to_json_object(llm_response)
         return self._list_to_dict(json_object)
-
-    @staticmethod
-    def _to_json_object(llm_response: str) -> list[dict[str, str]]:
-        json_match = re.search(r"```json\n([\s\S]*?)\n```", llm_response)
-        if json_match:
-            return json.loads(json_match.group(1))
-        return json.loads(llm_response)
 
     @staticmethod
     def _list_to_dict(list_of_scores: list[dict[str, str]]) -> dict[str, UrlRelevanceScore]:
