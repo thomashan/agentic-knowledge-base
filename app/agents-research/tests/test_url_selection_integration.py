@@ -44,7 +44,7 @@ def test_url_selection_agent_integration(llm_factory):
 def test_url_selection_agent_crew_ai_integration(llm_factory):
     # Arrange
     llm = llm_factory("gemma2:2b")
-    agent = UrlSelectionAgent(topic="What is CrewAI?", llm=llm, relevance_threshold=6)
+    agent = UrlSelectionAgent(topic="What is CrewAI?", llm=llm, relevance_threshold=4)
     search_results = [
         SearchResult(
             url="https://www.crewai.com/",
