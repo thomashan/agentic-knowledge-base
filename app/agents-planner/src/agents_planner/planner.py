@@ -1,6 +1,7 @@
 import json
 from typing import Any
 
+from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractTool
 from agents_core.json_utils import to_json_object
 from pydantic import ValidationError
@@ -14,29 +15,33 @@ class PlannerAgent(AbstractAgent):
     into a structured plan of tasks.
     """
 
-    def __init__(self, llm):
+    def __init__(
+        self,
+        llm,
+        prompt_file: str = "agent-prompts/agents-planner.md",
+    ):
         self.llm = llm
+        agent_definition = AgentDefinitionReader(AgentSchema).read_agent(prompt_file)
+        self._role = agent_definition.role
+        self._goal = agent_definition.goal
+        self._backstory = agent_definition.backstory
+        self._prompt_template = agent_definition.prompt_template
 
     @property
     def role(self) -> str:
-        return "Expert Project Planner"
+        return self._role
 
     @property
     def goal(self) -> str:
-        return "Decompose a high-level goal into a structured, step-by-step plan of tasks. Each task must be assigned to a specialist agent."
+        return self._goal
 
     @property
     def backstory(self) -> str:
-        return (
-            "You are a world-class project planner, renowned for your ability to break down "
-            "the most complex challenges into a clear, logical sequence of actionable steps. "
-            "You are a master of identifying dependencies and assigning tasks to the right "
-            "specialist. Your plans are the gold standard in the industry."
-        )
+        return self._backstory
 
     @property
     def prompt_template(self) -> str:
-        return "prompt template"
+        return self._prompt_template
 
     @property
     def tools(self) -> list[AbstractTool] | None:
@@ -58,57 +63,7 @@ class PlannerAgent(AbstractAgent):
             return self._get_plan(goal, prompt)
 
     def _create_prompt(self, goal: str) -> str:
-        # This prompt engineering is crucial. It instructs the LLM on its role,
-        # the desired output format, and the available agent roles.
-        return f"""
-As an expert project planner, create a step-by-step plan to achieve the following goal: '{goal}'
-
-The available specialist agents are:
-- 'Research Agent': Gathers information from the web.
-- 'Intelligence Agent': Analyzes information and synthesizes insights.
-- 'Knowledge Agent': Manages and stores information in the knowledge base.
-
-Your response MUST be a JSON object that strictly follows this Pydantic model:
-
-class Task(BaseModel):
-    task_id: int
-    description: str
-    expected_output: str
-    agent: str
-    context: list[int] = []
-    tools: list[str] = []
-
-class Plan(BaseModel):
-    goal: str
-    tasks: list[Task]
-
-The plan should be a logical sequence of tasks. The 'context' field for a task should list the 'task_id's of any tasks that must be completed before it.
-
-Example:
-{{
-    "goal": "Example Goal",
-    "tasks": [
-        {{
-            "task_id": 1,
-            "description": "First step of the plan.",
-            "expected_output": "A document summarizing the first step.",
-            "agent": "Research Agent",
-            "context": [],
-            "tools": ["search_tool"]
-        }},
-        {{
-            "task_id": 2,
-            "description": "Second step, which depends on the first.",
-            "expected_output": "A report based on the summary from task 1.",
-            "agent": "Intelligence Agent",
-            "context": [1],
-            "tools": []
-        }}
-    ]
-}}
-
-Now, generate the plan for the goal provided above.
-"""
+        return self._prompt_template.format(goal=goal)
 
     def _parse_response(self, response_text: str, goal: str) -> Plan:
         try:

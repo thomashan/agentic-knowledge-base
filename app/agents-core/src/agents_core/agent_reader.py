@@ -1,6 +1,8 @@
 from pathlib import Path
 
 from mistune import create_markdown
+from mistune.core import BlockState
+from mistune.renderers.markdown import MarkdownRenderer
 from pydantic import BaseModel, Field, ValidationError
 
 
@@ -8,7 +10,7 @@ class AgentSchema(BaseModel):
     role: str = Field(..., description="The role of the agent.")
     goal: str = Field(..., description="The goal of the agent.")
     backstory: str = Field(..., description="The backstory of the agent.")
-    prompt_template: str | None = Field(..., description="The prompt template of the agent.")
+    prompt_template: str = Field(..., description="The prompt template of the agent.")
 
 
 class AgentDefinitionReader:
@@ -16,14 +18,17 @@ class AgentDefinitionReader:
 
     def __init__(self, schema: type[BaseModel]):
         self.schema = schema
-        # Use create_markdown with renderer=None to get raw tokens
-        self.markdown_parser = create_markdown(renderer=None)
+        # Parser to get the AST (tokens)
+        self.token_parser = create_markdown(renderer=None)
+        # Renderer to turn an AST back into markdown text
+        self.markdown_renderer = MarkdownRenderer()
 
     def _get_text_from_children(self, children):
+        """Extracts the raw text from a list of child tokens."""
         text_content = []
         for child in children:
-            if child["type"] == "text" and "raw" in child:
-                text_content.append(child["raw"])
+            if child.get("type") == "text":
+                text_content.append(child.get("raw", ""))
             elif "children" in child:
                 text_content.append(self._get_text_from_children(child["children"]))
         return "".join(text_content)
@@ -33,29 +38,30 @@ class AgentDefinitionReader:
         with Path(file_path).open() as f:
             content = f.read()
 
-        # mistune.create_markdown(renderer=None).parse returns a list of tokens (dictionaries)
-        tokens = self.markdown_parser(content)
+        # 1. Markdown Text -> AST
+        tokens = self.token_parser(content)
 
         agent_data = {}
         current_field = None
-        i = 0
-        while i < len(tokens):
-            token = tokens[i]
-            if token["type"] == "heading" and token["attrs"]["level"] == 2:
-                heading_text = self._get_text_from_children(token["children"])
-                current_field = "_".join(heading_text.lower().split(" "))
+        content_tokens = []
 
-                # Look for the next non-blank_line token for paragraph content
-                j = i + 1
-                while j < len(tokens) and tokens[j]["type"] == "blank_line":
-                    j += 1
+        for token in tokens:
+            if token.get("type") == "heading" and token.get("attrs", {}).get("level") == 2:
+                if current_field:
+                    # 2. AST -> Markdown Text
+                    section_content = self.markdown_renderer(content_tokens, BlockState())
+                    agent_data[current_field] = section_content.strip()
 
-                if j < len(tokens) and tokens[j]["type"] == "paragraph":
-                    paragraph_text = self._get_text_from_children(tokens[j]["children"])
-                    agent_data[current_field] = paragraph_text.strip()
-                    current_field = None  # Reset after capturing content
-                i = j  # Continue iteration from the paragraph token
-            i += 1
+                heading_text = self._get_text_from_children(token.get("children", []))
+                current_field = "_".join(heading_text.lower().split())
+                content_tokens = []
+            else:
+                content_tokens.append(token)
+
+        if current_field:
+            # 2. AST -> Markdown Text (for the last section)
+            section_content = self.markdown_renderer(content_tokens, BlockState())
+            agent_data[current_field] = section_content.strip()
 
         try:
             return self.schema(**agent_data)

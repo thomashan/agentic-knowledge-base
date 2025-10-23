@@ -43,6 +43,14 @@ def mock_llm():
 def test_planner_agent_instantiation(mock_llm):
     agent = PlannerAgent(llm=mock_llm)
     assert agent is not None
+    assert agent.role == "Expert Project Planner"
+    assert agent.goal == "Decompose a high-level goal into a structured, step-by-step plan of tasks. Each task must be assigned to a specialist agent."
+    assert agent.backstory == (
+        "You are a world-class project planner, renowned for your ability to break down the most complex challenges into a clear, logical sequence of actionable steps.\n"
+        "You are a master of identifying dependencies and assigning tasks to the right specialist.\n"
+        "Your plans are the gold standard in the industry."
+    )
+    assert agent._prompt_template is not None
 
 
 def test_planner_agent_generate_plan(mock_llm):
