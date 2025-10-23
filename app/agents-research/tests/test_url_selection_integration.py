@@ -38,3 +38,36 @@ def test_url_selection_agent_integration(llm_factory):
     assert isinstance(relevant_urls, list)
     assert len(relevant_urls) == 1
     assert "https://en.wikipedia.org/wiki/Artificial_intelligence" in relevant_urls
+
+
+@pytest.mark.integration
+def test_url_selection_agent_crew_ai_integration(llm_factory):
+    # Arrange
+    llm = llm_factory("gemma2:2b")
+    agent = UrlSelectionAgent(topic="What is CrewAI?", llm=llm, relevance_threshold=6)
+    search_results = [
+        SearchResult(
+            url="https://www.crewai.com/",
+            title="CrewAI - The AI Crew Framework",
+            summarised_content="A framework for building multi-agent systems.",
+        ),
+        SearchResult(
+            url="https://github.com/crewAI/crewAI",
+            title="crewAI/crewAI: GitHub",
+            summarised_content="The source code for the CrewAI framework.",
+        ),
+        SearchResult(
+            url="https://invalid-url.example.com",
+            title="Not a real page",
+            summarised_content="This page does not exist.",
+        ),
+    ]
+
+    # Act
+    relevant_urls = agent.select_urls(search_results)
+
+    # Assert
+    assert isinstance(relevant_urls, list)
+    assert len(relevant_urls) == 2
+    assert "https://www.crewai.com/" in relevant_urls
+    assert "https://github.com/crewAI/crewAI" in relevant_urls
