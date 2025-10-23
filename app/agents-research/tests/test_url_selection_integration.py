@@ -49,17 +49,17 @@ def test_url_selection_agent_crew_ai_integration(llm_factory):
         SearchResult(
             url="https://www.crewai.com/",
             title="CrewAI - The AI Crew Framework",
-            summarised_content="A framework for building multi-agent systems.",
+            summarised_content="CrewAI helps you build sophisticated multi-agent systems to solve complex problems. Get started with our documentation and examples today.",
         ),
         SearchResult(
             url="https://github.com/crewAI/crewAI",
             title="crewAI/crewAI: GitHub",
-            summarised_content="The source code for the CrewAI framework.",
+            summarised_content="The official GitHub repository for CrewAI. Find the source code, report issues, and contribute to the project. Join our community!",
         ),
         SearchResult(
             url="https://invalid-url.example.com",
             title="Not a real page",
-            summarised_content="This page does not exist.",
+            summarised_content="This page does not exist and is used for testing purposes. It should not be selected by the agent.",
         ),
     ]
 
