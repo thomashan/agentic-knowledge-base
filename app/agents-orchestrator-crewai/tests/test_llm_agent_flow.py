@@ -56,13 +56,12 @@ class SimpleTask(AbstractTask):
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("model_name", ["qwen2:0.5b"])
-def test_simple_agent_flow(llm_factory, model_name):
+def test_simple_agent_flow(llm_factory):
     """
     Tests a simple end-to-end agent flow using the CrewAIOrchestrator
     with a real LLM client.
     """
-    llm = llm_factory(model_name)
+    llm = llm_factory("gemma2:2b")
     orchestrator = CrewAIOrchestrator()
 
     agent = SimpleAgent(llm=llm)

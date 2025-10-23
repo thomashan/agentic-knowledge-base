@@ -9,7 +9,7 @@ def test_planner_agent_with_real_llm(llm_factory):
     Tests the PlannerAgent's ability to generate a plan using a real LLM.
     """
     # 1. Get a real LLM from the factory
-    llm = llm_factory("qwen2:0.5b")
+    llm = llm_factory("gemma2:2b")
 
     # 2. Instantiate the PlannerAgent
     planner_agent = PlannerAgent(llm=llm)

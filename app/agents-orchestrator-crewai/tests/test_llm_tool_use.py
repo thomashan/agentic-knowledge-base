@@ -11,7 +11,7 @@ log = structlog.get_logger()
 
 @pytest.fixture(scope="module")
 def llm(llm_factory):
-    return llm_factory("qwen2:0.5b")
+    return llm_factory("gemma2:2b")
 
 
 # Define a simple tool for testing

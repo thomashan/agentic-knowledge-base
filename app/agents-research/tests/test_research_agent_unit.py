@@ -9,7 +9,7 @@ from agents_research.research import ResearchAgent
 def mock_llm():
     llm = Mock()
     # Mock LLM to select the first URL
-    llm.call.return_value = '["http://example.com/1"]'
+    llm.call.return_value = '["https://example.com/1"]'
     return llm
 
 
@@ -18,8 +18,8 @@ def mock_search_tool():
     search_tool = Mock()
     # Mock search tool to return two URLs
     search_tool.execute.return_value = [
-        {"url": "http://example.com/1", "title": "Title 1", "snippet": "Snippet 1"},
-        {"url": "http://example.com/2", "title": "Title 2", "snippet": "Snippet 2"},
+        {"url": "https://example.com/1", "title": "Title 1", "summarised_content": "Snippet 1"},
+        {"url": "https://example.com/2", "title": "Title 2", "summarised_content": "Snippet 2"},
     ]
     return search_tool
 
@@ -48,11 +48,11 @@ def test_llm_driven_url_selection(mock_llm, mock_search_tool, mock_scrape_tool):
     mock_llm.call.assert_called_once()
 
     # Assert that the scrape tool was only called for the URL selected by the LLM
-    mock_scrape_tool.execute.assert_called_once_with(url="http://example.com/1")
+    mock_scrape_tool.execute.assert_called_once_with(url="https://example.com/1")
 
     # Assert that the final output contains the correct data
     assert isinstance(research_output, ResearchOutput)
     assert research_output.topic == topic
     assert len(research_output.results) == 1
-    assert research_output.results[0].url == "http://example.com/1"
+    assert research_output.results[0].url == "https://example.com/1"
     assert research_output.results[0].content == "Scraped content"
