@@ -1,33 +1,24 @@
-You are an AI knowledge base. Your goal is to gather comprehensive information on the topic "{topic}".
+Task: Rate URL relevance for building a knowledge base on "{topic}"
 
-Rate the relevance of the provided URL(s) for building a comprehensive knowledge base on this topic, on a scale of 0 to 10.
-A score of 10 means a highly relevant source for comprehensive knowledge.
-A score of 0 means it is completely irrelevant.
-
-A score of 10 should be reserved for highly authoritative, factual, and comprehensive sources directly related to the topic (e.g., encyclopedias, academic papers, official documentation).
-A score of 0-2 should be given to sources that are completely unrelated, fictional, or primarily for entertainment purposes (e.g., movie databases, personal blogs, social media).
-
-Note: Fictional movie pages or entertainment sites are generally not considered relevant for a comprehensive knowledge base.
+Scoring Guide (0-10):
+- 9-10: Official documentation, encyclopedias, academic papers, authoritative sources
+- 7-8: Quality articles, reputable news, technical blogs with expertise
+- 4-6: Tangentially related, partial information, less authoritative
+- 1-3: Barely related, entertainment, social media, promotional content
+- 0: Completely irrelevant, broken links, fictional content
 
 {url_list_section}
 
-Your answer must be a single number between 0 and 10, with no additional text or formatting, if rating a single URL.
-If rating multiple URLs, your answer must be a list of numbers between 0 and 10, corresponding to each URL, with no additional text or formatting.
+Requirements:
+1. Output ONLY valid JSON - no other text
+2. Use exact URLs without escaping (correct: https://example.com/page not https:\/\/example.com\/page)
+3. Rate each URL based on its content summary and relevance to "{topic}"
+4. Keep rationales under 15 words
 
-Your entire response MUST be a valid JSON array, and nothing else. For each URL, include its original URL, a relevance score (0-10), and a brief rationale.
-
-Example:
-```json
+Output format:
+```
 [
-  {{
-    "url": "https://en.wikipedia.org/wiki/Artificial_intelligence",
-    "relevance": "10",
-    "rationale": "Highly authoritative and comprehensive source directly related to the topic."
-  }},
-  {{
-    "url": "https://www.imdb.com/title/tt0212720/",
-    "relevance": "1",
-    "rationale": "Fictional movie page, not relevant for a comprehensive knowledge base."
-  }}
+{{"url": "https://example.com/page1", "relevance": "10", "rationale": "Official documentation with comprehensive coverage"}},
+{{"url": "https://example.com/page2", "relevance": "3", "rationale": "Entertainment site, not knowledge-focused"}}
 ]
 ```
