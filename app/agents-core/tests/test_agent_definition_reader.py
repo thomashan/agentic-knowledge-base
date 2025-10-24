@@ -25,6 +25,10 @@ The goal of the test agent.
 ## Backstory
 
 The backstory of the test agent.
+
+## Prompt Template
+
+The prompt template of the test agent.
 """
     return __write_content(content, tmp_path, "test_agent_mistune.md")
 
@@ -51,6 +55,7 @@ def test_read_agent_valid_file(valid_agent_file_mistune):
     assert agent_data.role == "The role of the test agent."
     assert agent_data.goal == "The goal of the test agent."
     assert agent_data.backstory == "The backstory of the test agent."
+    assert agent_data.prompt_template == "The prompt template of the test agent."
 
 
 def test_read_agent_invalid_file(invalid_agent_file_mistune):
