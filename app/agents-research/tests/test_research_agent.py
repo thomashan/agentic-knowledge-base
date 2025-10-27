@@ -34,6 +34,14 @@ def mock_scrape_tool():
 def test_research_agent_instantiation(mock_llm, mock_search_tool, mock_scrape_tool):
     agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
     assert agent is not None
+    assert agent.role == "Senior Research Analyst"
+    assert agent.goal == "To conduct thorough, unbiased, and data-driven research on any given topic."
+    assert agent.backstory == (
+        "You are a master of digital investigation, known for your ability to quickly find the most relevant and trustworthy information on the web.\n"
+        "You are skilled at sifting through noise to find the signal, and you use a combination of advanced search techniques "
+        "and intelligent content analysis to build a comprehensive overview of any subject."
+    )
+    assert agent._prompt_template is not None
 
 
 def test_llm_driven_url_selection(mock_llm, mock_search_tool, mock_scrape_tool):
