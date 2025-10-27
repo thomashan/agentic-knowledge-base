@@ -1,10 +1,11 @@
+import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractTool
+from agents_core.json_utils import to_json_object
 
-from .models import ResearchOutput, ResearchResult, SearchResult
-from .url_selection import UrlSelectionAgent
+from .models import ResearchOutput, ResearchResult
 
 
 class ResearchAgent(AbstractAgent):
@@ -23,7 +24,6 @@ class ResearchAgent(AbstractAgent):
         self.llm = llm
         self.search_tool = search_tool
         self.scrape_tool = scrape_tool
-        self.url_selection_agent = UrlSelectionAgent(topic="", llm=llm)
 
         agent_definition = AgentDefinitionReader(AgentSchema).read_agent(prompt_file)
         self._role = agent_definition.role
@@ -55,18 +55,41 @@ class ResearchAgent(AbstractAgent):
     def llm_config(self) -> dict[str, Any] | None:
         return None
 
-    def run_research(self, topic: str) -> ResearchOutput:
-        search_results_raw = self.search_tool.execute(query=topic)
+    def run_research(self, topic: str, max_iterations: int = 5) -> ResearchOutput:
+        history = []
+        results = []
+        summary = ""
 
-        search_results = [SearchResult(**result) for result in search_results_raw]
+        for _ in range(max_iterations):
+            prompt = self._prompt_template.format(topic=topic, history=json.dumps(history))
+            response_text = self.llm.call(prompt)
 
-        self.url_selection_agent.topic = topic
-        selected_urls = self.url_selection_agent.select_urls(search_results)
+            try:
+                action = to_json_object(response_text)
+                tool_name = action.get("tool_name", "").strip()
+                arguments = action.get("arguments", {})
 
-        research_results = []
-        for url in selected_urls:
-            content = self.scrape_tool.execute(url=url)
-            if content and "Failed to scrape" not in content:
-                research_results.append(ResearchResult(url=url, content=content))
+                if tool_name == "finish":
+                    summary = arguments.get("summary", "")
+                    break
 
-        return ResearchOutput(topic=topic, results=research_results)
+                if tool_name == "search_tool":
+                    tool_result = self.search_tool.execute(**arguments)
+                    history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
+                elif tool_name == "scrape_tool":
+                    tool_result = self.scrape_tool.execute(**arguments)
+                    if tool_result and "Failed to scrape" not in tool_result:
+                        results.append(ResearchResult(url=arguments.get("url"), content=tool_result))
+                    history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
+                else:
+                    history.append({"tool": "invalid_tool", "arguments": arguments, "result": "Invalid tool name."})
+
+            except (json.JSONDecodeError, AttributeError):
+                history.append({"tool": "invalid_action", "result": "Invalid action format."})
+
+        if not summary:
+            # If the agent didn't finish, we can try to force a summary
+            summary_prompt = f"Based on the following research history, please provide a summary of your findings:\n{json.dumps(history)}"
+            summary = self.llm.call(summary_prompt)
+
+        return ResearchOutput(topic=topic, summary=summary, results=results)

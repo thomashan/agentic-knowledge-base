@@ -12,6 +12,7 @@ class ResearchOutput(BaseModel):
     """The consolidated output of a research task, containing multiple results."""
 
     topic: str = Field(description="The original research topic.")
+    summary: str = Field(description="A summary of the research findings.")
     results: list[ResearchResult] = Field(description="A list of research results from the most relevant sources.")
 
 
