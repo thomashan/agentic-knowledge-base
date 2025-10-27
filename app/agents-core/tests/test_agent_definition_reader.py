@@ -28,8 +28,19 @@ The backstory of the test agent.
 
 ## Prompt Template
 
-The prompt template of the test agent.
-"""
+Complex prompt templates are supported.
+The available specialist agents are:
+
+- 'Research Agent': Gathers information from the web.
+- 'Intelligence Agent': Analyzes information and synthesizes insights.
+- 'Knowledge Agent': Manages and stores information in the knowledge base.
+
+```json
+{{
+    "key1": "value1",
+    "key2": "value2"
+}}
+```"""
     return __write_content(content, tmp_path, "test_agent_mistune.md")
 
 
@@ -55,7 +66,22 @@ def test_read_agent_valid_file(valid_agent_file_mistune):
     assert agent_data.role == "The role of the test agent."
     assert agent_data.goal == "The goal of the test agent."
     assert agent_data.backstory == "The backstory of the test agent."
-    assert agent_data.prompt_template == "The prompt template of the test agent."
+    assert (
+        agent_data.prompt_template
+        == """Complex prompt templates are supported.
+The available specialist agents are:
+
+- 'Research Agent': Gathers information from the web.
+- 'Intelligence Agent': Analyzes information and synthesizes insights.
+- 'Knowledge Agent': Manages and stores information in the knowledge base.
+
+```json
+{{
+    "key1": "value1",
+    "key2": "value2"
+}}
+```"""
+    )
 
 
 def test_read_agent_invalid_file(invalid_agent_file_mistune):
