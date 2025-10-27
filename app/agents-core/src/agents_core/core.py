@@ -86,6 +86,12 @@ class AbstractAgent(ABC):
 
     @property
     @abstractmethod
+    def prompt_template(self) -> str | None:
+        """Prompt template for the agent to use when interacting with the LLM."""
+        pass
+
+    @property
+    @abstractmethod
     def tools(self) -> list[AbstractTool] | None:
         """A list of tools the agent is equipped with."""
         pass

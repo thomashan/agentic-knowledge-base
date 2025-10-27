@@ -37,6 +37,10 @@ class ResearchAgent(AbstractAgent):
         )
 
     @property
+    def prompt_template(self) -> None:
+        return None
+
+    @property
     def tools(self) -> list[AbstractTool] | None:
         return [self.search_tool, self.scrape_tool]
 

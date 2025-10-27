@@ -45,6 +45,10 @@ class ConcreteAgent(AbstractAgent):
         return "I am a test agent."
 
     @property
+    def prompt_template(self) -> None:
+        return None
+
+    @property
     def tools(self) -> list[AbstractTool]:
         return self._tools
 

@@ -46,6 +46,10 @@ class ToolAgent(AbstractAgent):
         return "I am an agent designed to test tool usage."
 
     @property
+    def prompt_template(self) -> None:
+        return None
+
+    @property
     def tools(self) -> list[AbstractTool]:
         return [SimpleTool()]
 
