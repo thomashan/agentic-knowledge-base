@@ -26,6 +26,10 @@ class SimpleAgent(AbstractAgent):
         return "I am a simple agent created for a test."
 
     @property
+    def prompt_template(self) -> None:
+        return None
+
+    @property
     def tools(self) -> list[Any]:
         return []
 

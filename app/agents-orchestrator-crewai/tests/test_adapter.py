@@ -19,6 +19,10 @@ class MockAgent(AbstractAgent):
         return "Test Backstory"
 
     @property
+    def prompt_template(self) -> None:
+        return None
+
+    @property
     def tools(self) -> list[AbstractTool]:
         return []
 

@@ -35,6 +35,10 @@ class PlannerAgent(AbstractAgent):
         )
 
     @property
+    def prompt_template(self) -> str:
+        return "prompt template"
+
+    @property
     def tools(self) -> list[AbstractTool] | None:
         return None
 
