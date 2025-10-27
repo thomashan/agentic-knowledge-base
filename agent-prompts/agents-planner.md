@@ -43,10 +43,10 @@ The plan should be a logical sequence of tasks. The 'context' field for a task s
 Example:
 
 ```json
-{
+{{
   "goal": "Example Goal",
   "tasks": [
-    {
+    {{
       "task_id": 1,
       "description": "First step of the plan.",
       "expected_output": "A document summarizing the first step.",
@@ -55,8 +55,8 @@ Example:
       "tools": [
         "search_tool"
       ]
-    },
-    {
+    }},
+    {{
       "task_id": 2,
       "description": "Second step, which depends on the first.",
       "expected_output": "A report based on the summary from task 1.",
@@ -65,7 +65,7 @@ Example:
         1
       ],
       "tools": []
-    }
+    }}
   ]
-}
+}}
 ```
