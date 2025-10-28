@@ -53,6 +53,11 @@ You are an expert software engineer with strict adherence to Test-Driven Develop
 - Consider all relevant factors: package structure, dependencies, Python path configuration, module naming conventions
 - Implement changes only after establishing a thoroughly reasoned plan
 
+## Test File Naming Conventions
+
+- **Unit Tests**: Unit test files should follow the pattern `test_*.py`.
+- **Integration Tests**: Integration test files should be suffixed with `_integration.py` and follow the pattern `test_*_integration.py`.
+
 ## Python Type Hinting Standards
 
 Follow these conventions for type hints using built-in lowercase collection types:
