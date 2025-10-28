@@ -74,3 +74,11 @@ When working with files in the `agent-prompts` directory, apply these rules:
 
 Prompts utilize Python's standard string formatting with curly braces (`{` and `}`) for variable substitution. When a literal curly brace is required (such as within a JSON object embedded in the prompt), it must be
 escaped using double curly braces (`{{` and `}}`).
+
+## Integration Tests
+
+For local LLM integration, use `llm_factory` in `conftest.py`
+
+```python
+llm = llm_factory("gemma2:2b")
+```
