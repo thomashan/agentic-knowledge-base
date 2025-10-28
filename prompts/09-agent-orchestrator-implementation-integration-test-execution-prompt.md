@@ -16,9 +16,10 @@ Execution requirements:
 Constraints:
 - DO NOT introduce or use `langchain` or any langchain dependencies
 - Use existing project dependencies only
-- For local LLM integration, use this pattern: ```python
-  llm = LLM(model="ollama/qwen2.5:0.5b", base_url="http://localhost:11434")
-  agent = Agent(role="Researcher", goal="Find insights", llm=llm)```
+- For local LLM integration, llm_factory in `conftest.py`
+```python
+llm = llm_factory("gemma2:2b")
+```
 
 Important notes:
 - Test directories do NOT have `__init__.py` files - this is intentional
