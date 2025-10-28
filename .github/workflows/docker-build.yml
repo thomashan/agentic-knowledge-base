@@ -25,11 +25,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-${{ inputs.image_name }}
 
+      - name: Create temporary Dockerfile
+        run: |
+          echo "FROM ${{ inputs.image_name }}" > Dockerfile.tmp
+
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.tmp
           push: false
           load: true
           tags: ${{ inputs.image_name }}
@@ -41,3 +45,4 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          rm -rf Dockerfile.tmp
