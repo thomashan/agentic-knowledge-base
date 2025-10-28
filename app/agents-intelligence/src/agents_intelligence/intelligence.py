@@ -3,7 +3,8 @@ from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent
-from agents_research.models import ResearchOutput
+from agents_core.json_utils import to_json_object
+from agents_research.models import ResearchOutput, ResearchResult
 from pydantic import ValidationError
 
 from .models import IntelligenceReport
@@ -22,9 +23,7 @@ class IntelligenceAgent(AbstractAgent):
 
     def generate_report(self, research_output: ResearchOutput) -> IntelligenceReport:
         # Consolidate research content
-        research_content = ""
-        for result in research_output.results:
-            research_content += f"Source URL: {result.url}\nContent: {result.content}\n\n"
+        research_content = self._research_content(research_output.results)
 
         # Construct the prompt
         prompt = self.prompt_template.format(topic=research_output.topic, research_content=research_content)
@@ -34,14 +33,16 @@ class IntelligenceAgent(AbstractAgent):
 
         # Parse the response
         try:
-            # Extract JSON from the markdown code block
-            json_string = response_text.split("```json")[1].split("```")[0].strip() if "```json" in response_text else response_text
-
-            report_data = json.loads(json_string)
+            report_data: dict[str, Any] = to_json_object(response_text)
             report_data["topic"] = research_output.topic
             return IntelligenceReport(**report_data)
         except (json.JSONDecodeError, ValidationError, IndexError) as e:
             raise ValueError(f"Failed to parse LLM response into a valid intelligence report. Error: {e}") from e
+
+    @staticmethod
+    def _research_content(research_results: list[ResearchResult]) -> str:
+        contents = [f"Source URL: {result.url}\nContent: {result.content}" for result in research_results]
+        return "\n\n".join(contents)
 
     @property
     def role(self) -> str:
