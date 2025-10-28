@@ -44,28 +44,49 @@ def test_research_agent_instantiation(mock_llm, mock_search_tool, mock_scrape_to
     assert agent._prompt_template is not None
 
 
-def test_llm_driven_url_selection(mock_llm, mock_search_tool, mock_scrape_tool):
+def test_run_research_llm_driven_loop(mock_llm, mock_search_tool, mock_scrape_tool):
+    # 1. Configure the mock LLM to return a sequence of actions
+    mock_llm.call.side_effect = [
+        """
+        {
+            "tool_name": "search_tool",
+            "arguments": {
+                "query": "test topic"
+            }
+        }
+        """,
+        """
+        {
+            "tool_name": "scrape_tool",
+            "arguments": {
+                "url": "https://example.com/1"
+            }
+        }
+        """,
+        """
+        {
+            "tool_name": "finish",
+            "arguments": {
+                "summary": "This is a summary."
+            }
+        }
+        """,
+    ]
+    # 2. Instantiate the agent
     agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
 
-    # Mock the UrlSelectionAgent
-    agent.url_selection_agent = Mock()
-    agent.url_selection_agent.select_urls.return_value = ["https://example.com/1"]
-
+    # 3. Run the research
     topic = "test topic"
     research_output = agent.run_research(topic)
 
-    # Assert that the search tool was called once
-    mock_search_tool.execute.assert_called_once_with(query=topic)
-
-    # Assert that the url_selection_agent was called once
-    agent.url_selection_agent.select_urls.assert_called_once()
-
-    # Assert that the scrape tool was only called for the URL selected by the LLM
+    # 4. Assert that the tools were called correctly
+    mock_search_tool.execute.assert_called_once_with(query="test topic")
     mock_scrape_tool.execute.assert_called_once_with(url="https://example.com/1")
 
-    # Assert that the final output contains the correct data
+    # 5. Assert that the final output is correct
     assert isinstance(research_output, ResearchOutput)
     assert research_output.topic == topic
+    assert research_output.summary == "This is a summary."
     assert len(research_output.results) == 1
     assert research_output.results[0].url == "https://example.com/1"
     assert research_output.results[0].content == "Scraped content"

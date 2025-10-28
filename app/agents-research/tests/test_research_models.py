@@ -12,8 +12,9 @@ def test_create_research_result():
 def test_create_research_output():
     result1 = ResearchResult(url="http://example.com/1", content="Content 1")
     result2 = ResearchResult(url="http://example.com/2", content="Content 2")
-    output = ResearchOutput(topic="Test Topic", results=[result1, result2])
+    output = ResearchOutput(topic="Test Topic", summary="Test topic summary", results=[result1, result2])
     assert output.topic == "Test Topic"
+    assert output.summary == "Test topic summary"
     assert len(output.results) == 2
     assert output.results[0] == result1
 
