@@ -127,7 +127,7 @@ def ollama_service():
 
         log.debug("Creating Ollama container...")
         # Create a GenericContainer for the ollama/ollama image
-        container = GenericContainer(image="ollama/ollama:latest")
+        container = GenericContainer(image="ollama/ollama:0.12.6")
         __setup_ollama_model(container)
         log.debug("Ollama container created.")
 
