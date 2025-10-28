@@ -179,10 +179,13 @@ def llm_factory(ollama_service):
         except Exception as e:
             pytest.fail(f"Failed to pull model '{model_name}': {e}")
 
-    def _factory(model_name: str):
+    def _factory(model_name: str, timeout: int = 60, base_url: str = None):
         log.debug(f"Creating LLM for model: {model_name}...")
         pull_model(model_name)
-        llm = LLM(model=f"ollama/{model_name}", base_url=ollama_service)
+        url = base_url or ollama_service
+        log.debug(f"Using base_url: {url}...")
+        log.debug(f"timeout: {timeout}...")
+        llm = LLM(model=f"ollama/{model_name}", base_url=url, timeout=timeout)
         log.debug(f"LLM for model {model_name} created.")
         return llm
 

@@ -1,5 +1,6 @@
 import os
 
+import litellm
 import pytest
 import structlog
 
@@ -28,3 +29,27 @@ def test_llm_connectivity(llm_factory):
 
     except Exception as e:
         pytest.fail(f"LLM connectivity test failed with an unexpected error: {e}")
+
+
+@pytest.mark.integration
+def test_llm_timeout(llm_factory):
+    """
+    Tests that the LLM call times out as expected.
+    """
+    # Create an LLM with a very short timeout
+    llm = llm_factory("gemma2:2b", timeout=0.001)
+
+    with pytest.raises(litellm.exceptions.APIConnectionError):
+        llm.call("This is a test prompt.")
+
+
+@pytest.mark.integration
+def test_llm_connection_refused(llm_factory):
+    """
+    Tests that the LLM call raises a connection error when the server is not running.
+    """
+    # Create an LLM with a base_url that is not listening
+    llm = llm_factory("gemma2:2b", base_url="http://localhost:12345")
+
+    with pytest.raises(litellm.exceptions.APIConnectionError):
+        llm.call("This is a test prompt.")
