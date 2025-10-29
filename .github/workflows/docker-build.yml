@@ -35,7 +35,7 @@ jobs:
           context: .
           file: ./Dockerfile.tmp
           push: true
-          tags: ghcr.io/${{ github.repository }}/${{ inputs.image_name }}
+          tags: ${{ inputs.image_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
