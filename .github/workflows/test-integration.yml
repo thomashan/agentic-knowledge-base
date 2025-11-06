@@ -25,7 +25,21 @@ jobs:
           activate-environment: agentic-knowledge-base
           conda-remove-defaults: true
 
+      - name: Docker images
+        run: |
+          docker images
+
+      - name: Pull and tag Ollama Docker image
+        run: |
+          docker pull ghcr.io/thomashan/agentic-knowledge-base/ollama/ollama:0.12.6
+          docker tag ghcr.io/thomashan/agentic-knowledge-base/ollama/ollama:0.12.6 ollama/ollama:0.12.6
+          docker images
+
       - name: Run integration tests
         shell: bash -el {0}
         # `--capture=no` is equivalent to `-s`
         run: uv sync; uv run pytest -m "integration" --capture=no
+
+      - name: Docker images
+        run: |
+          docker images
