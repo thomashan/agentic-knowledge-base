@@ -2,16 +2,16 @@ from typing import Any
 
 import pytest
 import structlog
-from agents_core.core import AbstractAgent, AbstractTask, AbstractTool
-from crewai import LLM
-from crewai_adapter.adapter import CrewAIOrchestrator
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractTask, AbstractTool
+from crewai_adapter.adapter import CrewAILLM, CrewAIOrchestrator
 
 log = structlog.get_logger()
 
 
 @pytest.fixture(scope="module")
-def llm(llm_factory):
-    return llm_factory("gemma2:2b")
+def llm(llm_factory) -> AbstractLLM:
+    crew_llm = llm_factory("gemma2:2b")
+    return CrewAILLM(crew_llm)
 
 
 # Define a simple tool for testing
@@ -30,11 +30,11 @@ class SimpleTool(AbstractTool):
 
 # Concrete implementation of AbstractAgent for testing tool use
 class ToolAgent(AbstractAgent):
-    def __init__(self, llm: LLM):
+    def __init__(self, llm: AbstractLLM):
         self._llm = llm
 
     @property
-    def llm(self) -> LLM:
+    def llm(self) -> AbstractLLM:
         return self._llm
 
     @property

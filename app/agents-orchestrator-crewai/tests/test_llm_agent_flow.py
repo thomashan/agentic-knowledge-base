@@ -1,18 +1,17 @@
 import pytest
 import structlog
-from agents_core.core import AbstractAgent, AbstractTask, AbstractTool
-from crewai import LLM
-from crewai_adapter.adapter import CrewAIOrchestrator
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractTask, AbstractTool
+from crewai_adapter.adapter import CrewAILLM, CrewAIOrchestrator
 
 log = structlog.get_logger()
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: LLM | None = None):
+    def __init__(self, llm: AbstractLLM):
         self._llm = llm
 
     @property
-    def llm(self) -> LLM | None:
+    def llm(self) -> AbstractLLM:
         return self._llm
 
     @property
@@ -57,7 +56,7 @@ class SimpleTask(AbstractTask):
         return self._agent
 
     @property
-    def dependencies(self) -> list["AbstractTask"] | None:
+    def dependencies(self) -> list[AbstractTask] | None:
         return None
 
 
@@ -67,10 +66,11 @@ def test_simple_agent_flow(llm_factory):
     Tests a simple end-to-end agent flow using the CrewAIOrchestrator
     with a real LLM client.
     """
-    llm = llm_factory("gemma2:2b")
+    crew_llm = llm_factory("gemma2:2b")
+    llm_adapter = CrewAILLM(crew_llm)
     orchestrator = CrewAIOrchestrator()
 
-    agent = SimpleAgent(llm=llm)
+    agent = SimpleAgent(llm=llm_adapter)
     task = SimpleTask(agent=agent)
 
     orchestrator.add_agent(agent)

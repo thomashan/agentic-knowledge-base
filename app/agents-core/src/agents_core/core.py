@@ -3,8 +3,16 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import structlog
-from crewai import LLM
 from pydantic import BaseModel, Field
+
+
+class AbstractLLM(ABC):
+    """Abstract interface for a Language Model."""
+
+    @abstractmethod
+    def call(self, prompt: str) -> str:
+        """Calls the LLM with a given prompt and returns the response."""
+        pass
 
 
 class CoreError(Exception):
@@ -113,7 +121,7 @@ class AbstractAgent(ABC):
 
     @property
     @abstractmethod
-    def llm(self) -> LLM | None:
+    def llm(self) -> AbstractLLM | None:
         """The LLM instance used by the agent."""
         pass
 

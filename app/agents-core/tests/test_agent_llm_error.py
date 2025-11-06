@@ -1,13 +1,12 @@
 from typing import Any
 
 import pytest
-from agents_core.core import AbstractAgent, AbstractTool, LLMError
-from crewai import LLM
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool, LLMError
 
 # A mock LLM class for testing purposes
 
 
-class MockLLM:
+class MockLLM(AbstractLLM):
     def __init__(self, fail_count=0):
         self.fail_count = fail_count
         self.call_count = 0
@@ -23,14 +22,14 @@ class MockLLM:
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: LLM):
+    def __init__(self, llm: AbstractLLM):
         self._llm = llm
 
     def run(self):
         return self.call_llm("test prompt")
 
     @property
-    def llm(self) -> LLM:
+    def llm(self) -> AbstractLLM:
         return self._llm
 
     @property
