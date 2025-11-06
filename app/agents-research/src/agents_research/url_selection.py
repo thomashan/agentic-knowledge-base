@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import structlog
+from agents_core.core import LLMError
 from agents_core.json_utils import to_json_object
 from litellm import completion
 
@@ -29,11 +30,14 @@ class UrlSelectionAgent:
             raise NotImplementedError
 
         messages = [{"content": prompt, "role": "user"}]
-        response = completion(
-            model=self.llm.model,
-            messages=messages,
-            base_url=self.llm.base_url,
-        )
+        try:
+            response = completion(
+                model=self.llm.model,
+                messages=messages,
+                base_url=self.llm.base_url,
+            )
+        except Exception as e:
+            raise LLMError(f"LLM call failed: {e}") from e
         response_content = response.choices[0].message.content
         log.info("LLM Response", response=response_content)
         return response_content

@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, AbstractTool
+from agents_core.core import AbstractAgent, AbstractTool, LLMError
 from agents_core.json_utils import to_json_object
 from pydantic import ValidationError
 
@@ -59,8 +59,8 @@ class PlannerAgent(AbstractAgent):
         try:
             response_text = self.llm.call(prompt)
             return self._parse_response(response_text, goal)
-        except Exception:
-            return self._get_plan(goal, prompt)
+        except Exception as e:
+            raise LLMError(f"LLM call failed: {e}") from e
 
     def _create_prompt(self, goal: str) -> str:
         return self._prompt_template.format(goal=goal)

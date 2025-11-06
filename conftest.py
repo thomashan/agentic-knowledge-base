@@ -183,8 +183,7 @@ def llm_factory(ollama_service):
         log.debug(f"Creating LLM for model: {model_name}...")
         pull_model(model_name)
         url = base_url or ollama_service
-        log.debug(f"Using base_url: {url}...")
-        log.debug(f"timeout: {timeout}...")
+        log.debug(f"Using base_url: {url}, timeout: {timeout}")
         llm = LLM(model=f"ollama/{model_name}", base_url=url, timeout=timeout)
         log.debug(f"LLM for model {model_name} created.")
         return llm
