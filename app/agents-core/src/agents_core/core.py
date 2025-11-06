@@ -10,6 +10,12 @@ class CoreError(Exception):
     pass
 
 
+class LLMError(CoreError):
+    """Base exception for LLM related errors."""
+
+    pass
+
+
 class TaskExecutionRecord(BaseModel):
     """A record of the output from a single task execution."""
 
