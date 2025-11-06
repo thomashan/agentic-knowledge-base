@@ -34,6 +34,10 @@ class ToolAgent(AbstractAgent):
         self._llm = llm
 
     @property
+    def llm(self) -> LLM:
+        return self._llm
+
+    @property
     def role(self) -> str:
         return "Tool-using Agent"
 
@@ -54,8 +58,8 @@ class ToolAgent(AbstractAgent):
         return [SimpleTool()]
 
     @property
-    def llm_config(self) -> dict[str, Any] | None:
-        return self._llm
+    def llm_config(self) -> None:
+        return None
 
 
 # Concrete implementation of AbstractTask for testing tool use

@@ -1,6 +1,8 @@
+import time
 from abc import ABC, abstractmethod
 from typing import Any
 
+import structlog
 from pydantic import BaseModel, Field
 
 
@@ -107,6 +109,33 @@ class AbstractAgent(ABC):
     def llm_config(self) -> dict[str, Any] | None:
         """Configuration for the language model, if specific to this agent."""
         pass
+
+    @property
+    @abstractmethod
+    def llm(self) -> Any:
+        """The LLM instance used by the agent."""
+        pass
+
+    def call_llm(self, prompt: str) -> str:
+        """Calls the LLM and handles potential LLMError exceptions with retries."""
+        retries = 3
+        delay = 5  # seconds
+        last_exception = None
+        log = structlog.get_logger()
+        for attempt in range(retries):
+            try:
+                return self.llm.call(prompt)
+            except Exception as e:
+                last_exception = LLMError(f"LLM call failed: {e}")
+                log.warning(
+                    "LLM call failed, retrying...",
+                    attempt=attempt + 1,
+                    retries=retries,
+                    error=str(last_exception),
+                )
+                if attempt < retries - 1:
+                    time.sleep(delay)
+        raise last_exception
 
 
 class AbstractTask(ABC):

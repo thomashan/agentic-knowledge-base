@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, LLMError
+from agents_core.core import AbstractAgent
 from agents_core.json_utils import to_json_object
 from agents_research.models import ResearchOutput, ResearchResult
 from pydantic import ValidationError
@@ -17,9 +17,13 @@ class IntelligenceAgent(AbstractAgent):
     """
 
     def __init__(self, llm: Any, agent_file: str = "agent-prompts/agents-intelligence.md"):
-        self.llm = llm
+        self._llm = llm
         reader = AgentDefinitionReader(AgentSchema)
         self.agent_definition = reader.read_agent(agent_file)
+
+    @property
+    def llm(self) -> Any:
+        return self._llm
 
     def generate_report(self, research_output: ResearchOutput) -> IntelligenceReport:
         # Consolidate research content
@@ -29,10 +33,7 @@ class IntelligenceAgent(AbstractAgent):
         prompt = self.prompt_template.format(topic=research_output.topic, research_content=research_content)
 
         # Call the LLM
-        try:
-            response_text = self.llm.call(prompt)
-        except Exception as e:
-            raise LLMError(f"LLM call failed: {e}") from e
+        response_text = self.call_llm(prompt)
 
         # Parse the response
         try:
