@@ -7,7 +7,7 @@ from crewai_adapter.adapter import CrewAIOrchestrator
 
 class MockAgent(AbstractAgent):
     @property
-    def llm(self) -> Any:
+    def llm(self) -> None:
         return None
 
     @property

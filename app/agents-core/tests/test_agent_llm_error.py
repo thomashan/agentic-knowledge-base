@@ -2,6 +2,7 @@ from typing import Any
 
 import pytest
 from agents_core.core import AbstractAgent, AbstractTool, LLMError
+from crewai import LLM
 
 # A mock LLM class for testing purposes
 
@@ -22,14 +23,14 @@ class MockLLM:
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: Any):
+    def __init__(self, llm: LLM):
         self._llm = llm
 
     def run(self):
         return self.call_llm("test prompt")
 
     @property
-    def llm(self) -> Any:
+    def llm(self) -> LLM:
         return self._llm
 
     @property

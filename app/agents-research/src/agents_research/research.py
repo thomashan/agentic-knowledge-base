@@ -4,6 +4,7 @@ from typing import Any
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractTool
 from agents_core.json_utils import to_json_object
+from crewai import LLM
 
 from .models import ResearchOutput, ResearchResult
 
@@ -16,7 +17,7 @@ class ResearchAgent(AbstractAgent):
 
     def __init__(
         self,
-        llm,
+        llm: LLM,
         search_tool: AbstractTool,
         scrape_tool: AbstractTool,
         prompt_file: str = "agent-prompts/agents-research.md",
@@ -32,7 +33,7 @@ class ResearchAgent(AbstractAgent):
         self._prompt_template = agent_definition.prompt_template
 
     @property
-    def llm(self) -> Any:
+    def llm(self) -> LLM:
         return self._llm
 
     @property

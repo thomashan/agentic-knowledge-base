@@ -1,19 +1,18 @@
-from typing import Any
-
 import pytest
 import structlog
 from agents_core.core import AbstractAgent, AbstractTask, AbstractTool
+from crewai import LLM
 from crewai_adapter.adapter import CrewAIOrchestrator
 
 log = structlog.get_logger()
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: Any | None = None):
+    def __init__(self, llm: LLM | None = None):
         self._llm = llm
 
     @property
-    def llm(self) -> Any:
+    def llm(self) -> LLM | None:
         return self._llm
 
     @property

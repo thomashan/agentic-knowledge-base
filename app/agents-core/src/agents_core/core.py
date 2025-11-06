@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import structlog
+from crewai import LLM
 from pydantic import BaseModel, Field
 
 
@@ -112,7 +113,7 @@ class AbstractAgent(ABC):
 
     @property
     @abstractmethod
-    def llm(self) -> Any:
+    def llm(self) -> LLM | None:
         """The LLM instance used by the agent."""
         pass
 
