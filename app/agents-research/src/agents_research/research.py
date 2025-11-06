@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, AbstractTool, LLMError
+from agents_core.core import AbstractAgent, AbstractTool
 from agents_core.json_utils import to_json_object
 
 from .models import ResearchOutput, ResearchResult
@@ -21,7 +21,7 @@ class ResearchAgent(AbstractAgent):
         scrape_tool: AbstractTool,
         prompt_file: str = "agent-prompts/agents-research.md",
     ):
-        self.llm = llm
+        self._llm = llm
         self.search_tool = search_tool
         self.scrape_tool = scrape_tool
 
@@ -30,6 +30,10 @@ class ResearchAgent(AbstractAgent):
         self._goal = agent_definition.goal
         self._backstory = agent_definition.backstory
         self._prompt_template = agent_definition.prompt_template
+
+    @property
+    def llm(self) -> Any:
+        return self._llm
 
     @property
     def role(self) -> str:
@@ -62,10 +66,7 @@ class ResearchAgent(AbstractAgent):
 
         for _ in range(max_iterations):
             prompt = self._prompt_template.format(topic=topic, history=json.dumps(history))
-            try:
-                response_text = self.llm.call(prompt)
-            except Exception as e:
-                raise LLMError(f"LLM call failed: {e}") from e
+            response_text = self.call_llm(prompt)
 
             try:
                 action = to_json_object(response_text)
@@ -93,9 +94,6 @@ class ResearchAgent(AbstractAgent):
         if not summary:
             # If the agent didn't finish, we can try to force a summary
             summary_prompt = f"Based on the following research history, please provide a summary of your findings:\n{json.dumps(history)}"
-            try:
-                summary = self.llm.call(summary_prompt)
-            except Exception as e:
-                raise LLMError(f"LLM call failed during summary generation: {e}") from e
+            summary = self.call_llm(summary_prompt)
 
         return ResearchOutput(topic=topic, summary=summary, results=results)

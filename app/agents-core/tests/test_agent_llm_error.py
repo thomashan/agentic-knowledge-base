@@ -7,13 +7,14 @@ from agents_core.core import AbstractAgent, AbstractTool, LLMError
 
 
 class MockLLM:
-    def __init__(self, should_timeout=False):
-        self.should_timeout = should_timeout
+    def __init__(self, fail_count=0):
+        self.fail_count = fail_count
+        self.call_count = 0
 
     def call(self, prompt):
-        if self.should_timeout:
-            raise LLMError("Connection timed out")
-
+        self.call_count += 1
+        if self.call_count <= self.fail_count:
+            raise Exception("Connection timed out")
         return "Mock response"
 
 
@@ -21,11 +22,15 @@ class MockLLM:
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm):
-        self.llm = llm
+    def __init__(self, llm: Any):
+        self._llm = llm
 
     def run(self):
-        return self.llm.call("test prompt")
+        return self.call_llm("test prompt")
+
+    @property
+    def llm(self) -> Any:
+        return self._llm
 
     @property
     def role(self) -> str:
@@ -52,17 +57,27 @@ class SimpleAgent(AbstractAgent):
         return None
 
 
-def test_agent_handles_llm_timeout():
-    """
-
-    Tests that an agent correctly propagates a timeout error from the LLM.
-
-    """
-
+def test_llm_retry_succeeds():
+    """Tests that the LLM call succeeds after a few retries."""
     # Arrange
-    mock_llm = MockLLM(should_timeout=True)
+    mock_llm = MockLLM(fail_count=2)
+    agent = SimpleAgent(llm=mock_llm)
+
+    # Act
+    response = agent.run()
+
+    # Assert
+    assert response == "Mock response"
+    assert mock_llm.call_count == 3
+
+
+def test_llm_retry_fails():
+    """Tests that the LLM call fails after all retries are exhausted."""
+    # Arrange
+    mock_llm = MockLLM(fail_count=3)
     agent = SimpleAgent(llm=mock_llm)
 
     # Act & Assert
     with pytest.raises(LLMError, match="Connection timed out"):
         agent.run()
+    assert mock_llm.call_count == 3

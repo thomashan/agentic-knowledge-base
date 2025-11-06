@@ -33,6 +33,10 @@ class ConcreteAgent(AbstractAgent):
         self._tools = tools or []
 
     @property
+    def llm(self) -> Any:
+        return None
+
+    @property
     def role(self) -> str:
         return "Test Agent"
 

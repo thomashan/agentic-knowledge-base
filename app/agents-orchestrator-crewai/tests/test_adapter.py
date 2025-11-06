@@ -7,6 +7,10 @@ from crewai_adapter.adapter import CrewAIOrchestrator
 
 class MockAgent(AbstractAgent):
     @property
+    def llm(self) -> Any:
+        return None
+
+    @property
     def role(self) -> str:
         return "Test Role"
 

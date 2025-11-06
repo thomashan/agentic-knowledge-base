@@ -2,16 +2,19 @@ from typing import Any
 
 import pytest
 import structlog
-from agents_core.core import AbstractAgent, AbstractTask
-from crewai import LLM
+from agents_core.core import AbstractAgent, AbstractTask, AbstractTool
 from crewai_adapter.adapter import CrewAIOrchestrator
 
 log = structlog.get_logger()
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: LLM | None = None):
+    def __init__(self, llm: Any | None = None):
         self._llm = llm
+
+    @property
+    def llm(self) -> Any:
+        return self._llm
 
     @property
     def role(self) -> str:
@@ -30,12 +33,12 @@ class SimpleAgent(AbstractAgent):
         return None
 
     @property
-    def tools(self) -> list[Any]:
+    def tools(self) -> list[AbstractTool]:
         return []
 
     @property
-    def llm_config(self) -> dict[str, Any] | None:
-        return self._llm
+    def llm_config(self) -> None:
+        return None
 
 
 class SimpleTask(AbstractTask):

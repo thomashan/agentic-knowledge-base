@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, AbstractTool, LLMError
+from agents_core.core import AbstractAgent, AbstractTool
 from agents_core.json_utils import to_json_object
 from pydantic import ValidationError
 
@@ -20,12 +20,16 @@ class PlannerAgent(AbstractAgent):
         llm,
         prompt_file: str = "agent-prompts/agents-planner.md",
     ):
-        self.llm = llm
+        self._llm = llm
         agent_definition = AgentDefinitionReader(AgentSchema).read_agent(prompt_file)
         self._role = agent_definition.role
         self._goal = agent_definition.goal
         self._backstory = agent_definition.backstory
         self._prompt_template = agent_definition.prompt_template
+
+    @property
+    def llm(self) -> Any:
+        return self._llm
 
     @property
     def role(self) -> str:
@@ -56,16 +60,14 @@ class PlannerAgent(AbstractAgent):
         return self._get_plan(goal, prompt)
 
     def _get_plan(self, goal: str, prompt: str) -> Plan:
-        try:
-            response_text = self.llm.call(prompt)
-            return self._parse_response(response_text, goal)
-        except Exception as e:
-            raise LLMError(f"LLM call failed: {e}") from e
+        response_text = self.call_llm(prompt)
+        return self._parse_response(response_text, goal)
 
     def _create_prompt(self, goal: str) -> str:
         return self._prompt_template.format(goal=goal)
 
-    def _parse_response(self, response_text: str, goal: str) -> Plan:
+    @staticmethod
+    def _parse_response(response_text: str, goal: str) -> Plan:
         try:
             plan_data = to_json_object(response_text)
 
