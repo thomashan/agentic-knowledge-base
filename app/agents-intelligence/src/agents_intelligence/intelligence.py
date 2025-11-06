@@ -5,6 +5,7 @@ from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent
 from agents_core.json_utils import to_json_object
 from agents_research.models import ResearchOutput, ResearchResult
+from crewai import LLM
 from pydantic import ValidationError
 
 from .models import IntelligenceReport
@@ -16,13 +17,13 @@ class IntelligenceAgent(AbstractAgent):
     into a structured, insightful report.
     """
 
-    def __init__(self, llm: Any, agent_file: str = "agent-prompts/agents-intelligence.md"):
+    def __init__(self, llm: LLM, agent_file: str = "agent-prompts/agents-intelligence.md"):
         self._llm = llm
         reader = AgentDefinitionReader(AgentSchema)
         self.agent_definition = reader.read_agent(agent_file)
 
     @property
-    def llm(self) -> Any:
+    def llm(self) -> LLM:
         return self._llm
 
     def generate_report(self, research_output: ResearchOutput) -> IntelligenceReport:
@@ -31,17 +32,21 @@ class IntelligenceAgent(AbstractAgent):
 
         # Construct the prompt
         prompt = self.prompt_template.format(topic=research_output.topic, research_content=research_content)
-
-        # Call the LLM
-        response_text = self.call_llm(prompt)
+        report_data = self._parse_response(prompt)
 
         # Parse the response
         try:
-            report_data: dict[str, Any] = to_json_object(response_text)
             report_data["topic"] = research_output.topic
             return IntelligenceReport(**report_data)
-        except (json.JSONDecodeError, ValidationError, IndexError) as e:
+        except (ValidationError, IndexError) as e:
             raise ValueError(f"Failed to parse LLM response into a valid intelligence report. Error: {e}") from e
+
+    def _parse_response(self, prompt: str) -> dict[str, Any]:
+        try:
+            response_text = self.call_llm(prompt)
+            return to_json_object(response_text)
+        except json.JSONDecodeError:
+            return self._parse_response(prompt)
 
     @staticmethod
     def _research_content(research_results: list[ResearchResult]) -> str:

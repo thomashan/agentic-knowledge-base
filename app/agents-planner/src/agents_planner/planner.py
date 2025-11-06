@@ -4,6 +4,7 @@ from typing import Any
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractTool
 from agents_core.json_utils import to_json_object
+from crewai import LLM
 from pydantic import ValidationError
 
 from .models import Plan
@@ -17,7 +18,7 @@ class PlannerAgent(AbstractAgent):
 
     def __init__(
         self,
-        llm,
+        llm: LLM,
         prompt_file: str = "agent-prompts/agents-planner.md",
     ):
         self._llm = llm
@@ -28,7 +29,7 @@ class PlannerAgent(AbstractAgent):
         self._prompt_template = agent_definition.prompt_template
 
     @property
-    def llm(self) -> Any:
+    def llm(self) -> LLM:
         return self._llm
 
     @property
@@ -61,21 +62,23 @@ class PlannerAgent(AbstractAgent):
 
     def _get_plan(self, goal: str, prompt: str) -> Plan:
         response_text = self.call_llm(prompt)
-        return self._parse_response(response_text, goal)
+        try:
+            plan_data: dict[str, Any] = to_json_object(response_text)
+            return self._parse_response(goal, plan_data)
+        except json.JSONDecodeError:
+            return self._get_plan(goal, prompt)
 
     def _create_prompt(self, goal: str) -> str:
         return self._prompt_template.format(goal=goal)
 
     @staticmethod
-    def _parse_response(response_text: str, goal: str) -> Plan:
+    def _parse_response(goal: str, plan_data: dict[str, Any]) -> Plan:
         try:
-            plan_data = to_json_object(response_text)
-
             # Ensure the goal in the plan matches the requested goal
             plan_data["goal"] = goal
 
             return Plan(**plan_data)
-        except (json.JSONDecodeError, ValidationError) as e:
+        except ValidationError as e:
             # Handle cases where the LLM output is not valid JSON or doesn't match the Pydantic model
             # For now, we'll raise an error. In a real system, we might have a retry loop.
-            raise ValueError(f"Failed to parse LLM response into a valid plan. Error: {e}\nResponse:\n{response_text}") from e
+            raise ValueError(f"Failed to parse LLM response into a valid plan. Error: {e}\nplan_data:\n{plan_data}") from e
