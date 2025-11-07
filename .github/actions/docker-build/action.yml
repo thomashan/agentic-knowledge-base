@@ -31,6 +31,17 @@ runs:
         context: .
         file: ./Dockerfile.tmp
         push: true
+        load: true
         tags: ghcr.io/${{ github.repository }}/${{ inputs.image_name }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Docker images
+      shell: bash
+      run: |
+        docker images
+
+    - name: Tag Docker image
+      shell: bash
+      run: |
+        docker tag ghcr.io/${{ github.repository }}/${{ inputs.image_name }} ${{ inputs.image_name }}
