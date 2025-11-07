@@ -37,7 +37,7 @@ def test_llm_timeout(llm_factory):
     Tests that the LLM call times out as expected.
     """
     # Create an LLM with a very short timeout
-    llm = llm_factory("gemma2:2b", timeout=0.001)
+    llm = llm_factory("gemma2:2b", timeout_s=0.001)
 
     with pytest.raises(litellm.exceptions.APIConnectionError):
         llm.call("This is a test prompt.")
