@@ -29,10 +29,14 @@ jobs:
         run: |
           docker images
 
-      - name: Pull and tag Ollama Docker image
+      - name: Build and push Ollama Docker image
+        uses: ./.github/actions/docker-build
+        with:
+          image_name: 'ollama/ollama:0.12.6'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker images
         run: |
-          docker pull ghcr.io/thomashan/agentic-knowledge-base/ollama/ollama:0.12.6
-          docker tag ghcr.io/thomashan/agentic-knowledge-base/ollama/ollama:0.12.6 ollama/ollama:0.12.6
           docker images
 
       - name: Run integration tests
