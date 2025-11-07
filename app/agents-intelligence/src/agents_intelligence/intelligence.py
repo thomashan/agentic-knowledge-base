@@ -2,10 +2,9 @@ import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent
+from agents_core.core import AbstractAgent, AbstractLLM
 from agents_core.json_utils import to_json_object
 from agents_research.models import ResearchOutput, ResearchResult
-from crewai import LLM
 from pydantic import ValidationError
 
 from .models import IntelligenceReport
@@ -17,13 +16,13 @@ class IntelligenceAgent(AbstractAgent):
     into a structured, insightful report.
     """
 
-    def __init__(self, llm: LLM, agent_file: str = "agent-prompts/agents-intelligence.md"):
+    def __init__(self, llm: AbstractLLM, agent_file: str = "agent-prompts/agents-intelligence.md"):
         self._llm = llm
         reader = AgentDefinitionReader(AgentSchema)
         self.agent_definition = reader.read_agent(agent_file)
 
     @property
-    def llm(self) -> LLM:
+    def llm(self) -> AbstractLLM:
         return self._llm
 
     def generate_report(self, research_output: ResearchOutput) -> IntelligenceReport:

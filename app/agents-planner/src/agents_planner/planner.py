@@ -2,9 +2,8 @@ import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, AbstractTool
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool
 from agents_core.json_utils import to_json_object
-from crewai import LLM
 from pydantic import ValidationError
 
 from .models import Plan
@@ -18,7 +17,7 @@ class PlannerAgent(AbstractAgent):
 
     def __init__(
         self,
-        llm: LLM,
+        llm: AbstractLLM,
         prompt_file: str = "agent-prompts/agents-planner.md",
     ):
         self._llm = llm
@@ -29,7 +28,7 @@ class PlannerAgent(AbstractAgent):
         self._prompt_template = agent_definition.prompt_template
 
     @property
-    def llm(self) -> LLM:
+    def llm(self) -> AbstractLLM:
         return self._llm
 
     @property

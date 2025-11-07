@@ -1,9 +1,17 @@
 from typing import Any
 
-from agents_core.core import AbstractAgent, AbstractOrchestrator, AbstractTask, AbstractTool, ExecutionResult
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractOrchestrator, AbstractTask, AbstractTool, ExecutionResult
 from crewai import Agent, Crew, Task
 from crewai.tools import BaseTool
 from pydantic import BaseModel
+
+
+class CrewAILLM(AbstractLLM):
+    def __init__(self, crew_llm):
+        self.crew_llm = crew_llm
+
+    def call(self, prompt: str) -> str:
+        return self.crew_llm.call(prompt)
 
 
 class NoArgs(BaseModel):
@@ -42,6 +50,8 @@ class CrewAIOrchestrator(AbstractOrchestrator):
         # The new pattern is to pass the llm to the agent constructor.
         # The llm_config property of the agent should contain the llm instance.
         llm_to_use = agent.llm
+        if isinstance(llm_to_use, CrewAILLM):
+            llm_to_use = llm_to_use.crew_llm
 
         crewai_agent = Agent(
             role=agent.role,
