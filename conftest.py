@@ -161,6 +161,7 @@ def llm_factory(ollama_service):
         """Pull the model using the REST API and cache the result."""
         log.debug(f"Pulling model: {model_name}...")
         pull_url = f"{ollama_service}/api/pull"
+        start_time = time.time()
         try:
             response = requests.post(pull_url, json={"name": model_name}, stream=True)
             response.raise_for_status()
@@ -172,7 +173,9 @@ def llm_factory(ollama_service):
                     if "error" in data:
                         raise Exception(f"Error pulling model: {data['error']}")
                     if data.get("status") == "success":
-                        log.debug(f"Model {model_name} pulled successfully.")
+                        end_time = time.time()
+                        duration = end_time - start_time
+                        log.debug(f"Model {model_name} pulled successfully in {duration:.2f} seconds.")
                         return
             else:
                 raise Exception(f"Model {model_name} not pulled successfully")
