@@ -3,4 +3,6 @@ name = "integration-documentation-outline"
 version = "0.1.0"
 
 dependencies = [
+    "requests",
+    "integration-documentation",
 ]
