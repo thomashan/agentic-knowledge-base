@@ -3,9 +3,8 @@ from pathlib import Path
 import structlog
 from agents_core.core import LLMError
 from agents_core.json_utils import to_json_object
-from litellm import completion
-
 from agents_research.models import SearchResult, UrlRelevanceScore
+from litellm import completion
 
 log = structlog.get_logger()
 
