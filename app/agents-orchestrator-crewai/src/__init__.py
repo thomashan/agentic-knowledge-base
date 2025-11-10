@@ -3,7 +3,7 @@ Public API for the crewai_adapter package.
 Exposes abstract interfaces and models for testing and external use.
 """
 
-from .adapter import (
+from .crewai_adapter.adapter import (
     CrewAIOrchestrator,
 )
 

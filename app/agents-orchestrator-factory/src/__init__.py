@@ -3,7 +3,7 @@ Public API for the factory package.
 Exposes abstract interfaces and models for testing and external use.
 """
 
-from .adapter import (
+from .factory.factory import (
     OrchestratorFactory,
 )
 

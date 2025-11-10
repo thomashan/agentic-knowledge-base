@@ -3,7 +3,7 @@ Public API for the agents_core package.
 Exposes abstract interfaces and models for testing and external use.
 """
 
-from .core import (
+from .agents_core.core import (
     AbstractAgent,
     AbstractOrchestrator,
     AbstractTask,
