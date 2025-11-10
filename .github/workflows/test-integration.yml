@@ -35,7 +35,7 @@ jobs:
       - name: Pull ollama image
         uses: ./.github/actions/docker-pull
         with:
-          image_name: "ollama/ollama:0.12.6"
+          image_name: "ollama/ollama:0.13.0"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull test container image

@@ -3,4 +3,10 @@ name = "agents-knowledge"
 version = "0.1.0"
 
 dependencies = [
+    "agents-core",
+    "agents-intelligence",
+    "integration-documentation",
+    "integration-vectordb",
+    "langchain-text-splitters",
+    "sentence-transformers",
 ]
