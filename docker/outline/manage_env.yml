@@ -1,0 +1,109 @@
+---
+- name: Manage Outline Environment File
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    env_file_path: "./.env"
+    oidc_admin_password: ""
+
+  tasks:
+    - name: Check if dex config.yaml exists
+      ansible.builtin.stat:
+        path: "./dex/config.yaml"
+      register: dex_config_file_stat
+
+    - name: Prompt for OIDC admin password if config.yaml does not exist and not provided
+      ansible.builtin.pause:
+        prompt: "Enter the OIDC admin password"
+        echo: no
+      register: oidc_admin_password_input
+      when: not dex_config_file_stat.stat.exists and oidc_admin_password == ""
+
+    - name: Set oidc_admin_password from prompt if provided
+      ansible.builtin.set_fact:
+        oidc_admin_password: "{{ oidc_admin_password_input.user_input }}"
+      when: oidc_admin_password_input.user_input is defined and oidc_admin_password_input.user_input | length > 0
+
+    - name: Ensure .env file exists
+      ansible.builtin.file:
+        path: "{{ env_file_path }}"
+        state: touch
+        mode: '0644'
+
+    - name: Manage SECRET_KEY
+      ansible.builtin.include_tasks: manage_secret.yml
+      vars:
+        secret_name: "SECRET_KEY"
+        secret_variable_name: "current_secret_key"
+        secret_length: 32
+
+    - name: Manage UTILS_SECRET
+      ansible.builtin.include_tasks: manage_secret.yml
+      vars:
+        secret_name: "UTILS_SECRET"
+        secret_variable_name: "current_utils_secret"
+        secret_length: 32
+
+    - name: Manage POSTGRES_PASSWORD
+      ansible.builtin.include_tasks: manage_secret.yml
+      vars:
+        secret_name: "POSTGRES_PASSWORD"
+        secret_variable_name: "current_postgres_password"
+        secret_length: 16
+
+    - name: Manage OIDC_CLIENT_SECRET
+      ansible.builtin.include_tasks: manage_secret.yml
+      vars:
+        secret_name: "OIDC_CLIENT_SECRET"
+        secret_variable_name: "current_oidc_client_secret"
+        secret_length: 32
+
+    # --- DATABASE_URL management ---
+    - name: Construct DATABASE_URL
+      ansible.builtin.set_fact:
+        constructed_database_url: "postgres://outline:{{ current_postgres_password }}@postgres:5432/outline"
+
+    - name: Add/Update DATABASE_URL in .env file
+      ansible.builtin.lineinfile:
+        path: "{{ env_file_path }}"
+        regexp: '^DATABASE_URL='
+        line: "DATABASE_URL={{ constructed_database_url }}"
+        create: yes
+
+    - name: Check if htpasswd command exists
+      ansible.builtin.command: command -v htpasswd
+      register: htpasswd_check
+      changed_when: false
+      ignore_errors: true
+      when: not dex_config_file_stat.stat.exists
+
+    - name: Fail if htpasswd is not installed
+      ansible.builtin.fail:
+        msg: >
+          The 'htpasswd' command is not available on the system.
+          Please install it to proceed.
+          On Debian/Ubuntu, run: sudo apt-get install apache2-utils
+          On CentOS/RHEL, run: sudo yum install httpd-tools
+          On macOS, run: brew install httpd
+      when: not dex_config_file_stat.stat.exists and htpasswd_check.rc != 0
+
+    - name: Generate OIDC admin password hash via htpasswd
+      ansible.builtin.shell: "echo \"{{ oidc_admin_password }}\" | htpasswd -BinC 10 admin | cut -d: -f2"
+      register: password_hash_result
+      changed_when: false
+      when: not dex_config_file_stat.stat.exists
+
+    - name: Set OIDC admin password hash fact
+      ansible.builtin.set_fact:
+        oidc_admin_password_hash: "{{ password_hash_result.stdout }}"
+      when: not dex_config_file_stat.stat.exists
+
+    - name: Template dex config file
+      ansible.builtin.template:
+        src: ./dex/config.yaml.j2
+        dest: ./dex/config.yaml
+      vars:
+        oidc_client_secret: "{{ current_oidc_client_secret }}"
+        oidc_admin_password_hash: "{{ oidc_admin_password_hash }}"
+      when: not dex_config_file_stat.stat.exists
