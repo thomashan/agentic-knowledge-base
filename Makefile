@@ -11,7 +11,7 @@ ORANGE_BOLD := \033[1;38;5;208m
 RESET := \033[0m
 endif
 
-.PHONY: install-homebrew install-miniforge create-conda-env activate-conda-env clean help fix-ruff
+.PHONY: install-homebrew install-miniforge create-conda-env activate-conda-env clean fix-ruff manage-outline-env outline help
 
 # OS Detection
 DETECTED_OS := $(shell uname -s)
@@ -122,6 +122,17 @@ activate-conda-env: create-conda-env
 	@echo "conda activate agentic-knowledge-base"
 
 
+manage-outline-env:
+	@echo "Managing Outline environment file..."
+	@uv run ansible-playbook -i localhost, docker/outline/manage_env.yml -e "ansible_python_interpreter=$(shell uv run which python)"
+	@echo "✅ Outline environment file managed successfully."
+
+outline: manage-outline-env
+	@echo "Starting Outline services..."
+	@docker compose -f docker/outline/docker-compose.yml up
+	@echo "✅ Outline services started."
+
+
 CLEAN_DIRS ?= .venv __pycache__ .pytest_cache .ruff_cache build *.egg-info
 
 clean:
@@ -148,6 +159,8 @@ help:
 	@printf $(HELP_FORMAT) "install-miniforge" "Installs Miniforge."
 	@printf $(HELP_FORMAT) "create-conda-env" "Creates the conda environment 'agentic-knowledge-base'."
 	@printf $(HELP_FORMAT) "activate-conda-env" "Shows the command to activate the conda environment."
+	@printf $(HELP_FORMAT) "manage-outline-env" "Manages the Outline .env file (creates if missing, generates secrets)."
+	@printf $(HELP_FORMAT) "outline" "Starts the Outline application using docker compose."
 	@printf $(HELP_FORMAT) "clean" "Removes transient directories."
 	@printf $(HELP_FORMAT) "fix-ruff" "Automatically fixes Ruff issues in the codebase."
 	@printf $(HELP_FORMAT) "help" "Shows this help message."

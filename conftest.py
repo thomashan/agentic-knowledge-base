@@ -5,13 +5,14 @@ import time
 from functools import cache
 from pathlib import Path
 
-import docker
 import pytest
 import requests
 import structlog
 from crewai import LLM
 from testcontainers.core.container import DockerContainer as GenericContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
+
+import docker
 
 # Docker Host Configuration
 # The following logic ensures that the DOCKER_HOST environment variable is set
