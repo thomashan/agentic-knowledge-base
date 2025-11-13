@@ -146,7 +146,7 @@ clean:
 fix-ruff:
 	@echo "Fixing Ruff issues..."
 	@uv run -- ruff format
-	@uv run -- ruff check . --fix
+	@uv run -- ruff check . --unsafe-fixes --fix
 	@echo "✅ Ruff fixes applied successfully"
 
 

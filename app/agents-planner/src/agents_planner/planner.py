@@ -15,17 +15,14 @@ class PlannerAgent(AbstractAgent):
     into a structured plan of tasks.
     """
 
-    def __init__(
-        self,
-        llm: AbstractLLM,
-        prompt_file: str = "agent-prompts/agents-planner.md",
-    ):
+    def __init__(self, llm: AbstractLLM, prompt_file: str = "agent-prompts/agents-planner.md", max_retries: int = 3):
         self._llm = llm
         agent_definition = AgentDefinitionReader(AgentSchema).read_agent(prompt_file)
         self._role = agent_definition.role
         self._goal = agent_definition.goal
         self._backstory = agent_definition.backstory
         self._prompt_template = agent_definition.prompt_template
+        self._max_retries = max_retries
 
     @property
     def llm(self) -> AbstractLLM:
@@ -54,6 +51,10 @@ class PlannerAgent(AbstractAgent):
     @property
     def llm_config(self) -> dict[str, Any] | None:
         return None
+
+    @property
+    def max_retries(self) -> int:
+        return self._max_retries
 
     def generate_plan(self, goal: str) -> Plan:
         prompt = self._create_prompt(goal)

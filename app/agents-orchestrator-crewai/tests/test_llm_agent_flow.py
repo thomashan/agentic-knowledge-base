@@ -38,6 +38,10 @@ class SimpleAgent(AbstractAgent):
     def llm_config(self) -> None:
         return None
 
+    @property
+    def max_retries(self) -> int:
+        return 1
+
 
 class SimpleTask(AbstractTask):
     def __init__(self, agent: AbstractAgent):

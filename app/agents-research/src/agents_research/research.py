@@ -59,6 +59,10 @@ class ResearchAgent(AbstractAgent):
     def llm_config(self) -> dict[str, Any] | None:
         return None
 
+    @property
+    def max_retries(self) -> int:
+        return 10
+
     def run_research(self, topic: str, max_iterations: int = 5) -> ResearchOutput:
         history = []
         results = []

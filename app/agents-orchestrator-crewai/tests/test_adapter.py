@@ -35,6 +35,10 @@ class MockAgent(AbstractAgent):
     def llm_config(self) -> dict[str, Any] | None:
         return None
 
+    @property
+    def max_retries(self) -> int:
+        return 1
+
 
 class MockTask(AbstractTask):
     def __init__(self, agent: AbstractAgent):

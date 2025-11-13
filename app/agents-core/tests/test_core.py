@@ -61,6 +61,10 @@ class ConcreteAgent(AbstractAgent):
     def llm_config(self) -> dict[str, Any]:
         return {"model": "test-model"}
 
+    @property
+    def max_retries(self) -> int:
+        return 1
+
 
 class ConcreteTask(AbstractTask):
     """A concrete implementation of AbstractTask for testing purposes."""

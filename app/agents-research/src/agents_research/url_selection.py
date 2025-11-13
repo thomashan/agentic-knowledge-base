@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 import structlog
@@ -10,11 +11,12 @@ log = structlog.get_logger()
 
 
 class UrlSelectionAgent:
-    def __init__(self, topic: str, llm: object = None, relevance_threshold: int = 5):
+    def __init__(self, topic: str, llm: object = None, relevance_threshold: int = 5, max_retries: int = 3):
         self.topic = topic
         self.llm = llm
         self.relevance_threshold = relevance_threshold
         self.prompt_template = self._load_prompt_template()
+        self.max_retries = max_retries
 
     @staticmethod
     def _load_prompt_template() -> str:
@@ -29,17 +31,32 @@ class UrlSelectionAgent:
             raise NotImplementedError
 
         messages = [{"content": prompt, "role": "user"}]
-        try:
-            response = completion(
-                model=self.llm.model,
-                messages=messages,
-                base_url=self.llm.base_url,
-            )
-        except Exception as e:
-            raise LLMError(f"LLM call failed: {e}") from e
-        response_content = response.choices[0].message.content
-        log.info("LLM Response", response=response_content)
-        return response_content
+
+        """Calls the LLM and handles potential LLMError exceptions with retries."""
+        base_delay = 1  # starting delay in seconds
+        last_exception = None
+        for attempt in range(self.max_retries):
+            try:
+                response = completion(
+                    model=self.llm.model,
+                    messages=messages,
+                    base_url=self.llm.base_url,
+                )
+                response_content = response.choices[0].message.content
+                log.info("LLM Response", response=response_content)
+                return response_content
+            except Exception as e:
+                last_exception = LLMError(f"LLM call failed: {e}")
+                log.warning(
+                    "LLM call failed, retrying...",
+                    attempt=attempt + 1,
+                    max_retries=self.max_retries,
+                    error=str(last_exception),
+                )
+                if attempt < self.max_retries - 1:
+                    delay = base_delay * (1.5**attempt)  # exponential backoff
+                    time.sleep(delay)
+        raise last_exception
 
     def select_urls(self, search_results: list[SearchResult]) -> list[str]:
         prompt = self._build_selection_prompt(search_results)

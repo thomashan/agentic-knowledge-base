@@ -125,13 +125,17 @@ class AbstractAgent(ABC):
         """The LLM instance used by the agent."""
         pass
 
+    @property
+    @abstractmethod
+    def max_retries(self) -> int:
+        pass
+
     def call_llm(self, prompt: str) -> str:
         """Calls the LLM and handles potential LLMError exceptions with retries."""
-        retries = 3
-        delay = 5  # seconds
+        base_delay = 1  # starting delay in seconds
         last_exception = None
         log = structlog.get_logger()
-        for attempt in range(retries):
+        for attempt in range(self.max_retries):
             try:
                 return self.llm.call(prompt)
             except Exception as e:
@@ -139,10 +143,11 @@ class AbstractAgent(ABC):
                 log.warning(
                     "LLM call failed, retrying...",
                     attempt=attempt + 1,
-                    retries=retries,
+                    max_retries=self.max_retries,
                     error=str(last_exception),
                 )
-                if attempt < retries - 1:
+                if attempt < self.max_retries - 1:
+                    delay = base_delay * (1.5**attempt)  # exponential backoff
                     time.sleep(delay)
         raise last_exception
 
