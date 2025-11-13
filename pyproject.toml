@@ -56,8 +56,8 @@ runner = { path = "app/runner", editable = true }
 
 [dependency-groups]
 dev = [
-    "pytest==8.4.2",
-    "ruff==0.14.0",
+    "pytest==9.0.1",
+    "ruff==0.14.4",
     "ansible==12.2.0",
 ]
 
