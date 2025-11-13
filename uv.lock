@@ -17,6 +17,7 @@ dependencies = [
     { name = "agents-research" },
     { name = "agents-retrieval" },
     { name = "integration-documentation" },
+    { name = "integration-documentation-outline" },
     { name = "integration-llm" },
     { name = "integration-scraper" },
     { name = "integration-search" },
@@ -50,6 +51,7 @@ requires-dist = [
     { name = "agents-retrieval", editable = "app/agents-retrieval" },
     { name = "crewai", marker = "extra == 'crewai'", specifier = "==0.203.1" },
     { name = "integration-documentation", editable = "app/integration-documentation" },
+    { name = "integration-documentation-outline", editable = "app/integration-documentation-outline" },
     { name = "integration-llm", editable = "app/integration-llm" },
     { name = "integration-scraper", editable = "app/integration-scraper" },
     { name = "integration-search", editable = "app/integration-search" },
@@ -895,6 +897,11 @@ wheels = [
 name = "integration-documentation"
 version = "0.1.0"
 source = { editable = "app/integration-documentation" }
+
+[[package]]
+name = "integration-documentation-outline"
+version = "0.1.0"
+source = { editable = "app/integration-documentation-outline" }
 
 [[package]]
 name = "integration-llm"
