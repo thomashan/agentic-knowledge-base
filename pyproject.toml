@@ -17,6 +17,7 @@ dependencies = [
     "agents-research",
     "agents-retrieval",
     "integration-documentation",
+    "integration-documentation-outline",
     "integration-llm",
     "integration-scraper",
     "integration-search",
@@ -46,6 +47,7 @@ agents-planner = { path = "app/agents-planner", editable = true }
 agents-research = { path = "app/agents-research", editable = true }
 agents-retrieval = { path = "app/agents-retrieval", editable = true }
 integration-documentation = { path = "app/integration-documentation", editable = true }
+integration-documentation-outline = { path = "app/integration-documentation-outline", editable = true }
 integration-llm = { path = "app/integration-llm", editable = true }
 integration-scraper = { path = "app/integration-scraper", editable = true }
 integration-search = { path = "app/integration-search", editable = true }
@@ -84,6 +86,7 @@ pythonpath = [
     "app/agents-research/src",
     "app/agents-retrieval/src",
     "app/integration-documentation/src",
+    "app/integration-documentation-outline/src",
     "app/integration-llm/src",
     "app/integration-scraper/src",
     "app/integration-search/src",
@@ -101,6 +104,7 @@ testpaths = [
     "app/agents-research/tests",
     "app/agents-retrieval/tests",
     "app/integration-documentation/tests",
+    "app/integration-documentation-outline/tests",
     "app/integration-llm/tests",
     "app/integration-scraper/tests",
     "app/integration-search/tests",
