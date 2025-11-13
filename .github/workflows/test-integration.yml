@@ -37,6 +37,24 @@ jobs:
           image_name: "testcontainers/ryuk:0.8.1"
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Pull outline image
+        uses: ./.github/actions/docker-pull
+        with:
+          image_name: "outlinewiki/outline:1.0"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull redis image
+        uses: ./.github/actions/docker-pull
+        with:
+          image_name: "redis:7.4.7"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull postgres image
+        uses: ./.github/actions/docker-pull
+        with:
+          image_name: "postgres:16.10"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run integration tests
         shell: bash -el {0}
         # `--capture=no` is equivalent to `-s`
