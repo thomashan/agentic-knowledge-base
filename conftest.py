@@ -12,6 +12,7 @@ import pytest
 import requests
 import structlog
 from crewai import LLM
+from filelock import FileLock
 from testcontainers.compose import DockerCompose
 from testcontainers.core.container import DockerContainer as GenericContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
@@ -76,94 +77,117 @@ def __setup_ollama_model(container: GenericContainer = None):
         container.with_volume_mapping(str(ollama_models_path), "/root/.ollama", "rw")
 
 
+def _is_ollama_ready(url):
+    try:
+        response = requests.get(f"{url}/api/tags", timeout=5)
+        response.raise_for_status()
+        return True
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.HTTPError):
+        return False
+
+
+def _start_local_ollama():
+    log.debug("Starting local ollama serve.")
+    try:
+        ollama_process = subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        for _ in range(10):
+            if _is_ollama_ready("http://localhost:11434"):
+                return "http://localhost:11434", ollama_process
+            time.sleep(2)
+        pytest.fail("Local Ollama server did not become ready.")
+    except Exception as e:
+        pytest.fail(f"Failed to start local Ollama server: {e}")
+
+
+def _start_docker_ollama():
+    log.debug("Local ollama command not found. Falling back to Docker container.")
+    try:
+        client = docker.from_env(timeout=5)
+        client.ping()
+    except Exception as e:
+        pytest.fail(f"Docker is not running or not installed. Error: {e}")
+
+    container = GenericContainer(image="ollama/ollama:0.12.6")
+    __setup_ollama_model(container)
+    container.with_exposed_ports(11434)
+    container.waiting_for(LogMessageWaitStrategy(r"Listening on \[::\]:11434").with_startup_timeout(120))
+    container.start()
+    host = container.get_container_host_ip()
+    port = container.get_exposed_port(11434)
+    return f"http://{host}:{port}", container
+
+
 @pytest.fixture(scope="session")
-def ollama_service():
+def ollama_service(tmp_path_factory, worker_id):
     """
     A session-scoped fixture that starts, manages, and stops an
     Ollama Docker container for the entire test session, or uses a local
     Ollama instance if available and/or running.
+    This fixture is made compatible with pytest-xdist by ensuring the service
+    is started only once using a file lock.
     """
-    log.debug("Setting up ollama_service fixture...")
+    log.debug(f"Worker {worker_id}: Setting up ollama_service fixture...")
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    ollama_url_file = root_tmp_dir / "ollama_url.txt"
+    lock_file = root_tmp_dir / "ollama.lock"
 
-    ollama_base_url = "http://localhost:11434"
-    ollama_process = None
-
-    # Function to check if local Ollama server is ready
-    def is_ollama_ready(url):
-        try:
-            response = requests.get(f"{url}/api/tags", timeout=5)
-            response.raise_for_status()
-            return True
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, requests.exceptions.HTTPError):
-            return False
-
-    # 1. Check if ollama command is available
-    if subprocess.run(["which", "ollama"], capture_output=True).returncode == 0:
-        log.debug("Local ollama command found.")
-
-        # 2. Check if local ollama serve is already running
-        if is_ollama_ready(ollama_base_url):
-            log.debug("Local Ollama server is already running. Using existing instance.")
-            yield ollama_base_url
-            return
+    with FileLock(str(lock_file)):
+        log.debug(f"Worker {worker_id}: Acquired lock for ollama_service.")
+        if ollama_url_file.is_file():
+            ollama_base_url = ollama_url_file.read_text().strip()
+            log.debug(f"Worker {worker_id}: Ollama URL already exists: {ollama_base_url}")
         else:
-            log.debug("Local ollama command found, but server not running. Starting local ollama serve.")
-            try:
-                # Start ollama serve in the background
-                ollama_process = subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                log.debug("Started 'ollama serve' in background.")
-
-                # Wait for Ollama to be ready
-                max_retries = 10
-                for i in range(max_retries):
-                    if is_ollama_ready(ollama_base_url):
-                        log.debug("Local Ollama server is ready.")
-                        break
-                    log.debug(f"Waiting for local Ollama server to be ready (attempt {i + 1}/{max_retries})...")
-                    time.sleep(2)  # Wait 2 seconds before retrying
+            log.debug(f"Worker {worker_id}: Ollama URL file not found. This worker will start the service.")
+            ollama_process, container = None, None
+            if subprocess.run(["which", "ollama"], capture_output=True).returncode == 0:
+                log.debug("Local ollama command found.")
+                if _is_ollama_ready("http://localhost:11434"):
+                    log.debug("Local Ollama server is already running. Using existing instance.")
+                    ollama_base_url = "http://localhost:11434"
                 else:
-                    pytest.fail("Local Ollama server did not become ready within the expected time.")
+                    ollama_base_url, ollama_process = _start_local_ollama()
+            else:
+                ollama_base_url, container = _start_docker_ollama()
 
-                yield ollama_base_url
-            finally:
-                if ollama_process:
-                    log.debug("Terminating local ollama serve process.")
-                    ollama_process.terminate()
-                    ollama_process.wait(timeout=5)
-                    if ollama_process.poll() is None:
-                        ollama_process.kill()
-                        ollama_process.wait()
-    else:
-        log.debug("Local ollama command not found. Falling back to Docker container.")
-        log.debug("Checking for Docker...")
-        try:
-            client = docker.from_env(timeout=5)
-            client.ping()
-            log.debug("Docker check passed.")
-        except Exception as e:
-            pytest.fail(f"Docker is not running or not installed. Failing integration tests. Error: {e}")
+            ollama_url_file.write_text(ollama_base_url)
+            log.debug(f"Worker {worker_id}: Wrote Ollama URL to file: {ollama_base_url}")
 
-        log.debug("Creating Ollama container...")
-        # Create a GenericContainer for the ollama/ollama image
-        container = GenericContainer(image="ollama/ollama:0.12.6")
-        __setup_ollama_model(container)
-        log.debug("Ollama container created.")
+            # Store service details for teardown
+            service_info = {
+                "url": ollama_base_url,
+                "process_pid": ollama_process.pid if ollama_process else None,
+                "container_id": container.get_wrapped_container().id if container else None,
+            }
+            (root_tmp_dir / "ollama_service_info.json").write_text(json.dumps(service_info))
 
-        # Expose the default Ollama port
-        container.with_exposed_ports(11434)
-        container.waiting_for(LogMessageWaitStrategy(r"Listening on \[::\]:11434").with_startup_timeout(120))
+    ollama_base_url = ollama_url_file.read_text().strip()
+    yield ollama_base_url
 
-        log.debug("Starting Ollama container...")
-        with container as ollama:
-            log.debug("Ollama server is ready.")
-
-            # Get the dynamically mapped host and port
-            host = ollama.get_container_host_ip()
-            port = ollama.get_exposed_port(11434)
-            base_url = f"http://{host}:{port}"
-            log.debug(f"Ollama service URL: {base_url}")
-
-            yield base_url
+    # Teardown logic, executed only by the master worker
+    if worker_id == "master":
+        log.debug("Master worker tearing down Ollama service.")
+        service_info_file = root_tmp_dir / "ollama_service_info.json"
+        if service_info_file.is_file():
+            with FileLock(str(lock_file)):
+                service_info = json.loads(service_info_file.read_text())
+                if service_info.get("process_pid"):
+                    try:
+                        os.kill(service_info["process_pid"], 15)  # SIGTERM
+                        log.debug(f"Terminated ollama process with PID {service_info['process_pid']}.")
+                    except ProcessLookupError:
+                        log.debug(f"Ollama process with PID {service_info['process_pid']} not found.")
+                if service_info.get("container_id"):
+                    try:
+                        client = docker.from_env()
+                        container = client.containers.get(service_info["container_id"])
+                        container.stop()
+                        container.remove()
+                        log.debug(f"Stopped and removed Ollama container {service_info['container_id']}.")
+                    except docker.errors.NotFound:
+                        log.debug(f"Ollama container {service_info['container_id']} not found.")
+                # Clean up control files
+                service_info_file.unlink()
+                ollama_url_file.unlink()
 
 
 @pytest.fixture(scope="session")
@@ -181,22 +205,25 @@ def llm_factory(ollama_service):
         pull_url = f"{ollama_service}/api/pull"
         start_time = time.time()
         try:
-            response = requests.post(pull_url, json={"name": model_name}, stream=True)
-            response.raise_for_status()
-
-            # Wait for the pull to complete
-            for line in response.iter_lines():
-                if line:
-                    data = json.loads(line)
-                    if "error" in data:
-                        raise Exception(f"Error pulling model: {data['error']}")
-                    if data.get("status") == "success":
-                        end_time = time.time()
-                        duration = end_time - start_time
-                        log.debug(f"Model {model_name} pulled successfully in {duration:.2f} seconds.")
-                        return
-            else:
-                raise Exception(f"Model {model_name} not pulled successfully")
+            # Use a longer timeout for the initial connection to the pull endpoint
+            with requests.post(pull_url, json={"name": model_name}, stream=True, timeout=30) as response:
+                response.raise_for_status()
+                # Process the streaming response
+                for line in response.iter_lines():
+                    if line:
+                        data = json.loads(line)
+                        if "error" in data:
+                            raise Exception(f"Error pulling model: {data['error']}")
+                        if data.get("status") == "success":
+                            end_time = time.time()
+                            duration = end_time - start_time
+                            log.debug(f"Model {model_name} pulled successfully in {duration:.2f} seconds.")
+                            return
+                else:
+                    # This part is reached if the stream ends without a 'success' status
+                    raise Exception(f"Stream for model pull of {model_name} ended without success status.")
+        except requests.exceptions.ReadTimeout:
+            pytest.fail(f"Failed to pull model '{model_name}': The request timed out after waiting for the stream to start.")
         except Exception as e:
             pytest.fail(f"Failed to pull model '{model_name}': {e}")
 
@@ -212,93 +239,124 @@ def llm_factory(ollama_service):
     return _factory
 
 
+@pytest.fixture
+def unique_id():
+    """
+    A function-scoped fixture that provides a unique ID for each test function,
+    useful for creating isolated resources in parallel test runs.
+    """
+    return f"{int(time.time() * 1000)}-{uuid.uuid4().hex[:8]}"
+
+
 @pytest.fixture(scope="session")
-def docker_compose_services():
+def docker_compose_services(tmp_path_factory, worker_id):
     """
     A session-scoped fixture that starts, manages, and stops the Outline
     Docker Compose environment for the entire test session.
+    This fixture is made compatible with pytest-xdist by ensuring the service
+    is started only once using a file lock.
     """
-    log.debug("Setting up docker_compose_services fixture...")
-    compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
-    with DockerCompose(compose_file_path, compose_file_name="docker-compose.yml", wait=True) as compose:
-        # Get the dynamically mapped host and port for the 'outline' service
-        host = "127.0.0.1"  # Explicitly set to localhost
-        port = compose.get_service_port("outline", 3000)
-        base_url = f"http://{host}:{port}"
+    log.debug(f"Worker {worker_id}: Setting up docker_compose_services fixture...")
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    compose_details_file = root_tmp_dir / "compose_details.json"
+    lock_file = root_tmp_dir / "compose.lock"
 
-        log.debug("Outline service is ready.")
+    with FileLock(str(lock_file)):
+        log.debug(f"Worker {worker_id}: Acquired lock for docker_compose_services.")
+        if compose_details_file.is_file():
+            details = json.loads(compose_details_file.read_text())
+            log.debug(f"Worker {worker_id}: Docker Compose details already exist: {details}")
+        else:
+            log.debug(f"Worker {worker_id}: Docker Compose details not found. This worker will start the services.")
+            compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
+            compose_instance = DockerCompose(
+                compose_file_path,
+                compose_file_name="docker-compose.yml",
+                wait=True,
+            )
+            compose_instance.start()
 
-        # Generate IDs and secrets
-        team_id = str(uuid.uuid4())
-        user_id = str(uuid.uuid4())
-        collection_id = str(uuid.uuid4())
-        api_key_secret = f"ol_api_{uuid.uuid4().hex}{uuid.uuid4().hex[:6]}"
-        now = datetime.now(UTC).isoformat()
+            host = "localhost"
+            port = compose_instance.get_service_port("outline", 3000)
+            base_url = f"http://{host}:{port}"
 
-        # Hash the API key secret
-        hashed_secret = hashlib.sha256(api_key_secret.encode()).hexdigest()
+            team_id, user_id, collection_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
+            api_key_secret = f"ol_api_{uuid.uuid4().hex}{uuid.uuid4().hex[:6]}"
+            now = datetime.now(UTC).isoformat()
+            hashed_secret = hashlib.sha256(api_key_secret.encode()).hexdigest()
 
-        # Connect to PostgreSQL and insert data
-        pg_host = compose.get_service_host("postgres", 5432)
-        pg_port = compose.get_service_port("postgres", 5432)
-        pg_user = "outline"
-        pg_password = "password"
-        pg_db = "outline"
+            pg_host = compose_instance.get_service_host("postgres", 5432)
+            pg_port = compose_instance.get_service_port("postgres", 5432)
+            db_url = f"postgresql://outline:password@{pg_host}:{pg_port}/outline"
 
-        # Insert team
-        team_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f"INSERT INTO teams (id, name, \"createdAt\", \"updatedAt\") VALUES ('{team_id}', 'Test Team', '{now}', '{now}');",
-        ]
-        subprocess.run(team_insert_cmd, check=True)
+            # Database seeding commands
+            commands = [
+                f"INSERT INTO teams (id, name, \"createdAt\", \"updatedAt\") VALUES ('{team_id}', 'Test Team', '{now}', '{now}');",
+                f"INSERT INTO users (id, name, email, \"teamId\", \"createdAt\", \"updatedAt\", role) VALUES ('{user_id}', 'Test User', 'test@example.com', '{team_id}', '{now}', '{now}', 'admin');",
+                f"INSERT INTO collections (id, name, \"teamId\", \"createdAt\", \"updatedAt\") VALUES ('{collection_id}', 'Test Collection', '{team_id}', '{now}', '{now}');",
+                (
+                    f'INSERT INTO "apiKeys" (id, name, secret, hash, "userId", "createdAt", "updatedAt") '
+                    f"VALUES ('{str(uuid.uuid4())}', 'Test API Key', '{api_key_secret}', "
+                    f"'{hashed_secret}', '{user_id}', '{now}', '{now}');"
+                ),
+                (
+                    f'INSERT INTO user_permissions (id, "userId", "collectionId", permission, "createdById", "createdAt", "updatedAt") '
+                    f"VALUES ('{str(uuid.uuid4())}', '{user_id}', '{collection_id}', "
+                    f"'admin', '{user_id}', '{now}', '{now}');"
+                ),
+            ]
+            for cmd in commands:
+                subprocess.run(["psql", db_url, "-c", cmd], check=True, capture_output=True)
 
-        # Insert user
-        user_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f"INSERT INTO users (id, name, email, \"teamId\", \"createdAt\", \"updatedAt\", role) VALUES ('{user_id}', 'Test User', 'test@example.com', '{team_id}', '{now}', '{now}', 'admin');",
-        ]
-        subprocess.run(user_insert_cmd, check=True)
+            log.debug("Finished seeding database. Waiting for Outline to process new data...")
+            time.sleep(5)
 
-        # Insert collection
-        collection_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f"INSERT INTO collections (id, name, \"teamId\", \"createdAt\", \"updatedAt\") VALUES ('{collection_id}', 'Test Collection', '{team_id}', '{now}', '{now}');",
-        ]
-        subprocess.run(collection_insert_cmd, check=True)
+            details = {
+                "outline_base_url": base_url,
+                "api_key": api_key_secret,
+                "collection_id": collection_id,
+                "db_url": db_url,
+                "team_id": team_id,
+                "user_id": user_id,
+            }
+            compose_details_file.write_text(json.dumps(details))
+            log.debug(f"Worker {worker_id}: Wrote Docker Compose details to file: {details}")
 
-        # Insert API key
-        api_key_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f'INSERT INTO "apiKeys" (id, name, secret, hash, "userId", "createdAt", "updatedAt") VALUES ('
-            f"'{str(uuid.uuid4())}', 'Test API Key', '{api_key_secret}', '{hashed_secret}', '{user_id}', '{now}', '{now}');",
-        ]
-        subprocess.run(api_key_insert_cmd, check=True)
+    details = json.loads(compose_details_file.read_text())
+    yield details
 
-        # Insert user permission for the collection
-        user_permission_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f'INSERT INTO user_permissions (id, "userId", "collectionId", permission, "createdById", "createdAt", "updatedAt") VALUES ('
-            f"'{str(uuid.uuid4())}', '{user_id}', '{collection_id}', 'admin', '{user_id}', '{now}', '{now}');",
-        ]
-        subprocess.run(user_permission_insert_cmd, check=True)
+    if worker_id == "master":
+        log.debug("Master worker tearing down Docker Compose services.")
+        if compose_details_file.is_file():
+            with FileLock(str(lock_file)):
+                # Re-instantiate DockerCompose to stop the services
+                compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
+                compose = DockerCompose(compose_file_path, compose_file_name="docker-compose.yml")
+                compose.stop()
+                log.debug("Stopped Docker Compose services.")
+                # Clean up control file
+                compose_details_file.unlink(missing_ok=True)
 
-        # Give Outline some time to pick up the new API key
-        time.sleep(5)
 
-        yield {
-            "outline_base_url": base_url,
-            "api_key": api_key_secret,
-            "collection_id": collection_id,
-        }
+@pytest.fixture
+def outline_collection(docker_compose_services):
+    """
+    A function-scoped fixture that creates a unique Outline collection for each
+    test function, and provides the collection ID.
+    """
+    db_url = docker_compose_services["db_url"]
+    team_id = docker_compose_services["team_id"]
+    user_id = docker_compose_services["user_id"]
+    now = datetime.now(UTC).isoformat()
+    collection_id = str(uuid.uuid4())
 
-        compose.stop()
+    command = f"INSERT INTO collections (id, name, \"teamId\", \"createdAt\", \"updatedAt\") VALUES ('{collection_id}', 'Test Collection {collection_id}', '{team_id}', '{now}', '{now}');"
+    subprocess.run(["psql", db_url, "-c", command], check=True, capture_output=True)
+
+    permission_command = (
+        f'INSERT INTO user_permissions (id, "userId", "collectionId", permission, "createdById", "createdAt", "updatedAt") '
+        f"VALUES ('{str(uuid.uuid4())}', '{user_id}', '{collection_id}', 'admin', '{user_id}', '{now}', '{now}');"
+    )
+    subprocess.run(["psql", db_url, "-c", permission_command], check=True, capture_output=True)
+
+    yield collection_id
