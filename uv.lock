@@ -902,6 +902,16 @@ source = { editable = "app/integration-documentation" }
 name = "integration-documentation-outline"
 version = "0.1.0"
 source = { editable = "app/integration-documentation-outline" }
+dependencies = [
+    { name = "integration-documentation" },
+    { name = "requests" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "integration-documentation" },
+    { name = "requests" },
+]
 
 [[package]]
 name = "integration-llm"

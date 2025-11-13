@@ -1,7 +1,10 @@
+import hashlib
 import json
 import os
 import subprocess
 import time
+import uuid
+from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path
 
@@ -9,6 +12,7 @@ import pytest
 import requests
 import structlog
 from crewai import LLM
+from testcontainers.compose import DockerCompose
 from testcontainers.core.container import DockerContainer as GenericContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
 
@@ -193,3 +197,95 @@ def llm_factory(ollama_service):
         return llm
 
     return _factory
+
+
+@pytest.fixture(scope="session")
+def docker_compose_services():
+    """
+    A session-scoped fixture that starts, manages, and stops the Outline
+    Docker Compose environment for the entire test session.
+    """
+    log.debug("Setting up docker_compose_services fixture...")
+    compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
+    with DockerCompose(compose_file_path, compose_file_name="docker-compose.yml", wait=True) as compose:
+        # Get the dynamically mapped host and port for the 'outline' service
+        host = "127.0.0.1"  # Explicitly set to localhost
+        port = compose.get_service_port("outline", 3000)
+        base_url = f"http://{host}:{port}"
+
+        log.debug("Outline service is ready.")
+
+        # Generate IDs and secrets
+        team_id = str(uuid.uuid4())
+        user_id = str(uuid.uuid4())
+        collection_id = str(uuid.uuid4())
+        api_key_secret = f"ol_api_{uuid.uuid4().hex}{uuid.uuid4().hex[:6]}"
+        now = datetime.now(UTC).isoformat()
+
+        # Hash the API key secret
+        hashed_secret = hashlib.sha256(api_key_secret.encode()).hexdigest()
+
+        # Connect to PostgreSQL and insert data
+        pg_host = compose.get_service_host("postgres", 5432)
+        pg_port = compose.get_service_port("postgres", 5432)
+        pg_user = "outline"
+        pg_password = "password"
+        pg_db = "outline"
+
+        # Insert team
+        team_insert_cmd = [
+            "psql",
+            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
+            "-c",
+            f"INSERT INTO teams (id, name, \"createdAt\", \"updatedAt\") VALUES ('{team_id}', 'Test Team', '{now}', '{now}');",
+        ]
+        subprocess.run(team_insert_cmd, check=True)
+
+        # Insert user
+        user_insert_cmd = [
+            "psql",
+            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
+            "-c",
+            f"INSERT INTO users (id, name, email, \"teamId\", \"createdAt\", \"updatedAt\", role) VALUES ('{user_id}', 'Test User', 'test@example.com', '{team_id}', '{now}', '{now}', 'admin');",
+        ]
+        subprocess.run(user_insert_cmd, check=True)
+
+        # Insert collection
+        collection_insert_cmd = [
+            "psql",
+            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
+            "-c",
+            f"INSERT INTO collections (id, name, \"teamId\", \"createdAt\", \"updatedAt\") VALUES ('{collection_id}', 'Test Collection', '{team_id}', '{now}', '{now}');",
+        ]
+        subprocess.run(collection_insert_cmd, check=True)
+
+        # Insert API key
+        api_key_insert_cmd = [
+            "psql",
+            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
+            "-c",
+            f'INSERT INTO "apiKeys" (id, name, secret, hash, "userId", "createdAt", "updatedAt") VALUES ('
+            f"'{str(uuid.uuid4())}', 'Test API Key', '{api_key_secret}', '{hashed_secret}', '{user_id}', '{now}', '{now}');",
+        ]
+        subprocess.run(api_key_insert_cmd, check=True)
+
+        # Insert user permission for the collection
+        user_permission_insert_cmd = [
+            "psql",
+            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
+            "-c",
+            f'INSERT INTO user_permissions (id, "userId", "collectionId", permission, "createdById", "createdAt", "updatedAt") VALUES ('
+            f"'{str(uuid.uuid4())}', '{user_id}', '{collection_id}', 'admin', '{user_id}', '{now}', '{now}');",
+        ]
+        subprocess.run(user_permission_insert_cmd, check=True)
+
+        # Give Outline some time to pick up the new API key
+        time.sleep(5)
+
+        yield {
+            "outline_base_url": base_url,
+            "api_key": api_key_secret,
+            "collection_id": collection_id,
+        }
+
+        compose.stop()

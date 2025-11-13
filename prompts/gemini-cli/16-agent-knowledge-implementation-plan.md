@@ -61,7 +61,7 @@ The implementation will proceed package by package, following a strict RED-GREEN
 **Part 1: `integration-documentation` Package**
 
 1.  **RED:** Create `app/integration-documentation/tests/test_outline_tool.py`. Write a test that attempts to instantiate `OutlineTool` and call a `.create_or_update_document()` method. The test will use `pytest-mock` to mock the `requests` library to avoid making real API calls. It will assert that the `requests.post` or `requests.put` method is called with the correct URL and payload. This test will fail.
-2.  **GREEN:** Create `app/integration-documentation/src/integration_documentation/outline_tool.py`. Implement the `OutlineTool` class, inheriting from `AbstractTool`. Implement the `create_or_update_document` method with the minimal logic required to make the test pass.
+2.  **GREEN:** Create `app/integration-documentation/src/documentation/outline_tool.py`. Implement the `OutlineTool` class, inheriting from `AbstractTool`. Implement the `create_or_update_document` method with the minimal logic required to make the test pass.
 3.  **REFACTOR:** Refine the tool's implementation, add error handling, and improve documentation.
 
 **Part 2: `integration-vectordb` Package**
