@@ -4,4 +4,4 @@ channels:
   - defaults
 dependencies:
   - python=3.12.11
-  - uv=0.8.18
+  - uv=0.9.9
