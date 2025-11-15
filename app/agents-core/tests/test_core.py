@@ -1,5 +1,7 @@
 from typing import Any
 
+import pytest
+
 from agents_core.core import (
     AbstractAgent,
     AbstractOrchestrator,
@@ -186,3 +188,6 @@ class TestAbstractInterfaces:
         assert result.structured_output is None
         assert result.task_outputs == []
         assert result.metadata == {}
+
+if __name__ == "__main__":
+    pytest.main()

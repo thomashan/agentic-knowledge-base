@@ -29,3 +29,6 @@ def test_create_plan_with_valid_data():
 def test_task_validation_error():
     with pytest.raises(ValidationError):
         Task(description="Invalid task")  # Missing required fields
+
+if __name__ == "__main__":
+    pytest.main()

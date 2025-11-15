@@ -49,3 +49,6 @@ def test_intelligence_report_with_research_output():
         key_findings=[KeyFinding(finding_id=1, title="Finding from content", summary="Summary of the finding.", citations=["http://example.com"])],
     )
     assert report.topic == research_output.topic
+
+if __name__ == "__main__":
+    pytest.main()

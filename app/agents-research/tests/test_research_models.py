@@ -22,3 +22,6 @@ def test_create_research_output():
 def test_research_result_validation_error():
     with pytest.raises(ValidationError):
         ResearchResult(url="http://example.com")  # Missing content
+
+if __name__ == "__main__":
+    pytest.main()

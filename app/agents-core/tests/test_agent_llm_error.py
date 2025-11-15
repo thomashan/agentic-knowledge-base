@@ -81,3 +81,6 @@ def test_llm_retry_fails():
     with pytest.raises(LLMError, match="Connection timed out"):
         agent.run()
     assert mock_llm.call_count == 3
+
+if __name__ == "__main__":
+    pytest.main()
