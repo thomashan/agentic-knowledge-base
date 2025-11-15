@@ -302,3 +302,27 @@ def docker_compose_services():
         }
 
         compose.stop()
+
+
+@pytest.fixture
+def outline_collection(docker_compose_services):
+    """
+    A function-scoped fixture that creates a unique Outline collection for each
+    test function, and provides the collection ID.
+    """
+    db_url = docker_compose_services["db_url"]
+    team_id = docker_compose_services["team_id"]
+    user_id = docker_compose_services["user_id"]
+    now = datetime.now(UTC).isoformat()
+    collection_id = str(uuid.uuid4())
+
+    command = f"INSERT INTO collections (id, name, \"teamId\", \"createdAt\", \"updatedAt\") VALUES ('{collection_id}', 'Test Collection {collection_id}', '{team_id}', '{now}', '{now}');"
+    subprocess.run(["psql", db_url, "-c", command], check=True, capture_output=True)
+
+    permission_command = (
+        f'INSERT INTO user_permissions (id, "userId", "collectionId", permission, "createdById", "createdAt", "updatedAt") '
+        f"VALUES ('{str(uuid.uuid4())}', '{user_id}', '{collection_id}', 'admin', '{user_id}', '{now}', '{now}');"
+    )
+    subprocess.run(["psql", db_url, "-c", permission_command], check=True, capture_output=True)
+
+    yield collection_id
