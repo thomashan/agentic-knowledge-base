@@ -82,5 +82,6 @@ def test_llm_retry_fails():
         agent.run()
     assert mock_llm.call_count == 3
 
+
 if __name__ == "__main__":
     pytest.main()

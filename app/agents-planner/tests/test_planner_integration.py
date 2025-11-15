@@ -32,5 +32,6 @@ def test_planner_agent_with_real_llm(llm_factory):
         assert isinstance(task.expected_output, str) and len(task.expected_output) > 0
         assert isinstance(task.agent, str) and len(task.agent) > 0
 
+
 if __name__ == "__main__":
     pytest.main()

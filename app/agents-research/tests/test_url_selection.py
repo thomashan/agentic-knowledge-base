@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 from agents_research.models import SearchResult
 from agents_research.url_selection import UrlSelectionAgent
 
@@ -44,6 +45,7 @@ def test_select_urls_with_scoring(mock_call_llm):
     # Assert
     assert relevant_urls == ["https://example.com/relevant", "https://example.com/another_relevant"]
     mock_call_llm.assert_called_once()
+
 
 if __name__ == "__main__":
     pytest.main()

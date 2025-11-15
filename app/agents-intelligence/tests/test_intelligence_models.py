@@ -50,5 +50,6 @@ def test_intelligence_report_with_research_output():
     )
     assert report.topic == research_output.topic
 
+
 if __name__ == "__main__":
     pytest.main()

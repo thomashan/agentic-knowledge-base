@@ -89,5 +89,6 @@ def test_read_agent_invalid_file(invalid_agent_file_mistune):
     with pytest.raises(ValidationError):
         reader.read_agent(invalid_agent_file_mistune)
 
+
 if __name__ == "__main__":
     pytest.main()

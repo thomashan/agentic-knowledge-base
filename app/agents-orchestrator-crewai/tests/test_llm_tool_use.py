@@ -110,5 +110,6 @@ def test_llm_tool_use(llm):
     except Exception as e:
         pytest.fail(f"Tool use test failed with an unexpected error: {e}")
 
+
 if __name__ == "__main__":
     pytest.main()
