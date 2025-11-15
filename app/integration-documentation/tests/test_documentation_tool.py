@@ -196,5 +196,6 @@ def test_create_or_update_document():
     # Ensure no new document was created
     assert len(platform.published_documents) == 1
 
+
 if __name__ == "__main__":
     pytest.main()

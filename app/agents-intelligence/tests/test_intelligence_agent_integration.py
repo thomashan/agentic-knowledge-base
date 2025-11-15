@@ -58,5 +58,6 @@ def test_intelligence_agent_integration(llm_factory):
         assert isinstance(finding.summary, str)
         assert len(finding.summary) > 0
 
+
 if __name__ == "__main__":
     pytest.main()

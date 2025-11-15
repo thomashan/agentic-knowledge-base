@@ -128,5 +128,6 @@ def test_delete_document(mock_post, outline_tool):
     )
     assert result is True
 
+
 if __name__ == "__main__":
     pytest.main()

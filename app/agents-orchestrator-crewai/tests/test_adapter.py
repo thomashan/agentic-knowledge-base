@@ -2,7 +2,6 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
-
 from agents_core.core import AbstractAgent, AbstractTask, AbstractTool, ExecutionResult
 from crewai_adapter.adapter import CrewAIOrchestrator
 
@@ -116,6 +115,7 @@ def test_crewai_orchestrator_execute():
 
     assert isinstance(result, ExecutionResult)
     assert result.raw_output == "Final output"
+
 
 if __name__ == "__main__":
     pytest.main()

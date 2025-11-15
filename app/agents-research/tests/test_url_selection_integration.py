@@ -72,5 +72,6 @@ def test_url_selection_agent_crew_ai_integration(llm_factory):
     assert "https://www.crewai.com/" in relevant_urls
     assert "https://github.com/crewAI/crewAI" in relevant_urls
 
+
 if __name__ == "__main__":
     pytest.main()
