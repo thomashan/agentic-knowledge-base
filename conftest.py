@@ -18,6 +18,19 @@ from testcontainers.core.wait_strategies import LogMessageWaitStrategy
 
 import docker
 
+
+# Configure structlog for testing
+@pytest.fixture(scope="session", autouse=True)
+def configure_structlog():
+    structlog.configure(
+        processors=[
+            structlog.dev.ConsoleRenderer(),
+        ],
+        logger_factory=structlog.PrintLoggerFactory(),
+        cache_logger_on_first_use=False,
+    )
+
+
 # Docker Host Configuration
 # The following logic ensures that the DOCKER_HOST environment variable is set
 # correctly, which is crucial for Docker-py and Testcontainers to connect to the
