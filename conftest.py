@@ -4,14 +4,17 @@ import os
 import subprocess
 import time
 import uuid
+from collections.abc import Generator
 from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path
+from typing import Any
 
 import pytest
 import requests
 import structlog
 from crewai import LLM
+from filelock import FileLock
 from testcontainers.compose import DockerCompose
 from testcontainers.core.container import DockerContainer as GenericContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
@@ -213,92 +216,116 @@ def llm_factory(ollama_service):
 
 
 @pytest.fixture(scope="session")
-def docker_compose_services():
+def docker_compose_services(tmp_path_factory) -> Generator[dict[str, Any], None, None]:
     """
     A session-scoped fixture that starts, manages, and stops the Outline
     Docker Compose environment for the entire test session.
+    This fixture is made compatible with pytest-xdist by ensuring the service
+    is started only once using a file lock.
     """
-    log.debug("Setting up docker_compose_services fixture...")
-    compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
-    with DockerCompose(compose_file_path, compose_file_name="docker-compose.yml", wait=True) as compose:
-        # Get the dynamically mapped host and port for the 'outline' service
-        host = "127.0.0.1"  # Explicitly set to localhost
-        port = compose.get_service_port("outline", 3000)
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    compose_details_file = root_tmp_dir / "compose_details.json"
+    lock_file = root_tmp_dir / "compose.lock"
+
+    with FileLock(str(lock_file)):
+        compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
+        compose_instance = DockerCompose(
+            compose_file_path,
+            compose_file_name="docker-compose.yml",
+            wait=True,
+        )
+        compose_instance.start()
+
+        host = "localhost"
+        port = compose_instance.get_service_port("outline", 3000)
         base_url = f"http://{host}:{port}"
 
-        log.debug("Outline service is ready.")
-
-        # Generate IDs and secrets
-        team_id = str(uuid.uuid4())
-        user_id = str(uuid.uuid4())
-        collection_id = str(uuid.uuid4())
+        team_id, user_id, _collection_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
         api_key_secret = f"ol_api_{uuid.uuid4().hex}{uuid.uuid4().hex[:6]}"
-        now = datetime.now(UTC).isoformat()
-
-        # Hash the API key secret
+        datetime.now(UTC).isoformat()
         hashed_secret = hashlib.sha256(api_key_secret.encode()).hexdigest()
 
-        # Connect to PostgreSQL and insert data
-        pg_host = compose.get_service_host("postgres", 5432)
-        pg_port = compose.get_service_port("postgres", 5432)
-        pg_user = "outline"
-        pg_password = "password"
-        pg_db = "outline"
+        default_postgres_port = 5432
+        pg_host = compose_instance.get_service_host("postgres", default_postgres_port)
+        pg_port = compose_instance.get_service_port("postgres", default_postgres_port)
+        db_url = f"postgresql://outline:password@{pg_host}:{pg_port}/outline"
 
-        # Insert team
-        team_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f"INSERT INTO teams (id, name, \"createdAt\", \"updatedAt\") VALUES ('{team_id}', 'Test Team', '{now}', '{now}');",
-        ]
-        subprocess.run(team_insert_cmd, check=True)
+        # Database seeding commands
+        commands = [__outline_team_sql(team_id), __outline_user_sql(user_id, team_id), __outline_api_key_sql(api_key_secret, hashed_secret, user_id)]
+        for cmd in commands:
+            subprocess.run(["psql", db_url, "-c", cmd], check=True, capture_output=True)
 
-        # Insert user
-        user_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f"INSERT INTO users (id, name, email, \"teamId\", \"createdAt\", \"updatedAt\", role) VALUES ('{user_id}', 'Test User', 'test@example.com', '{team_id}', '{now}', '{now}', 'admin');",
-        ]
-        subprocess.run(user_insert_cmd, check=True)
-
-        # Insert collection
-        collection_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f"INSERT INTO collections (id, name, \"teamId\", \"createdAt\", \"updatedAt\") VALUES ('{collection_id}', 'Test Collection', '{team_id}', '{now}', '{now}');",
-        ]
-        subprocess.run(collection_insert_cmd, check=True)
-
-        # Insert API key
-        api_key_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f'INSERT INTO "apiKeys" (id, name, secret, hash, "userId", "createdAt", "updatedAt") VALUES ('
-            f"'{str(uuid.uuid4())}', 'Test API Key', '{api_key_secret}', '{hashed_secret}', '{user_id}', '{now}', '{now}');",
-        ]
-        subprocess.run(api_key_insert_cmd, check=True)
-
-        # Insert user permission for the collection
-        user_permission_insert_cmd = [
-            "psql",
-            f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_db}",
-            "-c",
-            f'INSERT INTO user_permissions (id, "userId", "collectionId", permission, "createdById", "createdAt", "updatedAt") VALUES ('
-            f"'{str(uuid.uuid4())}', '{user_id}', '{collection_id}', 'admin', '{user_id}', '{now}', '{now}');",
-        ]
-        subprocess.run(user_permission_insert_cmd, check=True)
-
-        # Give Outline some time to pick up the new API key
+        log.debug("Finished seeding database. Waiting for Outline to process new data...")
         time.sleep(5)
 
-        yield {
+        details = {
             "outline_base_url": base_url,
             "api_key": api_key_secret,
-            "collection_id": collection_id,
+            "db_url": db_url,
+            "team_id": team_id,
+            "user_id": user_id,
         }
+        compose_details_file.write_text(json.dumps(details))
 
-        compose.stop()
+    details = json.loads(compose_details_file.read_text())
+    yield details
+
+
+@pytest.fixture
+def outline_collection(docker_compose_services) -> Generator[str, None, None]:
+    """
+    A function-scoped fixture that creates a unique Outline collection for each
+    test function, and provides the collection ID.
+    """
+    db_url = docker_compose_services["db_url"]
+    team_id = docker_compose_services["team_id"]
+    user_id = docker_compose_services["user_id"]
+    collection_id = str(uuid.uuid4())
+
+    commands = [
+        __outline_collection_sql(collection_id, team_id),
+        __outline_user_permission_sql(user_id, collection_id),
+    ]
+    for cmd in commands:
+        subprocess.run(["psql", db_url, "-c", cmd], check=True, capture_output=True)
+
+    yield collection_id
+
+
+def __insert_into_sql(table_name: str, column_values: dict[str, str]) -> str:
+    columns, values = __column_values_sql(column_values)
+    statement = f'INSERT INTO "{table_name}" {columns} VALUES {values};'
+    return statement
+
+
+def __column_values_sql(column_values: dict[str, str]) -> tuple[str, str]:
+    columns = '("' + '", "'.join(column_values.keys()) + '")'
+    values = "('" + "', '".join(column_values.values()) + "')"
+    return columns, values
+
+
+def __outline_team_sql(team_id: str) -> str:
+    return __insert_into_sql("teams", {"id": team_id, "name": f"Test Team {team_id}", "createdAt": "now()", "updatedAt": "now()"})
+
+
+def __outline_user_sql(user_id: str, team_id: str) -> str:
+    return __insert_into_sql(
+        "users", {"id": user_id, "name": f"Test User {user_id}", "email": f"{user_id}@example.com", "teamId": team_id, "createdAt": "now()", "updatedAt": "now()", "role": "admin"}
+    )
+
+
+def __outline_api_key_sql(api_key_secret: str, hashed_secret: str, user_id: str) -> str:
+    api_key_id = str(uuid.uuid4())
+    return __insert_into_sql(
+        "apiKeys", {"id": api_key_id, "name": f"Test API Key {api_key_id}", "secret": api_key_secret, "hash": hashed_secret, "userId": user_id, "createdAt": "now()", "updatedAt": "now()"}
+    )
+
+
+def __outline_collection_sql(collection_id: str, team_id: str) -> str:
+    return __insert_into_sql("collections", {"id": collection_id, "name": f"Test Collection {collection_id}", "teamId": team_id, "createdAt": "now()", "updatedAt": "now()"})
+
+
+def __outline_user_permission_sql(user_id: str, collection_id: str) -> str:
+    return __insert_into_sql(
+        "user_permissions", {"id": str(uuid.uuid4()), "userId": user_id, "collectionId": collection_id, "permission": "admin", "createdById": user_id, "createdAt": "now()", "updatedAt": "now()"}
+    )
