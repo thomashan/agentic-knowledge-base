@@ -113,3 +113,6 @@ def test_delete_document(outline_tool):
     retrieved_after_delete = outline_tool.get_document(doc_id)
     assert retrieved_after_delete is not None
     assert retrieved_after_delete["data"]["deletedAt"] is not None
+
+if __name__ == "__main__":
+    pytest.main()

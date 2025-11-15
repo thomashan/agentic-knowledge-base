@@ -90,3 +90,6 @@ def test_run_research_llm_driven_loop(mock_llm, mock_search_tool, mock_scrape_to
     assert len(research_output.results) == 1
     assert research_output.results[0].url == "https://example.com/1"
     assert research_output.results[0].content == "Scraped content"
+
+if __name__ == "__main__":
+    pytest.main()

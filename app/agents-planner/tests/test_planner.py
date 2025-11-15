@@ -64,3 +64,6 @@ def test_planner_agent_generate_plan(mock_llm):
     assert plan.tasks[0].agent == "Research Agent"
     assert plan.tasks[2].agent == "Intelligence Agent"
     mock_llm.call.assert_called_once()
+
+if __name__ == "__main__":
+    pytest.main()

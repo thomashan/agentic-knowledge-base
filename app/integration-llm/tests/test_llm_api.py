@@ -53,3 +53,6 @@ def test_llm_connection_refused(llm_factory):
 
     with pytest.raises(litellm.exceptions.APIConnectionError):
         llm.call("This is a test prompt.")
+
+if __name__ == "__main__":
+    pytest.main()

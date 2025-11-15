@@ -127,3 +127,6 @@ def test_delete_document(mock_post, outline_tool):
         json={"id": doc_id, "permanent": False},
     )
     assert result is True
+
+if __name__ == "__main__":
+    pytest.main()

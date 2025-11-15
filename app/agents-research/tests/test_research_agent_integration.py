@@ -103,3 +103,6 @@ def mock_scrape_tool():
 
         # Assert that the scrape tool was called once for the correct URL
         mock_scrape_tool.execute.assert_called_once_with(url="https://www.crewai.com/")
+
+if __name__ == "__main__":
+    pytest.main()

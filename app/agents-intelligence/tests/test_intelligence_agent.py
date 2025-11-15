@@ -58,3 +58,6 @@ def test_generate_report_unit(mock_llm):
     assert "Test Topic" in prompt_arg
     assert "Content from source 1" in prompt_arg
     assert "Content from source 2" in prompt_arg
+
+if __name__ == "__main__":
+    pytest.main()
