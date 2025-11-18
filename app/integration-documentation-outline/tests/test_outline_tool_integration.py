@@ -4,15 +4,15 @@ import pytest
 from documentation.outline_tool import OutlineTool
 
 
-@pytest.fixture(scope="module")
-def outline_tool(docker_compose_services):
+@pytest.fixture
+def outline_tool(docker_compose_services, outline_collection):
     """
     A fixture that provides an instance of the OutlineTool, configured to
     connect to the Outline service running in the Docker Compose environment.
     """
     base_url = docker_compose_services["outline_base_url"]
     api_key = docker_compose_services["api_key"]
-    collection_id = docker_compose_services["collection_id"]
+    collection_id = outline_collection
     return OutlineTool(api_key=api_key, base_url=base_url, collection_id=collection_id)
 
 
