@@ -22,8 +22,9 @@ class MockLLM(AbstractLLM):
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: AbstractLLM):
+    def __init__(self, llm: AbstractLLM, max_retries: int = 1):
         self._llm = llm
+        self._max_retries = max_retries
 
     def run(self):
         return self.call_llm("test prompt")
@@ -56,12 +57,16 @@ class SimpleAgent(AbstractAgent):
     def llm_config(self) -> dict[str, Any] | None:
         return None
 
+    @property
+    def max_retries(self) -> int:
+        return self._max_retries
+
 
 def test_llm_retry_succeeds():
     """Tests that the LLM call succeeds after a few retries."""
     # Arrange
     mock_llm = MockLLM(fail_count=2)
-    agent = SimpleAgent(llm=mock_llm)
+    agent = SimpleAgent(llm=mock_llm, max_retries=3)
 
     # Act
     response = agent.run()
@@ -74,13 +79,13 @@ def test_llm_retry_succeeds():
 def test_llm_retry_fails():
     """Tests that the LLM call fails after all retries are exhausted."""
     # Arrange
-    mock_llm = MockLLM(fail_count=3)
+    mock_llm = MockLLM(fail_count=1)
     agent = SimpleAgent(llm=mock_llm)
 
     # Act & Assert
     with pytest.raises(LLMError, match="Connection timed out"):
         agent.run()
-    assert mock_llm.call_count == 3
+    assert mock_llm.call_count == 1
 
 
 if __name__ == "__main__":

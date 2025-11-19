@@ -45,5 +45,6 @@ jobs:
 
       - name: Run unit tests
         shell: bash -el {0}
-        # `--capture=no` is equivalent to `-s`
-        run: uv sync; uv run pytest -m "not integration" --capture=no
+        # `--capture=no` is not supported by pytest-xdist https://pytest-xdist.readthedocs.io/en/stable/
+        # https://pytest-xdist.readthedocs.io/en/latest/known-limitations.html#output-stdout-and-stderr-from-workers
+        run: uv sync; uv run pytest -v -l --tb=short -n auto -m "not integration"

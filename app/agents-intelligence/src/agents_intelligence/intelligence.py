@@ -16,10 +16,11 @@ class IntelligenceAgent(AbstractAgent):
     into a structured, insightful report.
     """
 
-    def __init__(self, llm: AbstractLLM, agent_file: str = "agent-prompts/agents-intelligence.md"):
+    def __init__(self, llm: AbstractLLM, agent_file: str = "agent-prompts/agents-intelligence.md", max_retries: int = 3):
         self._llm = llm
         reader = AgentDefinitionReader(AgentSchema)
         self.agent_definition = reader.read_agent(agent_file)
+        self._max_retries = max_retries
 
     @property
     def llm(self) -> AbstractLLM:
@@ -75,3 +76,7 @@ class IntelligenceAgent(AbstractAgent):
     @property
     def llm_config(self) -> dict[str, Any] | None:
         return None
+
+    @property
+    def max_retries(self) -> int:
+        return self._max_retries

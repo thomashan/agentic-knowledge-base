@@ -11,7 +11,7 @@ def test_intelligence_agent_integration(llm_factory):
     """
     # Arrange
     llm = llm_factory("gemma2:2b", timeout_s=360)
-    agent = IntelligenceAgent(llm=llm)
+    agent = IntelligenceAgent(llm=llm, max_retries=20)
 
     # Create a sample ResearchOutput with content about CrewAI
     research_output = ResearchOutput(

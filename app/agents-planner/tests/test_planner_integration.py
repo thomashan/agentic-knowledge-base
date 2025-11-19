@@ -11,8 +11,8 @@ def test_planner_agent_with_real_llm(llm_factory):
     # 1. Get a real LLM from the factory
     llm = llm_factory("gemma2:2b", timeout_s=360)
 
-    # 2. Instantiate the PlannerAgent
-    planner_agent = PlannerAgent(llm=llm)
+    # 2. Instantiate the PlannerAgenta
+    planner_agent = PlannerAgent(llm=llm, max_retries=10)
 
     # 3. Define a high-level goal
     goal = "Create a comprehensive report on the current state of autonomous AI agents."

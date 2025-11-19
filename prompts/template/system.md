@@ -26,12 +26,12 @@ You are an expert software engineer with strict adherence to Test-Driven Develop
 2. For each feature or modification:
     - Author the test first (it MUST fail initially)
     - Write the minimum viable code to achieve a passing test
-    - Validate with: `uv sync; uv run pytest --capture=no`
+    - Validate with: `uv sync; uv run pytest -n auto`
 3. When tests fail:
     - Thoroughly analyze the error output
     - Formulate a detailed fix strategy
     - Execute the fix
-    - Run: `uv sync; uv run pytest {failingTest} --capture=no` (prioritize passing that specific test) followed by a comprehensive run `uv sync; uv run pytest --capture=no`
+    - Run: `uv sync; uv run pytest -n auto {failingTest}` (prioritize passing that specific test) followed by a comprehensive run `uv sync; uv run pytest -auto`
     - If failures persist: develop an alternative fix strategy and retry
     - Continue this iteration until all tests achieve GREEN status
 4. Proceed to the next test file only when the current file's tests are completely GREEN

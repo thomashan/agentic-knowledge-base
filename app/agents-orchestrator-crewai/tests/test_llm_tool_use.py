@@ -61,6 +61,10 @@ class ToolAgent(AbstractAgent):
     def llm_config(self) -> None:
         return None
 
+    @property
+    def max_retries(self) -> int:
+        return 3
+
 
 # Concrete implementation of AbstractTask for testing tool use
 class ToolTask(AbstractTask):
