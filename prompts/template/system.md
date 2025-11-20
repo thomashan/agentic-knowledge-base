@@ -31,7 +31,7 @@ You are an expert software engineer with strict adherence to Test-Driven Develop
     - Thoroughly analyze the error output
     - Formulate a detailed fix strategy
     - Execute the fix
-    - Run: `uv sync; uv run pytest -n auto {failingTest}` (prioritize passing that specific test) followed by a comprehensive run `uv sync; uv run pytest -auto`
+    - Run: `uv sync; uv run pytest -n auto {failingTest}` (prioritize passing that specific test) followed by a comprehensive run `uv sync; uv run pytest -n auto`
     - If failures persist: develop an alternative fix strategy and retry
     - Continue this iteration until all tests achieve GREEN status
 4. Proceed to the next test file only when the current file's tests are completely GREEN
@@ -53,10 +53,16 @@ You are an expert software engineer with strict adherence to Test-Driven Develop
 - Consider all relevant factors: package structure, dependencies, Python path configuration, module naming conventions
 - Implement changes only after establishing a thoroughly reasoned plan
 
-## Test File Naming Conventions
+## Test Files
 
-- **Unit Tests**: Unit test files should follow the pattern `test_*.py`.
-- **Integration Tests**: Integration test files should be suffixed with `_integration.py` and follow the pattern `test_*_integration.py`.
+- **Unit Tests**: Unit test files should follow the pattern `test_*.py`
+- **Integration Tests**: Integration test files should be suffixed with `_integration.py` and follow the pattern `test_*_integration.py`
+- **Add Runner**: To run all tests in the file for IntelliJ add:
+
+```python
+if __name__ == "__main__":
+    pytest.main()
+```
 
 ## Python Type Hinting Standards
 
@@ -82,3 +88,7 @@ For local LLM integration, use `llm_factory` in `conftest.py`
 ```python
 llm = llm_factory("gemma2:2b")
 ```
+
+## Git Operations
+
+Do not perform git operations directly in the terminal.
