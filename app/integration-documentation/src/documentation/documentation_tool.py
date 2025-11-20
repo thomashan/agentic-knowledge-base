@@ -1,17 +1,25 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
 
-"""
-Abstract base class for documentation platform integrations.
-
-Defines the interface that all concrete documentation platform
-implementations must adhere to.
-"""
+from agents_core.core import AbstractTool
 
 
-class DocumentationTool(ABC):
+class DocumentationTool(AbstractTool):
+    """
+    Abstract base class for a documentation tool, combining the AbstractTool
+    interface with methods specific to documentation platforms.
+    """
+
+    @property
+    def name(self) -> str:
+        return "Documentation Tool"
+
+    @property
+    def description(self) -> str:
+        return "A tool for creating, updating, and managing documents."
+
     @abstractmethod
-    def create_or_update_document(self, title: str, content: str) -> dict[str, Any]:
+    def create_or_update_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """
         Creates a new document or updates an existing one in the documentation platform.
         """
@@ -74,3 +82,25 @@ class DocumentationTool(ABC):
             True if the document was successfully deleted, False otherwise.
         """
         pass
+
+    def execute(self, **kwargs: Any) -> Any:
+        """
+        Executes a command on the documentation tool.
+        This provides a generic interface for agents that use AbstractTool.
+        """
+        command = kwargs.pop("command", None)
+        if not command:
+            raise ValueError("A 'command' argument must be provided to execute.")
+
+        if command == "create_or_update_document":
+            return self.create_or_update_document(**kwargs)
+        elif command == "publish_document":
+            return self.publish_document(**kwargs)
+        elif command == "update_document":
+            return self.update_document(**kwargs)
+        elif command == "get_document":
+            return self.get_document(**kwargs)
+        elif command == "delete_document":
+            return self.delete_document(**kwargs)
+        else:
+            raise ValueError(f"Unknown command: {command}")
