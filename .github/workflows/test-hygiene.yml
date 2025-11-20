@@ -1,14 +1,14 @@
-name: Test - Unit
+name: Test - Hygiene
 
 on: [ push ]
 
 jobs:
-  unit:
+  hygiene:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ]
 
     steps:
       - name: Checkout code
@@ -31,8 +31,14 @@ jobs:
           activate-environment: agentic-knowledge-base
           conda-remove-defaults: true
 
-      - name: Run unit tests
+      - name: Check uv.lock is up to date
         shell: bash -el {0}
-        # `--capture=no` is not supported by pytest-xdist https://pytest-xdist.readthedocs.io/en/stable/
-        # https://pytest-xdist.readthedocs.io/en/latest/known-limitations.html#output-stdout-and-stderr-from-workers
-        run: uv sync; uv run pytest -v -l --tb=short -n auto -m "not integration"
+        run: git diff --exit-code uv.lock
+
+      - name: Lint with Ruff
+        shell: bash -el {0}
+        run: uv run -- ruff check .
+
+      - name: Check formatting with Ruff
+        shell: bash -el {0}
+        run: uv run -- ruff format --check .
