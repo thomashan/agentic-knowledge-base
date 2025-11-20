@@ -113,3 +113,7 @@ testpaths = [
     "app/integration-vectordb/tests",
     "app/runner/tests",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/thomashan/agentic-knowledge-base"
+"Bug Tracker" = "https://github.com/thomashan/agentic-knowledge-base/issues"
