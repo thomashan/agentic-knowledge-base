@@ -10,12 +10,19 @@ log = structlog.get_logger()
 class OutlineTool(DocumentationTool):
     def __init__(self, api_key: str, base_url: str, collection_id: str):
         self.api_key = api_key
-        self.base_url = base_url
+        self.base_url = base_url.rstrip("/")
         self.collection_id = collection_id
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
+            "Accept": "application/json",
         }
+
+    @staticmethod
+    def _handle_response_url(response: requests.Response) -> dict[str, Any]:
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data
 
     def _search_document_by_title(self, title: str) -> dict[str, Any] | None:
         """
@@ -36,35 +43,35 @@ class OutlineTool(DocumentationTool):
                 return document.get("document")
         return None
 
-    def _update_document(self, document_id: str, title: str, content: str) -> dict[str, Any]:
+    def update_document(self, document_id: str, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """
-        Updates an existing document.
+        Updates an existing document on the documentation platform and returns the response.
         """
         update_url = f"{self.base_url}/api/documents.update"
         payload = {
             "id": document_id,
             "title": title,
             "text": content,
+            **kwargs,
         }
         response = requests.post(update_url, headers=self.headers, json=payload)
-        response.raise_for_status()
-        return response.json()
+        return self._handle_response_url(response)
 
-    def create_or_update_document(self, title: str, content: str) -> dict[str, Any]:
+    def create_or_update_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """
-        Creates a new document or updates an existing one.
+        Creates a new document or updates an existing one, returning the response.
         """
         existing_document = self._search_document_by_title(title)
 
         if existing_document:
             document_id = existing_document["id"]
-            return self.update_document(document_id, title, content)
+            return self.update_document(document_id, title, content, **kwargs)
         else:
-            return self.publish_document(title, content)
+            return self.publish_document(title, content, **kwargs)
 
     def publish_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """
-        Publishes a document to the documentation platform.
+        Publishes a document to the documentation platform and returns the response.
         """
         create_url = f"{self.base_url}/api/documents.create"
         payload = {
@@ -74,15 +81,9 @@ class OutlineTool(DocumentationTool):
             "collectionId": self.collection_id,
             **kwargs,
         }
-        response = requests.post(create_url, headers=self.headers, json=payload)
-        response.raise_for_status()
-        return response.json()
 
-    def update_document(self, document_id: str, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
-        """
-        Updates an existing document on the documentation platform.
-        """
-        return self._update_document(document_id, title, content)
+        response = requests.post(create_url, headers=self.headers, json=payload)
+        return self._handle_response_url(response)
 
     def get_document(self, document_id: str) -> dict[str, Any]:
         """
@@ -92,11 +93,7 @@ class OutlineTool(DocumentationTool):
         get_url = f"{self.base_url}/api/documents.info"
         payload = {"id": document_id}
         response = requests.post(get_url, headers=self.headers, json=payload)
-        response.raise_for_status()  # Still useful for actual HTTP errors
-        data = response.json()
-        if not data.get("data"):
-            raise ValueError(f"Document with ID '{document_id}' not found.")
-        return data
+        return self._handle_response_url(response)
 
     def delete_document(self, document_id: str, permanent: bool = False) -> bool:
         """

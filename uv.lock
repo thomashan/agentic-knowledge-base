@@ -910,6 +910,12 @@ wheels = [
 name = "integration-documentation"
 version = "0.1.0"
 source = { editable = "app/integration-documentation" }
+dependencies = [
+    { name = "agents-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "agents-core" }]
 
 [[package]]
 name = "integration-documentation-outline"

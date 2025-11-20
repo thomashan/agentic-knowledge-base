@@ -17,7 +17,7 @@ def outline_tool(docker_compose_services, outline_collection):
 
 
 @pytest.mark.integration
-def test_create_and_update_document_with_real_outline(outline_tool):
+def test_create_or_update_document(outline_tool):
     """
     Tests creating and updating a document in a real Outline instance.
     """
