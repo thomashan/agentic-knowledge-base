@@ -67,7 +67,7 @@ The implementation will proceed package by package, following a strict RED-GREEN
 **Part 2: `integration-vectordb` Package**
 
 1.  **RED:** Create `app/integration-vectordb/tests/test_qdrant_tool.py`. Write a test that instantiates `QdrantTool` and calls `.upsert_vectors()`. Use `pytest-mock` to mock the `qdrant_client.QdrantClient` and assert that its `.upsert()` method is called with the expected arguments. This test will fail.
-2.  **GREEN:** Create `app/integration-vectordb/src/integration_vectordb/qdrant_tool.py`. Implement the `QdrantTool` class and its `upsert_vectors` method to make the test pass.
+2.  **GREEN:** Create `app/integration-vectordb/src/vectordb/qdrant_tool.py`. Implement the `QdrantTool` class and its `upsert_vectors` method to make the test pass.
 3.  **REFACTOR:** Clean up the implementation.
 
 **Part 3: `agents-knowledge` Package**
