@@ -22,6 +22,7 @@ dependencies = [
     "integration-scraper",
     "integration-search",
     "integration-vectordb",
+    "integration-vectordb-qdrant",
     "runner",
     "structlog==25.4.0",
 ]
@@ -52,6 +53,7 @@ integration-llm = { path = "app/integration-llm", editable = true }
 integration-scraper = { path = "app/integration-scraper", editable = true }
 integration-search = { path = "app/integration-search", editable = true }
 integration-vectordb = { path = "app/integration-vectordb", editable = true }
+integration-vectordb-qdrant = { path = "app/integration-vectordb-qdrant", editable = true }
 runner = { path = "app/runner", editable = true }
 
 [dependency-groups]
@@ -93,6 +95,7 @@ pythonpath = [
     "app/integration-scraper/src",
     "app/integration-search/src",
     "app/integration-vectordb/src",
+    "app/integration-vectordb-qdrant/src",
     "app/runner/src",
 ]
 testpaths = [
@@ -111,6 +114,7 @@ testpaths = [
     "app/integration-scraper/tests",
     "app/integration-search/tests",
     "app/integration-vectordb/tests",
+    "app/integration-vectordb-qdrant/tests",
     "app/runner/tests",
 ]
 

@@ -1,0 +1,8 @@
+[project]
+name = "integration-vectordb-qdrant"
+version = "0.1.0"
+
+dependencies = [
+    "integration-vectordb",
+    "qdrant-client==1.16.0",
+]
