@@ -5,8 +5,8 @@ import subprocess
 import time
 import uuid
 from collections.abc import Callable, Generator
-from datetime import UTC, datetime
 from functools import cache
+from os import PathLike
 from pathlib import Path
 from typing import Any
 
@@ -276,75 +276,104 @@ def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
     return _factory
 
 
-@pytest.fixture(scope="session")
-def docker_compose_services(tmp_path_factory, worker_id) -> Generator[dict[str, str], None, None]:
-    """
-    A session-scoped fixture that starts, manages, and stops the Outline
-    Docker Compose environment for the entire test session.
-    This fixture is made compatible with pytest-xdist by ensuring the service
-    is started only once using a file lock.
-    """
-    log.info(f"Setting up docker_compose_services fixture for work_id: {worker_id}...")
-    compose_details_file = __temp_file(tmp_path_factory, "compose_details.json")
-    lock_file = __temp_file(tmp_path_factory, "compose_details.json.lock")
-    log.info(f"compose_details_file: {compose_details_file}")
-    log.info(f"lock_file: {lock_file}")
+def __start_docker_compose(
+    tmp_path_factory: pytest.TempPathFactory,
+    service_file_name: str,
+    context: PathLike[str],
+    compose_file_name: str,
+    service_details_supplier: Callable[[DockerCompose], dict[str, Any]],
+    worker_id: str,
+) -> Generator[dict[str, Any], None, None]:
+    log.info(f"Setting up docker compose fixture {service_file_name} with {context}/{compose_file_name} ...", worker_id=worker_id)
+    service_file = __temp_file(tmp_path_factory, f"{service_file_name}.json")
+    lock_file = __temp_file(tmp_path_factory, f"{service_file_name}.lock")
+    worker_count_file = __temp_file(tmp_path_factory, f"{service_file_name}.count")
 
     with FileLock(str(lock_file)):
-        if not compose_details_file.is_file():
-            compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
+        worker_count_file.write_text(f"{__container_worker_count(worker_count_file) + 1}")
+        if not service_file.is_file():
+            log.info(f"Service file not found. Starting compose services for {service_file_name}...", worker_id=worker_id)
             compose_instance = DockerCompose(
-                compose_file_path,
-                compose_file_name="docker-compose.yml",
+                context=context,
+                compose_file_name=compose_file_name,
                 wait=True,
             )
             compose_instance.start()
+            service_details = service_details_supplier(compose_instance)
+            __write_service_file(tmp_path_factory, service_file.name, service_details)
+            log.info(f"Compose services for {service_file_name} started and service file written.", worker_id=worker_id)
 
-            host = "localhost"
-            port = compose_instance.get_service_port("outline", 3000)
-            base_url = f"http://{host}:{port}"
+    # All workers will yield the service details from the file
+    yield json.loads(service_file.read_text())
 
-            team_id, user_id, _collection_id = str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())
-            api_key_secret = f"ol_api_{uuid.uuid4().hex}{uuid.uuid4().hex[:6]}"
-            datetime.now(UTC).isoformat()
-            hashed_secret = hashlib.sha256(api_key_secret.encode()).hexdigest()
-
-            default_postgres_port = 5432
-            pg_host = compose_instance.get_service_host("postgres", default_postgres_port)
-            pg_port = compose_instance.get_service_port("postgres", default_postgres_port)
-            db_url = f"postgresql://outline:password@{pg_host}:{pg_port}/outline"
-
-            # Database seeding commands
-            commands = [__outline_team_sql(team_id), __outline_user_sql(user_id, team_id), __outline_api_key_sql(api_key_secret, hashed_secret, user_id)]
-            for cmd in commands:
-                subprocess.run(["psql", db_url, "-c", cmd], check=True, capture_output=True)
-
-            log.info("Finished seeding database. Waiting for Outline to process new data...")
-            time.sleep(5)
-
-            details = {
-                "outline_base_url": base_url,
-                "api_key": api_key_secret,
-                "db_url": db_url,
-                "team_id": team_id,
-                "user_id": user_id,
-            }
-            # FIXME: don't write to disk if compose_details_file already exists with the valid contents
-            compose_details_file.write_text(json.dumps(details))
-
-    details = json.loads(compose_details_file.read_text())
-    yield details
-
-    log.info("Tearing down Docker Compose services.")
-    if compose_details_file.is_file():
-        with FileLock(str(lock_file)):
+    # Teardown logic
+    log.info(f"Tearing down docker compose {service_file_name} fixture...", worker_id=worker_id)
+    with FileLock(str(lock_file)):
+        worker_count_file.write_text(f"{__container_worker_count(worker_count_file) - 1}")
+        count = __container_worker_count(worker_count_file)
+        if count == 0:
+            log.info(f"Stopping compose services for {service_file_name}...", worker_id=worker_id)
             # Re-instantiate DockerCompose to stop the services
-            compose_file_path = Path(__file__).parent / "docker" / "outline_test_env"
-            compose = DockerCompose(compose_file_path, compose_file_name="docker-compose.yml")
+            compose = DockerCompose(context, compose_file_name=compose_file_name)
             compose.stop()
-            log.info("Stopped Docker Compose services.")
-            # Clean up control file
-            compose_details_file.unlink(missing_ok=True)
+            log.info(f"Stopped compose services for {service_file_name}.", worker_id=worker_id)
+            # Clean up control files
+            service_file.unlink(missing_ok=True)
+            worker_count_file.unlink(missing_ok=True)
+            log.info(f"Service files for {service_file_name} removed.", worker_id=worker_id)
+
+
+@pytest.fixture(scope="session")
+def docker_compose_services(tmp_path_factory, worker_id) -> Generator[dict[str, Any], None, None]:
+    """
+    A session-scoped fixture that starts, manages, and stops the Outline
+    Docker Compose environment for the entire test session using the
+    __start_docker_compose helper.
+    """
+
+    def service_details_supplier(compose_instance: DockerCompose) -> dict[str, Any]:
+        host = "localhost"
+        port = compose_instance.get_service_port("outline", 3000)
+        base_url = f"http://{host}:{port}"
+
+        team_id, user_id = str(uuid.uuid4()), str(uuid.uuid4())
+        api_key_secret = f"ol_api_{uuid.uuid4().hex}{uuid.uuid4().hex[:6]}"
+        hashed_secret = hashlib.sha256(api_key_secret.encode()).hexdigest()
+
+        default_postgres_port = 5432
+        pg_host = compose_instance.get_service_host("postgres", default_postgres_port)
+        pg_port = compose_instance.get_service_port("postgres", default_postgres_port)
+        db_url = f"postgresql://outline:password@{pg_host}:{pg_port}/outline"
+
+        # Database seeding commands
+        commands = [
+            __outline_team_sql(team_id),
+            __outline_user_sql(user_id, team_id),
+            __outline_api_key_sql(api_key_secret, hashed_secret, user_id),
+        ]
+        for cmd in commands:
+            subprocess.run(["psql", db_url, "-c", cmd], check=True, capture_output=True)
+
+        log.info("Finished seeding database. Waiting for Outline to process new data...")
+        time.sleep(5)
+
+        return {
+            "outline_base_url": base_url,
+            "api_key": api_key_secret,
+            "db_url": db_url,
+            "team_id": team_id,
+            "user_id": user_id,
+        }
+
+    compose_directory_path = Path(__file__).parent / "docker" / "outline_test_env"
+    yield from __start_docker_compose(
+        tmp_path_factory,
+        "outline_service",
+        compose_directory_path,  # Passed as Path object, which is compatible with PathLike[str]
+        "docker-compose.yml",
+        service_details_supplier,
+        worker_id,
+    )
 
 
 @pytest.fixture
