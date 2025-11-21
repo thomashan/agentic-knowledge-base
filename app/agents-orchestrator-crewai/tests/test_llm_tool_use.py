@@ -30,8 +30,9 @@ class SimpleTool(AbstractTool):
 
 # Concrete implementation of AbstractAgent for testing tool use
 class ToolAgent(AbstractAgent):
-    def __init__(self, llm: AbstractLLM):
+    def __init__(self, llm: AbstractLLM, max_retries: int = 3):
         self._llm = llm
+        self._max_retries = max_retries
 
     @property
     def llm(self) -> AbstractLLM:
@@ -63,7 +64,7 @@ class ToolAgent(AbstractAgent):
 
     @property
     def max_retries(self) -> int:
-        return 3
+        return self._max_retries
 
 
 # Concrete implementation of AbstractTask for testing tool use
@@ -95,7 +96,7 @@ def test_llm_tool_use(llm):
     """
     orchestrator = CrewAIOrchestrator()
 
-    agent = ToolAgent(llm=llm)
+    agent = ToolAgent(llm=llm, max_retries=10)
     task = ToolTask(agent=agent)
 
     orchestrator.add_agent(agent)

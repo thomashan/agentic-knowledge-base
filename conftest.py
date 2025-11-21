@@ -163,35 +163,6 @@ def __is_docker_present():
         return False
 
 
-def __use_docker_ollama(tmp_path_factory):
-    ollama_default_port = 11434
-    log.info("Local ollama command not found. Falling back to Docker container.")
-    log.info("Checking for Docker...")
-    if not __is_docker_present():
-        pytest.fail("Docker is not running or not installed. Failing integration tests.")
-
-    log.info("Creating Ollama container...")
-    # Create a GenericContainer for the ollama/ollama image
-    container = GenericContainer(
-        image="ollama/ollama:0.12.6",
-        _wait_strategy=LogMessageWaitStrategy(r"Listening on \[::\]:"),
-        ports=[ollama_default_port],
-    )
-    __setup_ollama_model(container)
-
-    log.info("Ollama container created.")
-    log.info("Starting Ollama container...")
-    container.start()
-    log.info("Ollama server is ready.")
-
-    # Get the dynamically mapped host and port
-    host = container.get_container_host_ip()
-    port = container.get_exposed_port(ollama_default_port)
-    base_url = f"http://{host}:{port}"
-    container.with_bind_ports(port)
-    return base_url, container
-
-
 def __is_ollama_command_present():
     return subprocess.run(["which", "ollama"], capture_output=True).returncode == 0
 
@@ -204,37 +175,42 @@ def ollama_service(tmp_path_factory, worker_id) -> Generator[dict[str, Any], Non
     Ollama instance if available and/or running.
     """
     log.info(f"Setting up ollama_service fixture in work_id: {worker_id}...")
-    ollama_container = None
 
-    ollama_service_file = __temp_file(tmp_path_factory, "ollama_service.json")
-    lock_file = __temp_file(tmp_path_factory, "ollama_service.json.lock")
+    # If native ollama command is present, use it and bypass docker management.
+    if __is_ollama_command_present():
+        base_url = __use_native_ollama()
+        yield {"base_url": base_url}
+        return
 
-    existing_service_details = __read_service_file(tmp_path_factory, "ollama_service.json")
+    # --- Docker Path ---
+    # If native ollama is not present, use the generic docker container helper.
 
-    with FileLock(lock_file):
-        # 1. Check if ollama command is available
-        if __is_ollama_command_present():
-            base_url = __use_native_ollama()
-            existing_service_details["base_url"] = base_url
-        elif not ollama_service_file.is_file():
-            log.info("Creating ollama docker image...")
-            base_url, ollama_container = __use_docker_ollama(tmp_path_factory)
-            existing_service_details["base_url"] = base_url
-            log.info(f"Ollama service URL: {base_url}")
-            __write_service_file(tmp_path_factory, "ollama_service.json", existing_service_details)
+    def container_supplier() -> DockerContainer:
+        """Supplies a configured Ollama container."""
+        ollama_default_port = 11434
+        container = GenericContainer(
+            image="ollama/ollama:0.13.0",
+            _wait_strategy=LogMessageWaitStrategy(r"Listening on \[::\]:"),
+            ports=[ollama_default_port],
+        )
+        __setup_ollama_model(container)
+        return container
 
-        if ollama_service_file.is_file():
-            yield json.loads(ollama_service_file.read_text())
-        else:
-            yield existing_service_details
+    def service_file_writer(ollama_container: GenericContainer) -> dict[str, Any]:
+        """Writes the service details from the container."""
+        ollama_default_port = 11434
+        host = ollama_container.get_container_host_ip()
+        port = ollama_container.get_exposed_port(ollama_default_port)
+        log.info(f"Ollama container started. Service URL: http://{host}:{port}")
+        return {"base_url": f"http://{host}:{port}"}
 
-    if not __is_ollama_command_present():
-        log.info("Tearing down Ollama docker services.")
-        with FileLock(str(lock_file)):
-            if ollama_container is not None:
-                ollama_container.stop()
-                log.info("Stopped Ollama container.")
-                ollama_service_file.unlink(missing_ok=True)
+    yield from __start_docker_container(
+        tmp_path_factory,
+        "ollama_service",
+        container_supplier,
+        service_file_writer,
+        worker_id,
+    )
 
 
 @pytest.fixture(scope="session")

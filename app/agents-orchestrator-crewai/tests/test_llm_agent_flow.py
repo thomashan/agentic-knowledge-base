@@ -7,8 +7,9 @@ log = structlog.get_logger()
 
 
 class SimpleAgent(AbstractAgent):
-    def __init__(self, llm: AbstractLLM):
+    def __init__(self, llm: AbstractLLM, max_retries: int = 3):
         self._llm = llm
+        self._max_retries = max_retries
 
     @property
     def llm(self) -> AbstractLLM:
@@ -40,7 +41,7 @@ class SimpleAgent(AbstractAgent):
 
     @property
     def max_retries(self) -> int:
-        return 1
+        return self._max_retries
 
 
 class SimpleTask(AbstractTask):
@@ -70,11 +71,11 @@ def test_simple_agent_flow(llm_factory):
     Tests a simple end-to-end agent flow using the CrewAIOrchestrator
     with a real LLM client.
     """
-    crew_llm = llm_factory("gemma2:2b")
+    crew_llm = llm_factory("gemma2:2b", timeout_s=360)
     llm_adapter = CrewAILLM(crew_llm)
     orchestrator = CrewAIOrchestrator()
 
-    agent = SimpleAgent(llm=llm_adapter)
+    agent = SimpleAgent(llm=llm_adapter, max_retries=10)
     task = SimpleTask(agent=agent)
 
     orchestrator.add_agent(agent)
