@@ -4,7 +4,7 @@ import os
 import subprocess
 import time
 import uuid
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path
@@ -16,8 +16,11 @@ import structlog
 from crewai import LLM
 from filelock import FileLock
 from testcontainers.compose import DockerCompose
+from testcontainers.core.container import DockerContainer
 from testcontainers.core.container import DockerContainer as GenericContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
+from testcontainers.qdrant import QdrantContainer
+from vectordb.qdrant_tool import QdrantTool
 
 import docker
 
@@ -200,7 +203,7 @@ def ollama_service(tmp_path_factory, worker_id) -> Generator[dict[str, Any], Non
     Ollama Docker container for the entire test session, or uses a local
     Ollama instance if available and/or running.
     """
-    log.info("Setting up ollama_service fixture...")
+    log.info(f"Setting up ollama_service fixture in work_id: {worker_id}...")
     ollama_container = None
 
     ollama_service_file = __temp_file(tmp_path_factory, "ollama_service.json")
@@ -425,4 +428,89 @@ def __outline_collection_sql(collection_id: str, team_id: str) -> str:
 def __outline_user_permission_sql(user_id: str, collection_id: str) -> str:
     return __insert_into_sql(
         "user_permissions", {"id": str(uuid.uuid4()), "userId": user_id, "collectionId": collection_id, "permission": "admin", "createdById": user_id, "createdAt": "now()", "updatedAt": "now()"}
+    )
+
+
+@pytest.fixture(scope="session")
+def qdrant_service(tmp_path_factory, worker_id):
+    """
+    Fixture that starts a Qdrant container for the test session using the docker helper.
+    """
+
+    def container_supplier():
+        return QdrantContainer("qdrant/qdrant:v1.16.0")
+
+    def service_file_writer(qdrant_container: QdrantContainer):
+        return {
+            "host": qdrant_container.get_container_host_ip(),
+            "http_port": qdrant_container.exposed_rest_port,
+            "grpc_port": qdrant_container.exposed_grpc_port,
+        }
+
+    yield from __start_docker_container(tmp_path_factory, "qdrant_service", container_supplier, service_file_writer, worker_id)
+
+
+def __start_docker_container(
+    tmp_path_factory: pytest.TempPathFactory, service_file_name: str, container_supplier: Callable[[], DockerContainer], service_file_writer: Callable[[Any], dict[str, Any]], worker_id: str
+) -> Generator[dict[str, Any], None, None]:
+    log.info(f"Setting up docker {service_file_name} fixture...", worker_id=worker_id)
+    service_file = __temp_file(tmp_path_factory, f"{service_file_name}.json")
+    lock_file = __temp_file(tmp_path_factory, f"{service_file_name}.lock")
+    worker_count = __temp_file(tmp_path_factory, f"{service_file_name}.count")
+    container_id = __temp_file(tmp_path_factory, f"{service_file_name}.id")
+
+    with FileLock(lock_file):
+        worker_count.write_text(f"{__container_worker_count(worker_count) + 1}")
+        if not service_file.is_file():
+            log.info(f"Service file not found. Starting container for {service_file_name}...", worker_id=worker_id)
+            container_instance = container_supplier()
+            container_instance.start()
+            service_details = service_file_writer(container_instance)
+            __write_service_file(tmp_path_factory, service_file.name, service_details)
+            container_id.write_text(container_instance.get_wrapped_container().id)
+            log.info(f"Container for {service_file_name} started and service file written.", worker_id=worker_id)
+
+    # All workers will yield the service details from the file
+    yield json.loads(service_file.read_text())
+
+    # Teardown logic
+    log.info(f"Tearing down docker {service_file_name} fixture...", worker_id=worker_id)
+    with FileLock(lock_file):
+        worker_count.write_text(f"{__container_worker_count(worker_count) - 1}")
+        count = __container_worker_count(worker_count)
+        if count == 0:
+            __stop_container(container_id.read_text(), service_file_name, worker_id)
+            service_file.unlink(missing_ok=True)
+            container_id.unlink(missing_ok=True)
+            worker_count.unlink(missing_ok=True)
+            log.info(f"Container for {service_file_name} stopped and service file removed.", worker_id=worker_id)
+
+
+def __container_worker_count(file: Path) -> int:
+    if not file.is_file():
+        return 0
+    content = file.read_text()
+    return int(content) if content else 0
+
+
+def __stop_container(container_id: str, service_file_name: str, worker_id: str):
+    try:
+        log.info(f"Stopping container for {service_file_name}...", worker_id=worker_id)
+        container = docker.from_env().containers.get(container_id)
+        container.stop()
+        container.remove()
+    except Exception as e:
+        log.warning(f"Container {container_id} could not be stopped: {e}")
+
+
+@pytest.fixture
+def qdrant_tool(qdrant_service: dict[str, Any]):
+    """
+    Fixture that provides an instance of the QdrantTool, configured to
+    connect to the Qdrant service running in the test container.
+    """
+    return QdrantTool(
+        host=qdrant_service["host"],
+        http_port=qdrant_service["http_port"],
+        grpc_port=qdrant_service["grpc_port"],
     )

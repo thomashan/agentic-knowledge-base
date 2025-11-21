@@ -16,7 +16,9 @@ def mock_qdrant_client():
 @pytest.fixture
 def tool(mock_qdrant_client):
     """Fixture to create a QdrantTool instance with a mocked client."""
-    return QdrantTool(host="localhost", port=6333)
+    qdrant_client = QdrantTool(host="localhost", grpc_port=6333, http_port=6334)
+    qdrant_client._client = mock_qdrant_client
+    return qdrant_client
 
 
 def test_qdrant_tool_instantiation(tool, mock_qdrant_client):
@@ -54,6 +56,38 @@ def test_execute_dispatches_to_upsert(tool):
     result = tool.execute(**kwargs)
     tool.upsert_vectors.assert_called_once_with(collection_name="a_collection", vectors=[[1.0]], payloads=[{}], ids=expected_ids)
     assert result == expected_ids
+
+
+def test_delete_vectors(tool, mock_qdrant_client):
+    """
+    Tests that the delete_vectors method calls the client's delete method correctly.
+    """
+    collection_name = "test_collection"
+    ids = ["id1", "id2", "id3"]
+
+    # Mock the return value for the delete operation if necessary, though it often returns None or a success status
+    mock_qdrant_client.delete.return_value = {"status": "ok"}  # Example return value
+
+    tool.delete_vectors(collection_name=collection_name, ids=ids)
+
+    # Assert that the Qdrant client's delete method was called once with the correct arguments
+    mock_qdrant_client.delete.assert_called_once_with(collection_name=collection_name, points_selector=ids, wait=True)
+
+
+def test_execute_dispatches_to_delete(tool):
+    """
+    Tests that the main execute method dispatches to the delete_vectors method and returns the result.
+    """
+    expected_result = {"status": "ok"}
+    tool.delete_vectors = MagicMock(return_value=expected_result)
+    collection_name = "test_collection_to_delete"
+    ids = ["del_id1", "del_id2"]
+    kwargs = {"command": "delete_vectors", "collection_name": collection_name, "ids": ids}
+
+    result = tool.execute(**kwargs)
+
+    tool.delete_vectors.assert_called_once_with(collection_name=collection_name, ids=ids)
+    assert result == expected_result
 
 
 if __name__ == "__main__":

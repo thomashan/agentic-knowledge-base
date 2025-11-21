@@ -1,6 +1,6 @@
 from typing import Any
 
-import qdrant_client
+from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
 from vectordb.vectordb_tool import VectorDBTool
 
@@ -10,8 +10,8 @@ class QdrantTool(VectorDBTool):
     A tool for interacting with a Qdrant vector database.
     """
 
-    def __init__(self, host: str, port: int):
-        self._client = qdrant_client.QdrantClient(host=host, port=port)
+    def __init__(self, host: str, grpc_port: int, http_port: int):
+        self._client = QdrantClient(host=host, grpc_port=grpc_port, port=http_port)
 
     @property
     def name(self) -> str:
@@ -40,6 +40,8 @@ class QdrantTool(VectorDBTool):
 
         if command == "upsert_vectors":
             return self.upsert_vectors(**kwargs)
+        elif command == "delete_vectors":
+            return self.delete_vectors(**kwargs)
         else:
             raise ValueError(f"Unknown command: {command}")
 
@@ -49,4 +51,11 @@ class QdrantTool(VectorDBTool):
         """
         points = [PointStruct(id=point_id, vector=vector, payload=payload) for point_id, vector, payload in zip(ids, vectors, payloads, strict=False)]
         self._client.upsert(collection_name=collection_name, points=points, wait=True)
+        return ids
+
+    def delete_vectors(self, collection_name: str, ids: list[str]) -> list[str]:
+        """
+        Deletes vectors from a Qdrant collection by their IDs.
+        """
+        self._client.delete(collection_name=collection_name, points_selector=ids, wait=True)
         return ids
