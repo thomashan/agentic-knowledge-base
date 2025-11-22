@@ -10,7 +10,7 @@ class AgentSchema(BaseModel):
     role: str = Field(..., description="The role of the agent.")
     goal: str = Field(..., description="The goal of the agent.")
     backstory: str = Field(..., description="The backstory of the agent.")
-    prompt_template: str = Field(..., description="The prompt template of the agent.")
+    prompt_template: str = Field(default=None, description="The prompt template for the agent, if any.")
 
 
 class AgentDefinitionReader:
