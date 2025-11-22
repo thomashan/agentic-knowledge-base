@@ -19,7 +19,7 @@ class OutlineTool(DocumentationTool):
         }
 
     @staticmethod
-    def _handle_response_url(response: requests.Response) -> dict[str, Any]:
+    def _handle_response(response: requests.Response) -> dict[str, Any]:
         response.raise_for_status()
         response_data = response.json()
         return response_data
@@ -55,7 +55,7 @@ class OutlineTool(DocumentationTool):
             **kwargs,
         }
         response = requests.post(update_url, headers=self.headers, json=payload)
-        return self._handle_response_url(response)
+        return self._handle_response(response)
 
     def create_or_update_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """
@@ -83,7 +83,7 @@ class OutlineTool(DocumentationTool):
         }
 
         response = requests.post(create_url, headers=self.headers, json=payload)
-        return self._handle_response_url(response)
+        return self._handle_response(response)
 
     def get_document(self, document_id: str) -> dict[str, Any]:
         """
@@ -93,7 +93,7 @@ class OutlineTool(DocumentationTool):
         get_url = f"{self.base_url}/api/documents.info"
         payload = {"id": document_id}
         response = requests.post(get_url, headers=self.headers, json=payload)
-        return self._handle_response_url(response)
+        return self._handle_response(response)
 
     def delete_document(self, document_id: str, permanent: bool = False) -> bool:
         """
