@@ -1,11 +1,9 @@
-import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractLLM
 from agents_core.json_utils import to_json_object
 from agents_research.models import ResearchOutput, ResearchResult
-from pydantic import ValidationError
 
 from .models import IntelligenceReport
 
@@ -32,21 +30,14 @@ class IntelligenceAgent(AbstractAgent):
 
         # Construct the prompt
         prompt = self.prompt_template.format(topic=research_output.topic, research_content=research_content)
-        report_data = self._parse_response(prompt)
 
-        # Parse the response
-        try:
-            report_data["topic"] = research_output.topic
-            return IntelligenceReport(**report_data)
-        except (ValidationError, IndexError) as e:
-            raise ValueError(f"Failed to parse LLM response into a valid intelligence report. Error: {e}") from e
+        response_text = self.call_llm(prompt)
+        report_data = to_json_object(response_text)
 
-    def _parse_response(self, prompt: str) -> dict[str, Any]:
-        try:
-            response_text = self.call_llm(prompt)
-            return to_json_object(response_text)
-        except json.JSONDecodeError:
-            return self._parse_response(prompt)
+        # Add topic to report_data as it's part of IntelligenceReport model
+        report_data["topic"] = research_output.topic
+
+        return IntelligenceReport(**report_data)
 
     @staticmethod
     def _research_content(research_results: list[ResearchResult]) -> str:
