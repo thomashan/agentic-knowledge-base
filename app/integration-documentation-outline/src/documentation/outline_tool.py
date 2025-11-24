@@ -10,13 +10,17 @@ log = structlog.get_logger()
 class OutlineTool(DocumentationTool):
     def __init__(self, api_key: str, base_url: str, collection_id: str):
         self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+        self._base_url = base_url.rstrip("/")
         self.collection_id = collection_id
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
+
+    @property
+    def base_url(self) -> str:
+        return self._base_url
 
     @staticmethod
     def _handle_response(response: requests.Response) -> dict[str, Any]:

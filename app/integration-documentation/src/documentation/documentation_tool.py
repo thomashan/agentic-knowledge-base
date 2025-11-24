@@ -18,6 +18,11 @@ class DocumentationTool(AbstractTool):
     def description(self) -> str:
         return "A tool for creating, updating, and managing documents."
 
+    @property
+    @abstractmethod
+    def base_url(self) -> str:
+        pass
+
     @abstractmethod
     def create_or_update_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """
