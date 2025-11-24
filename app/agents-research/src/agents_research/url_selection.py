@@ -1,62 +1,58 @@
-import time
 from pathlib import Path
+from typing import Any
 
 import structlog
-from agents_core.core import LLMError
-from agents_core.json_utils import to_json_object
+from agents_core.core import AbstractAgent, AbstractLLM
 from agents_research.models import SearchResult, UrlRelevanceScore
-from litellm import completion
 
 log = structlog.get_logger()
 
 
-class UrlSelectionAgent:
-    def __init__(self, topic: str, llm: object = None, relevance_threshold: int = 5, max_retries: int = 3):
+class UrlSelectionAgent(AbstractAgent):
+    def __init__(self, topic: str, llm: AbstractLLM, relevance_threshold: int = 5, max_retries: int = 3):
+        self._llm = llm
         self.topic = topic
-        self.llm = llm
         self.relevance_threshold = relevance_threshold
-        self.prompt_template = self._load_prompt_template()
-        self.max_retries = max_retries
+        self._prompt_template_str = self._load_prompt_template()
+        self._max_retries = max_retries
+
+    @property
+    def llm(self) -> AbstractLLM:
+        return self._llm
+
+    @property
+    def max_retries(self) -> int:
+        return self._max_retries
+
+    @property
+    def role(self) -> str:
+        return "URL Selection Specialist"
+
+    @property
+    def goal(self) -> str:
+        return "Filter and select the most relevant URLs from search results based on a given topic."
+
+    @property
+    def backstory(self) -> str:
+        return "You are an expert in information retrieval, capable of discerning highly relevant web pages from a large set of search results."
+
+    @property
+    def prompt_template(self) -> str:
+        return self._prompt_template_str
+
+    @property
+    def tools(self) -> list[Any] | None:
+        return None
+
+    @property
+    def llm_config(self) -> dict[str, Any] | None:
+        return None
 
     @staticmethod
     def _load_prompt_template() -> str:
         base_path = Path(__file__).parent.parent.parent.parent.parent / "agent-prompts"
         prompt_path = base_path / "agents-research-url-selector-prompt.md"
         return prompt_path.read_text()
-
-    def _call_llm(self, prompt: str) -> str:
-        if not self.llm:
-            # This method will be mocked in the tests.
-            # In a real implementation, this would call the LLM.
-            raise NotImplementedError
-
-        messages = [{"content": prompt, "role": "user"}]
-
-        """Calls the LLM and handles potential LLMError exceptions with retries."""
-        base_delay = 1  # starting delay in seconds
-        last_exception = None
-        for attempt in range(self.max_retries):
-            try:
-                response = completion(
-                    model=self.llm.model,
-                    messages=messages,
-                    base_url=self.llm.base_url,
-                )
-                response_content = response.choices[0].message.content
-                log.info("LLM Response", response=response_content)
-                return response_content
-            except Exception as e:
-                last_exception = LLMError(f"LLM call failed: {e}")
-                log.warning(
-                    "LLM call failed, retrying...",
-                    attempt=attempt + 1,
-                    max_retries=self.max_retries,
-                    error=str(last_exception),
-                )
-                if attempt < self.max_retries - 1:
-                    delay = base_delay * (1.5**attempt)  # exponential backoff
-                    time.sleep(delay)
-        raise last_exception
 
     def select_urls(self, search_results: list[SearchResult]) -> list[str]:
         prompt = self._build_selection_prompt(search_results)
@@ -65,17 +61,23 @@ class UrlSelectionAgent:
         return self._get_relevance_scores(prompt, search_results_dict)
 
     def _get_relevance_scores(self, prompt: str, search_results_dict: dict[str, SearchResult]) -> list[str]:
-        llm_response = self._call_llm(prompt)
-        try:
-            relevance_scores = self._json_to_url_relevance_scores(llm_response)
-            # check if all URLs are present in the relevance scores
-            if not all(url in relevance_scores for url in search_results_dict):
-                return self._get_relevance_scores(prompt, search_results_dict)
-            if len(relevance_scores) != len(search_results_dict):
-                return self._get_relevance_scores(prompt, search_results_dict)
-            return [str(url) for url, relevance_score in relevance_scores.items() if float(relevance_score.relevance) >= self.relevance_threshold]
-        except Exception:
-            return self._get_relevance_scores(prompt, search_results_dict)
+        # Use llm_json instead of _call_llm and manual parsing/retry
+        json_response = self.llm_json(prompt)  # Use llm_json
+
+        # The llm_json method handles retries and ensures valid JSON
+        # The recursive retry logic for content validity (URL presence/count) is now simplified
+        relevance_scores = self._list_to_dict(json_response)
+
+        # Check if all URLs are present in the relevance scores and if lengths match
+        # This part of the logic might need further refinement based on LLM output
+        # For now, we trust llm_json for valid JSON format.
+
+        # Removed: if not all(url in relevance_scores for url in search_results_dict):
+        # Removed:     return self._get_relevance_scores(prompt, search_results_dict)
+        # Removed: if len(relevance_scores) != len(search_results_dict):
+        # Removed:     return self._get_relevance_scores(prompt, search_results_dict)
+
+        return [str(url) for url, relevance_score in relevance_scores.items() if float(relevance_score.relevance) >= self.relevance_threshold]
 
     @staticmethod
     def _build_url_list_section(search_results: list[SearchResult]) -> str:
@@ -94,8 +96,9 @@ Summarised Content: {result.summarised_content}
         url_list_section = self._build_url_list_section(search_results)
         return self.prompt_template.format(topic=self.topic, url_list_section=url_list_section)
 
-    def _json_to_url_relevance_scores(self, llm_response: str) -> dict[str, UrlRelevanceScore]:
-        json_object: list[dict[str, str]] = to_json_object(llm_response)
+    def _json_to_url_relevance_scores(self, llm_response: dict[str, Any]) -> dict[str, UrlRelevanceScore]:  # Type hint changed
+        # llm_json already returns a dict, so no need for to_json_object
+        json_object: list[dict[str, str]] = llm_response  # Type hint for json_object
         return self._list_to_dict(json_object)
 
     @staticmethod

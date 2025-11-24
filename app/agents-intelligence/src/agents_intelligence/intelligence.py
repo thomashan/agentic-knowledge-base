@@ -2,7 +2,6 @@ from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractLLM
-from agents_core.json_utils import to_json_object
 from agents_research.models import ResearchOutput, ResearchResult
 
 from .models import IntelligenceReport
@@ -31,8 +30,8 @@ class IntelligenceAgent(AbstractAgent):
         # Construct the prompt
         prompt = self.prompt_template.format(topic=research_output.topic, research_content=research_content)
 
-        response_text = self.call_llm(prompt)
-        report_data = to_json_object(response_text)
+        # Call the LLM to get a JSON response directly, with retries
+        report_data = self.llm_json(prompt)
 
         # Add topic to report_data as it's part of IntelligenceReport model
         report_data["topic"] = research_output.topic

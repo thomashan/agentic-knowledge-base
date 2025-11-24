@@ -1,8 +1,10 @@
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from typing import Any
 
 import structlog
+from agents_core.json_utils import to_json_object
 from pydantic import BaseModel, Field
 
 
@@ -131,25 +133,36 @@ class AbstractAgent(ABC):
         pass
 
     def call_llm(self, prompt: str) -> str:
+        return self.__call_llm(prompt, lambda response_text: response_text, lambda e: LLMError(e))
+
+    def llm_json(self, prompt) -> Any:
+        return self.__call_llm(
+            prompt, lambda response_text: to_json_object(response_text), lambda e: LLMError(f"Failed to parse LLM response as JSON after {self.max_retries} attempts. Original error: {e}")
+        )
+
+    def __call_llm(self, prompt: str, response_handler: Callable[[str], Any], error_handler: Callable[[Exception], Exception]) -> Any:
         """Calls the LLM and handles potential LLMError exceptions with retries."""
         base_delay = 1  # starting delay in seconds
         last_exception = None
+        response_text: str | None = None
         log = structlog.get_logger()
         for attempt in range(self.max_retries):
             try:
-                return self.llm.call(prompt)
+                response_text = self.llm.call(prompt)
+                return response_handler(response_text)
             except Exception as e:
-                last_exception = LLMError(f"LLM call failed: {e}")
+                last_exception = e
                 log.warning(
                     "LLM call failed, retrying...",
                     attempt=attempt + 1,
                     max_retries=self.max_retries,
                     error=str(last_exception),
+                    response_text=response_text,
                 )
                 if attempt < self.max_retries - 1:
                     delay = base_delay * (1.5**attempt)  # exponential backoff
                     time.sleep(delay)
-        raise last_exception
+        raise error_handler(last_exception)
 
 
 class AbstractTask(ABC):

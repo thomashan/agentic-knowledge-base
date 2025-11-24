@@ -3,7 +3,6 @@ from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool
-from agents_core.json_utils import to_json_object
 
 from .models import ResearchOutput, ResearchResult
 
@@ -70,30 +69,25 @@ class ResearchAgent(AbstractAgent):
 
         for _ in range(max_iterations):
             prompt = self._prompt_template.format(topic=topic, history=json.dumps(history))
-            response_text = self.call_llm(prompt)
+            action = self.llm_json(prompt)  # Using llm_json here
 
-            try:
-                action = to_json_object(response_text)
-                tool_name = action.get("tool_name", "").strip()
-                arguments = action.get("arguments", {})
+            tool_name = action.get("tool_name", "").strip()
+            arguments = action.get("arguments", {})
 
-                if tool_name == "finish":
-                    summary = arguments.get("summary", "")
-                    break
+            if tool_name == "finish":
+                summary = arguments.get("summary", "")
+                break
 
-                if tool_name == "search_tool":
-                    tool_result = self.search_tool.execute(**arguments)
-                    history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
-                elif tool_name == "scrape_tool":
-                    tool_result = self.scrape_tool.execute(**arguments)
-                    if tool_result and "Failed to scrape" not in tool_result:
-                        results.append(ResearchResult(url=arguments.get("url"), content=tool_result))
-                    history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
-                else:
-                    history.append({"tool": "invalid_tool", "arguments": arguments, "result": "Invalid tool name."})
-
-            except (json.JSONDecodeError, AttributeError):
-                history.append({"tool": "invalid_action", "result": "Invalid action format."})
+            if tool_name == "search_tool":
+                tool_result = self.search_tool.execute(**arguments)
+                history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
+            elif tool_name == "scrape_tool":
+                tool_result = self.scrape_tool.execute(**arguments)
+                if tool_result and "Failed to scrape" not in tool_result:
+                    results.append(ResearchResult(url=arguments.get("url"), content=tool_result))
+                history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
+            else:
+                history.append({"tool": "invalid_tool", "arguments": arguments, "result": "Invalid tool name."})
 
         if not summary:
             # If the agent didn't finish, we can try to force a summary
