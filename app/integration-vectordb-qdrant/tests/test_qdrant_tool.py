@@ -90,5 +90,28 @@ def test_execute_dispatches_to_delete(tool):
     assert result == expected_result
 
 
+def test_search_vectors(tool, mock_qdrant_client):
+    """
+    Tests that the search_vectors method calls the client's query_points method correctly.
+    """
+    collection_name = "test_collection_search"
+    query_vector = [0.7, 0.8, 0.9]
+    limit = 15
+
+    tool.search_vectors(collection_name=collection_name, query_vector=query_vector, limit=limit)
+
+    mock_qdrant_client.query_points.assert_called_once_with(collection_name=collection_name, query=query_vector, limit=limit, with_payload=True)
+
+
+def test_execute_dispatches_to_search(tool):
+    """
+    Tests that the main execute method dispatches to the search_vectors method.
+    """
+    tool.search_vectors = MagicMock(return_value=[])
+    kwargs = {"command": "search_vectors", "collection_name": "a_collection", "query_vector": [0.1], "limit": 5}
+    tool.execute(**kwargs)
+    tool.search_vectors.assert_called_once_with(collection_name="a_collection", query_vector=[0.1], limit=5)
+
+
 if __name__ == "__main__":
     pytest.main()

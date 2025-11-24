@@ -85,5 +85,40 @@ def test_delete_vectors_integration(qdrant_tool):
     qdrant_tool._client.delete_collection(collection_name=collection_name)
 
 
+@pytest.mark.integration
+def test_search_vectors_integration(qdrant_tool):
+    """
+    Tests searching for vectors in a Qdrant instance and verifies the results.
+    """
+    # Arrange
+    collection_name = f"test_collection_search_{uuid.uuid4()}"
+    vectors = [[0.1, 0.2, 0.9, 0.1], [0.9, 0.1, 0.1, 0.2], [0.4, 0.5, 0.8, 0.3]]
+    payloads = [{"meta": "A"}, {"meta": "B"}, {"meta": "C"}]
+    ids = [str(uuid.uuid4()), str(uuid.uuid4()), str(uuid.uuid4())]
+    vector_size = len(vectors[0])
+
+    if not qdrant_tool._client.collection_exists(collection_name=collection_name):
+        qdrant_tool._client.create_collection(
+            collection_name=collection_name,
+            vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.DOT),
+        )
+    qdrant_tool.upsert_vectors(collection_name=collection_name, vectors=vectors, payloads=payloads, ids=ids)
+
+    # Act: Search for a vector that is very close to the second vector
+    query_vector = [0.8, 0.1, 0.2, 0.2]
+    search_results = qdrant_tool.search_vectors(collection_name=collection_name, query_vector=query_vector, limit=3)
+
+    # Assert: Verify the search results
+    assert len(search_results) == 3
+    # The first result should be the one with payload "B" as it's the closest
+    assert search_results[0]["payload"]["meta"] == "B"
+    # Check that scores are descending
+    assert search_results[0]["score"] > search_results[1]["score"]
+    assert search_results[1]["score"] > search_results[2]["score"]
+
+    # Clean up
+    qdrant_tool._client.delete_collection(collection_name=collection_name)
+
+
 if __name__ == "__main__":
     pytest.main()
