@@ -102,7 +102,7 @@ dependencies = [
     { name = "agents-core" },
     { name = "agents-intelligence" },
     { name = "integration-documentation" },
-    { name = "integration-vectordb" },
+    { name = "integration-vectordb-qdrant" },
     { name = "langchain-text-splitters" },
     { name = "sentence-transformers" },
 ]
@@ -112,7 +112,7 @@ requires-dist = [
     { name = "agents-core" },
     { name = "agents-intelligence" },
     { name = "integration-documentation" },
-    { name = "integration-vectordb" },
+    { name = "integration-vectordb-qdrant" },
     { name = "langchain-text-splitters" },
     { name = "sentence-transformers" },
 ]
@@ -162,6 +162,16 @@ source = { editable = "app/agents-research" }
 name = "agents-retrieval"
 version = "0.1.0"
 source = { editable = "app/agents-retrieval" }
+dependencies = [
+    { name = "integration-vectordb-qdrant" },
+    { name = "sentence-transformers" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "integration-vectordb-qdrant" },
+    { name = "sentence-transformers" },
+]
 
 [[package]]
 name = "aiohappyeyeballs"
