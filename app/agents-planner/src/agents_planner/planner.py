@@ -1,9 +1,7 @@
-import json
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool
-from agents_core.json_utils import to_json_object
 from pydantic import ValidationError
 
 from .models import Plan
@@ -61,12 +59,8 @@ class PlannerAgent(AbstractAgent):
         return self._get_plan(goal, prompt)
 
     def _get_plan(self, goal: str, prompt: str) -> Plan:
-        response_text = self.call_llm(prompt)
-        try:
-            plan_data: dict[str, Any] = to_json_object(response_text)
-            return self._parse_response(goal, plan_data)
-        except json.JSONDecodeError:
-            return self._get_plan(goal, prompt)
+        plan_data: dict[str, Any] = self.llm_json(prompt)
+        return self._parse_response(goal, plan_data)
 
     def _create_prompt(self, goal: str) -> str:
         return self._prompt_template.format(goal=goal)

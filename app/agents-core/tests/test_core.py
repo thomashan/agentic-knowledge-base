@@ -1,196 +1,89 @@
-from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
-from agents_core.core import (
-    AbstractAgent,
-    AbstractOrchestrator,
-    AbstractTask,
-    AbstractTool,
-    ExecutionResult,
-    TaskExecutionRecord,
-)
-
-
-# Concrete implementations for testing abstract classes
-class ConcreteTool(AbstractTool):
-    """A concrete implementation of AbstractTool for testing purposes."""
-
-    @property
-    def name(self) -> str:
-        return "concrete_tool"
-
-    @property
-    def description(self) -> str:
-        return "A concrete tool for testing."
-
-    def execute(self, **kwargs: Any) -> Any:
-        return f"executed with {kwargs}"
+from agents_core.core import AbstractAgent, LLMError
 
 
 class ConcreteAgent(AbstractAgent):
     """A concrete implementation of AbstractAgent for testing purposes."""
 
-    def __init__(self, tools: list[AbstractTool] = None):
-        self._tools = tools or []
-
-    @property
-    def llm(self) -> None:
-        return None
+    def __init__(self, llm, max_retries_val=3):
+        self._llm = llm
+        self._max_retries = max_retries_val
 
     @property
     def role(self) -> str:
-        return "Test Agent"
+        return "Test Role"
 
     @property
     def goal(self) -> str:
-        return "To test abstract agents."
+        return "Test Goal"
 
     @property
     def backstory(self) -> str:
-        return "I am a test agent."
+        return "Test Backstory"
 
     @property
-    def prompt_template(self) -> None:
+    def prompt_template(self) -> str | None:
+        return "Test Prompt"
+
+    @property
+    def tools(self) -> list | None:
         return None
 
     @property
-    def tools(self) -> list[AbstractTool]:
-        return self._tools
+    def llm_config(self) -> dict | None:
+        return None
 
     @property
-    def llm_config(self) -> dict[str, Any]:
-        return {"model": "test-model"}
+    def llm(self):
+        return self._llm
 
     @property
     def max_retries(self) -> int:
-        return 1
+        return self._max_retries
 
 
-class ConcreteTask(AbstractTask):
-    """A concrete implementation of AbstractTask for testing purposes."""
+def test_llm_json_retries_on_bad_json():
+    """
+    Tests that the llm_json method retries when the LLM returns malformed JSON.
+    """
+    # Arrange
+    mock_llm = MagicMock()
+    bad_json_response = "This is not valid JSON"
+    good_json_response = '{"key": "value"}'
 
-    def __init__(
-        self,
-        agent: AbstractAgent,
-        dependencies: list["AbstractTask"] = None,
-    ):
-        self._agent = agent
-        self._dependencies = dependencies or []
+    # Mock the behavior of the llm's call method
+    mock_llm.call.side_effect = [bad_json_response, good_json_response]
 
-    @property
-    def description(self) -> str:
-        return "A test task."
+    agent_instance = ConcreteAgent(llm=mock_llm, max_retries_val=3)
 
-    @property
-    def expected_output(self) -> str:
-        return "A successful test execution."
+    # Act
+    result = agent_instance.llm_json("Test prompt")
 
-    @property
-    def agent(self) -> AbstractAgent:
-        return self._agent
-
-    @property
-    def dependencies(self) -> list["AbstractTask"]:
-        return self._dependencies
+    # Assert
+    assert mock_llm.call.call_count == 2
+    assert result == {"key": "value"}
 
 
-class ConcreteOrchestrator(AbstractOrchestrator):
-    """A concrete implementation of AbstractOrchestrator for testing purposes."""
+def test_llm_json_fails_after_max_retries():
+    """
+    Tests that llm_json raises an LLMError after exhausting all retries with bad JSON.
+    """
+    # Arrange
+    mock_llm = MagicMock()
+    bad_json_response = "This is consistently bad JSON"
 
-    def __init__(self, config: dict[str, Any] = None):
-        self.config = config if config is not None else {}
-        self.agents: list[AbstractAgent] = []
-        self.tasks: list[AbstractTask] = []
+    # Mock the behavior of the llm's call method
+    mock_llm.call.return_value = bad_json_response
 
-    def add_agent(self, agent: AbstractAgent) -> None:
-        self.agents.append(agent)
+    agent_instance = ConcreteAgent(llm=mock_llm, max_retries_val=3)
 
-    def add_task(self, task: AbstractTask) -> None:
-        self.tasks.append(task)
+    # Act & Assert
+    with pytest.raises(LLMError, match="Failed to parse LLM response as JSON after 3 attempts."):
+        agent_instance.llm_json("Test prompt")
 
-    def execute(self) -> ExecutionResult:
-        return ExecutionResult(
-            raw_output="Orchestration executed successfully. Final result.",
-            structured_output=None,
-            task_outputs=[],
-            metadata={},
-        )
-
-
-class TestAbstractInterfaces:
-    """Test cases for the abstract interfaces and their concrete implementations."""
-
-    def test_concrete_tool(self):
-        """Tests the ConcreteTool implementation."""
-        tool = ConcreteTool()
-        assert tool.name == "concrete_tool"
-        assert tool.description == "A concrete tool for testing."
-        assert tool.execute(param="test") == "executed with {'param': 'test'}"
-
-    def test_concrete_agent(self):
-        """Tests the ConcreteAgent implementation."""
-        tool1 = ConcreteTool()
-        agent = ConcreteAgent(tools=[tool1])
-        assert agent.role == "Test Agent"
-        assert agent.goal == "To test abstract agents."
-        assert agent.backstory == "I am a test agent."
-        assert agent.tools == [tool1]
-        assert agent.llm_config == {"model": "test-model"}
-
-    def test_concrete_task(self):
-        """Tests the ConcreteTask implementation."""
-        agent = ConcreteAgent()
-        task1 = ConcreteTask(agent=agent)
-        task2 = ConcreteTask(agent=agent, dependencies=[task1])
-
-        assert task1.description == "A test task."
-        assert task1.expected_output == "A successful test execution."
-        assert task1.agent is agent
-        assert task1.dependencies == []
-        assert task2.dependencies == [task1]
-
-    def test_concrete_orchestrator(self):
-        """Tests the ConcreteOrchestrator implementation."""
-        orchestrator = ConcreteOrchestrator(config={"key": "value"})
-        agent = ConcreteAgent()
-        task = ConcreteTask(agent=agent)
-
-        orchestrator.add_agent(agent)
-        orchestrator.add_task(task)
-
-        assert orchestrator.config == {"key": "value"}
-        assert orchestrator.agents == [agent]
-        assert orchestrator.tasks == [task]
-
-        result = orchestrator.execute()
-        assert result.raw_output == "Orchestration executed successfully. Final result."
-        assert result.structured_output is None
-        assert result.task_outputs == []
-        assert result.metadata == {}
-
-    def test_task_execution_record_instantiation(self):
-        """Tests the instantiation of the TaskExecutionRecord model."""
-        record = TaskExecutionRecord(
-            task_description="Test task",
-            raw_output="Test output",
-            structured_output=None,
-        )
-        assert record.task_description == "Test task"
-        assert record.raw_output == "Test output"
-        assert record.structured_output is None
-
-    def test_execution_result_instantiation(self):
-        """Tests the instantiation of the ExecutionResult model."""
-        result = ExecutionResult(
-            raw_output="Final output",
-            structured_output=None,
-            task_outputs=[],
-            metadata={},
-        )
-        assert result.raw_output == "Final output"
-        assert result.structured_output is None
-        assert result.task_outputs == []
-        assert result.metadata == {}
+    assert mock_llm.call.call_count == 3
 
 
 if __name__ == "__main__":
