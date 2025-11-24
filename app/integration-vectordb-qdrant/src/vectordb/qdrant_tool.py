@@ -42,6 +42,8 @@ class QdrantTool(VectorDBTool):
             return self.upsert_vectors(**kwargs)
         elif command == "delete_vectors":
             return self.delete_vectors(**kwargs)
+        elif command == "search_vectors":
+            return self.search_vectors(**kwargs)
         else:
             raise ValueError(f"Unknown command: {command}")
 
@@ -59,3 +61,26 @@ class QdrantTool(VectorDBTool):
         """
         self._client.delete(collection_name=collection_name, points_selector=ids, wait=True)
         return ids
+
+    def search_vectors(self, collection_name: str, query_vector: list[float], limit: int, with_payload: bool = True) -> list[dict[str, Any]]:
+        """
+        Searches for vectors in a Qdrant collection.
+        """
+        search_result = self._client.query_points(
+            collection_name=collection_name,
+            query=query_vector,
+            limit=limit,
+            with_payload=with_payload,
+        )
+        # Transform ScoredPoint objects to generic dictionaries
+        transformed_results = []
+        for scored_point in search_result.points:
+            transformed_results.append(
+                {
+                    "id": scored_point.id,
+                    "score": scored_point.score,
+                    "payload": scored_point.payload,
+                    "vector": scored_point.vector,
+                }
+            )
+        return transformed_results
