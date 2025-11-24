@@ -113,8 +113,8 @@ requires-dist = [
     { name = "agents-intelligence" },
     { name = "integration-documentation" },
     { name = "integration-vectordb-qdrant" },
-    { name = "langchain-text-splitters" },
-    { name = "sentence-transformers" },
+    { name = "langchain-text-splitters", specifier = "==1.0.0" },
+    { name = "sentence-transformers", specifier = "~=5.1.2" },
 ]
 
 [[package]]
@@ -157,6 +157,12 @@ source = { editable = "app/agents-planner" }
 name = "agents-research"
 version = "0.1.0"
 source = { editable = "app/agents-research" }
+dependencies = [
+    { name = "agents-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "agents-core" }]
 
 [[package]]
 name = "agents-retrieval"
@@ -170,7 +176,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "integration-vectordb-qdrant" },
-    { name = "sentence-transformers" },
+    { name = "sentence-transformers", specifier = "==5.1.2" },
 ]
 
 [[package]]

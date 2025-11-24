@@ -3,6 +3,7 @@ name = "agents-retrieval"
 version = "0.1.0"
 
 dependencies = [
-    "sentence-transformers",
+    "agents-core",
+    "sentence-transformers==5.1.2",
     "integration-vectordb-qdrant",
 ]

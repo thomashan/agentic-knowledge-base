@@ -3,4 +3,6 @@ name = "agents-intelligence"
 version = "0.1.0"
 
 dependencies = [
+    "agents-core",
+    "agents-research",
 ]
