@@ -105,18 +105,34 @@ def test_crewai_orchestrator_add_task():
     assert crewai_task.agent == orchestrator.crewai_agents[0]
 
 
-def test_crewai_orchestrator_execute():
-    """Tests the execute method of the CrewAIOrchestrator."""
-    orchestrator = CrewAIOrchestrator()
+@patch("crewai_adapter.adapter.Crew")
+def test_crewai_orchestrator_execute_initializes_crew_correctly(mock_crew):
+    """Tests that the execute method initializes and runs a CrewAI Crew correctly."""
+    # 1. Arrange
+    orchestrator = CrewAIOrchestrator(config={"some_config": "value"})
     mock_agent = MockAgent()
     orchestrator.add_agent(mock_agent)
     mock_task = MockTask(mock_agent)
     orchestrator.add_task(mock_task)
 
-    with patch("crewai.Crew.kickoff") as mock_kickoff:
-        mock_kickoff.return_value = "Final output"
-        result = orchestrator.execute()
+    mock_crew_instance = mock_crew.return_value
+    mock_crew_instance.kickoff.return_value = "Final output"
 
+    # 2. Act
+    result = orchestrator.execute()
+
+    # 3. Assert
+    # Check that Crew was instantiated correctly
+    mock_crew.assert_called_once_with(
+        agents=orchestrator.crewai_agents,
+        tasks=orchestrator.crewai_tasks,
+        some_config="value",
+    )
+
+    # Check that kickoff was called
+    mock_crew_instance.kickoff.assert_called_once()
+
+    # Check the result
     assert isinstance(result, ExecutionResult)
     assert result.raw_output == "Final output"
 

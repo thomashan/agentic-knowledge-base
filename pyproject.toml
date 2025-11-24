@@ -10,8 +10,8 @@ dependencies = [
     "agents-core",
     "agents-intelligence",
     "agents-knowledge",
+    "agents-orchestrator",
     "agents-orchestrator-crewai",
-    "agents-orchestrator-factory",
     "agents-orchestrator-langchain",
     "agents-planner",
     "agents-research",
@@ -42,7 +42,7 @@ agents-core = { path = "app/agents-core", editable = true }
 agents-intelligence = { path = "app/agents-intelligence", editable = true }
 agents-knowledge = { path = "app/agents-knowledge", editable = true }
 agents-orchestrator-crewai = { path = "app/agents-orchestrator-crewai", editable = true }
-agents-orchestrator-factory = { path = "app/agents-orchestrator-factory", editable = true }
+agents-orchestrator = { path = "app/agents-orchestrator", editable = true }
 agents-orchestrator-langchain = { path = "app/agents-orchestrator-langchain", editable = true }
 agents-planner = { path = "app/agents-planner", editable = true }
 agents-research = { path = "app/agents-research", editable = true }
@@ -60,6 +60,7 @@ runner = { path = "app/runner", editable = true }
 dev = [
     "ansible==12.2.0",
     "filelock==3.15.4",
+    "pydeps==3.0.1",
     "pytest==9.0.1",
     "pytest-xdist==3.8.0",
     "ruff==0.14.4",
@@ -83,8 +84,8 @@ pythonpath = [
     "app/agents-core/src",
     "app/agents-intelligence/src",
     "app/agents-knowledge/src",
+    "app/agents-orchestrator/src",
     "app/agents-orchestrator-crewai/src",
-    "app/agents-orchestrator-factory/src",
     "app/agents-orchestrator-langchain/src",
     "app/agents-planner/src",
     "app/agents-research/src",
@@ -102,8 +103,8 @@ testpaths = [
     "app/agents-core/tests",
     "app/agents-intelligence/tests",
     "app/agents-knowledge/tests",
+    "app/agents-orchestrator/tests",
     "app/agents-orchestrator-crewai/tests",
-    "app/agents-orchestrator-factory/tests",
     "app/agents-orchestrator-langchain/tests",
     "app/agents-planner/tests",
     "app/agents-research/tests",

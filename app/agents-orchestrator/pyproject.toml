@@ -1,5 +1,5 @@
 [project]
-name = "agents-orchestrator-factory"
+name = "agents-orchestrator"
 version = "0.1.0"
 
 dependencies = [
