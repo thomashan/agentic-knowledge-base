@@ -4,4 +4,12 @@ version = "0.1.0"
 
 dependencies = [
     "agents-core",
+    "typer==0.20.0",
+    "integration-llm",
+    "agents-planner",
+    "agents-orchestrator-crewai",
+    "integration-documentation",
+    "integration-vectordb",
+    "integration-search",
+    "integration-scraper",
 ]
