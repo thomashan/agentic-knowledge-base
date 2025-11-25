@@ -55,7 +55,7 @@ You are an expert software engineer with strict adherence to Test-Driven Develop
 
 ## Test Files
 
-- **Unit Tests**: Unit test files should follow the pattern `test_*.py`
+- **Unit Tests**: Unit test files should follow the pattern `test_*.py` (without `_unit.py` suffix)
 - **Integration Tests**: Integration test files should be suffixed with `_integration.py` and follow the pattern `test_*_integration.py`
 - **Add Runner**: To run all tests in the file for IntelliJ add:
 
