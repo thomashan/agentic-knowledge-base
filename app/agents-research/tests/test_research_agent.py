@@ -92,5 +92,48 @@ def test_run_research_llm_driven_loop(mock_llm, mock_search_tool, mock_scrape_to
     assert research_output.results[0].content == "Scraped content"
 
 
+def test_run_research_scraping_same_url_multiple_times(mock_llm, mock_search_tool, mock_scrape_tool):
+    mock_llm.call.side_effect = [
+        """
+        {
+            "tool_name": "search_tool",
+            "arguments": {
+                "query": "test topic"
+            }
+        }
+        """,
+        """
+        {
+            "tool_name": "scrape_tool",
+            "arguments": {
+                "url": "https://example.com/1"
+            }
+        }
+        """,
+        """
+        {
+            "tool_name": "scrape_tool",
+            "arguments": {
+                "url": "https://example.com/1"
+            }
+        }
+        """,
+        """
+        {
+            "tool_name": "finish",
+            "arguments": {
+                "summary": "This is a summary."
+            }
+        }
+        """,
+    ]
+    agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
+
+    # 3. Run the research
+    agent.run_research("test topic")
+
+    mock_scrape_tool.execute.assert_called_once_with(url="https://example.com/1")
+
+
 if __name__ == "__main__":
     pytest.main()

@@ -35,6 +35,7 @@ def test_intelligence_agent_integration(llm_factory):
                 "the multi-agent system is both effective and aligned with the user's goals.",
             ),
         ],
+        history=[],
     )
 
     # Act

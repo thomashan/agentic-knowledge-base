@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -14,6 +16,7 @@ class ResearchOutput(BaseModel):
     topic: str = Field(description="The original research topic.")
     summary: str = Field(description="A summary of the research findings.")
     results: list[ResearchResult] = Field(description="A list of research results from the most relevant sources.")
+    history: list[dict[str, Any]] = Field(description="History of the actions took")
 
 
 class SearchResult(BaseModel):
