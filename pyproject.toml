@@ -63,6 +63,7 @@ dev = [
     "pydeps==3.0.1",
     "pytest==9.0.1",
     "pytest-xdist==3.8.0",
+    "pytest-mock==3.14.0",
     "ruff==0.14.4",
 ]
 

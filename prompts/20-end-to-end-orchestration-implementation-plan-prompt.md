@@ -42,7 +42,7 @@ A single markdown file containing the complete implementation plan.
 
 4. **TDD Implementation Cycle:** The plan must detail a RED-GREEN-REFACTOR cycle for the new packages.
     * **`agents-orchestrator-crewai` package:**
-        * **Test File:** `test_crew_manager_unit.py`
+        * Test File: `test_adapter.py`
         * **Unit Tests:**
             * Test the `CrewAIOrchestrator`'s ability to be instantiated.
             * Use **mock agents** and **mock tools** to verify that the `CrewAIOrchestrator` correctly initializes the `crewai` `Crew` object based on a `WorkflowConfig`.
