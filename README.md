@@ -11,6 +11,10 @@ This project practices dogfooding using the tool to build itself.
 
 **Current Status:** Early development, optimized for personal use rather than enterprise scale.
 
+## Getting Started
+
+To set up your development environment and run the application, please refer to the [GETTING_STARTED.md](GETTING_STARTED.md) guide.
+
 ## Python Directory Structure
 
 Uses [uv workspace layout](https://docs.astral.sh/uv/concepts/projects/workspaces/#workspace-sources):
