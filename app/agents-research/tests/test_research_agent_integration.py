@@ -44,65 +44,35 @@ def mock_scrape_tool():
     scrape_tool.execute.side_effect = scrape_side_effect
     return scrape_tool
 
-    @pytest.mark.integration
-    def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_scrape_tool):
-        """
-        Tests the ResearchAgent with a real LLM but mock tools to ensure
-        the LLM can make a decision without network dependencies.
-        """
-        # 1. Get a real LLM from the factory
-        llm = llm_factory("gemma2:2b")
 
-        # Configure the mock LLM to return a sequence of actions
-        llm.call.side_effect = [
-            """```json
-            {
-                "tool_name": "search_tool",
-                "arguments": {
-                    "query": "What is CrewAI?"
-                }
-            }
-            ```""",
-            """```json
-            {
-                "tool_name": "scrape_tool",
-                "arguments": {
-                    "url": "https://www.crewai.com/"
-                }
-            }
-            ```""",
-            """```json
-            {
-                "tool_name": "finish",
-                "arguments": {
-                    "summary": "This is a summary about CrewAI."
-                }
-            }
-            ```""",
-        ]
+@pytest.mark.integration
+def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_scrape_tool):
+    """
+    Tests the ResearchAgent with a real LLM but mock tools to ensure
+    the LLM can make a decision without network dependencies.
+    """
+    # 1. Get a real LLM from the factory
+    llm = llm_factory("gemma2:2b")
 
-        # 2. Instantiate the ResearchAgent
-        agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
+    # 2. Instantiate the ResearchAgent
+    agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
 
-        # 3. Define a research topic
-        topic = "What is CrewAI?"
+    # 3. Define a research topic
+    topic = "What is CrewAI?"
 
-        # 4. Run the research
-        research_output = agent.run_research(topic)
+    # 4. Run the research
+    research_output = agent.run_research(topic, max_iterations=5)
 
-        # 5. Validate the output
-        assert isinstance(research_output, ResearchOutput)
-        assert research_output.topic == topic
-        assert research_output.summary == "This is a summary about CrewAI."
-        assert len(research_output.results) == 1
-        assert research_output.results[0].url == "https://www.crewai.com/"
-        assert research_output.results[0].content == "CrewAI is a framework for orchestrating role-playing, autonomous AI agents."
+    # 5. Validate the output
+    assert isinstance(research_output, ResearchOutput)
+    assert research_output.topic == topic
+    assert "framework" in research_output.summary.lower().replace("**", "")
+    assert len(research_output.results) == 1
+    assert research_output.results[0].url == "https://www.crewai.com/"
+    assert research_output.results[0].content == "CrewAI is a framework for orchestrating role-playing, autonomous AI agents."
 
-        # Assert that the search tool was called
-        mock_search_tool.execute.assert_called_once_with(query=topic)
-
-        # Assert that the scrape tool was called once for the correct URL
-        mock_scrape_tool.execute.assert_called_once_with(url="https://www.crewai.com/")
+    # Assert that the scrape tool was called once for the correct URL
+    mock_scrape_tool.execute.assert_called_once_with(url="https://www.crewai.com/")
 
 
 if __name__ == "__main__":

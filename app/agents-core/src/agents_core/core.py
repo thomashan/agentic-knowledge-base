@@ -136,9 +136,13 @@ class AbstractAgent(ABC):
         return self.__call_llm(prompt, lambda response_text: response_text, lambda e: LLMError(e))
 
     def llm_json(self, prompt) -> Any:
-        return self.__call_llm(
-            prompt, lambda response_text: to_json_object(response_text), lambda e: LLMError(f"Failed to parse LLM response as JSON after {self.max_retries} attempts. Original error: {e}")
-        )
+        def llm_response_to_json(response_text: str) -> Any:
+            return to_json_object(response_text)
+
+        def llm_error_handler(e: Exception) -> LLMError:
+            return LLMError(f"Failed to parse LLM response as JSON after {self.max_retries} attempts. Original error: {e}")
+
+        return self.__call_llm(prompt, llm_response_to_json, llm_error_handler)
 
     def __call_llm(self, prompt: str, response_handler: Callable[[str], Any], error_handler: Callable[[Exception], Exception]) -> Any:
         """Calls the LLM and handles potential LLMError exceptions with retries."""

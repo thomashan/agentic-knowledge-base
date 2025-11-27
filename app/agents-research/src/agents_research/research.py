@@ -62,14 +62,15 @@ class ResearchAgent(AbstractAgent):
     def max_retries(self) -> int:
         return 10
 
-    def run_research(self, topic: str, max_iterations: int = 5) -> ResearchOutput:
+    def run_research(self, topic: str, max_iterations: int = 20) -> ResearchOutput:
         history = []
         results = []
         summary = ""
+        scraped_urls = set()
 
         for _ in range(max_iterations):
             prompt = self._prompt_template.format(topic=topic, history=json.dumps(history))
-            action = self.llm_json(prompt)  # Using llm_json here
+            action = self.llm_json(prompt)
 
             tool_name = action.get("tool_name", "").strip()
             arguments = action.get("arguments", {})
@@ -79,13 +80,19 @@ class ResearchAgent(AbstractAgent):
                 break
 
             if tool_name == "search_tool":
+                if arguments.get("query"):
+                    arguments["query"] = arguments.get("query").lower().strip()
                 tool_result = self.search_tool.execute(**arguments)
                 history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
             elif tool_name == "scrape_tool":
-                tool_result = self.scrape_tool.execute(**arguments)
-                if tool_result and "Failed to scrape" not in tool_result:
-                    results.append(ResearchResult(url=arguments.get("url"), content=tool_result))
-                history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
+                if arguments.get("url") not in scraped_urls:
+                    tool_result = self.scrape_tool.execute(**arguments)
+                    if tool_result and "Failed to scrape" not in tool_result:
+                        results.append(ResearchResult(url=arguments.get("url"), content=tool_result))
+                    history.append({"tool": tool_name, "arguments": arguments, "result": tool_result})
+                else:
+                    history.append({"tool": tool_name, "arguments": arguments, "result": "already scraped"})
+                scraped_urls.add(arguments.get("url"))
             else:
                 history.append({"tool": "invalid_tool", "arguments": arguments, "result": "Invalid tool name."})
 
@@ -94,4 +101,4 @@ class ResearchAgent(AbstractAgent):
             summary_prompt = f"Based on the following research history, please provide a summary of your findings:\n{json.dumps(history)}"
             summary = self.call_llm(summary_prompt)
 
-        return ResearchOutput(topic=topic, summary=summary, results=results)
+        return ResearchOutput(topic=topic, summary=summary, results=results, history=history)

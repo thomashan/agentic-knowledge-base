@@ -19,7 +19,7 @@ def mock_llm():
                 "finding_id": 1,
                 "title": "Mock Finding 1",
                 "summary": "This is the summary for mock finding 1.",
-                "citations": ["http://example.com/source1"]
+                "citations": ["https://example.com/source1"]
             }
         ]
     }
@@ -36,7 +36,8 @@ def test_generate_report_unit(mock_llm):
     research_output = ResearchOutput(
         topic="Test Topic",
         summary="A brief summary of the research.",
-        results=[ResearchResult(url="http://example.com/source1", content="Content from source 1."), ResearchResult(url="http://example.com/source2", content="Content from source 2.")],
+        results=[ResearchResult(url="https://example.com/source1", content="Content from source 1."), ResearchResult(url="https://example.com/source2", content="Content from source 2.")],
+        history=[],
     )
 
     # Act
@@ -50,7 +51,7 @@ def test_generate_report_unit(mock_llm):
     assert len(report.key_findings) == 1
     assert isinstance(report.key_findings[0], KeyFinding)
     assert report.key_findings[0].title == "Mock Finding 1"
-    assert report.key_findings[0].citations == ["http://example.com/source1"]
+    assert report.key_findings[0].citations == ["https://example.com/source1"]
 
     # Verify that the LLM was called with the correct prompt structure
     mock_llm.call.assert_called_once()
