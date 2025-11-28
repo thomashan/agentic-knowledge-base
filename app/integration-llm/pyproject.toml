@@ -5,6 +5,7 @@ version = "0.1.0"
 dependencies = [
     "agents-core",
     "agentic-knowledge-base[crewai]",
+    "integration-scraper",
     "python-dotenv==1.1.1",
     "testcontainers==4.13.2",
     "requests==2.32.5",
