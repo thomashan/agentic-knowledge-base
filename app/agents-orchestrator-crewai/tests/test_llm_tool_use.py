@@ -117,4 +117,4 @@ def test_llm_tool_use(llm):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

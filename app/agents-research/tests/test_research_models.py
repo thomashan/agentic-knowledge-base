@@ -25,4 +25,4 @@ def test_research_result_validation_error():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

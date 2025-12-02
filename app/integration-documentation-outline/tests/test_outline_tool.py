@@ -171,4 +171,4 @@ def test_create_or_update_document_updates_existing(mock_search, mock_update, ou
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

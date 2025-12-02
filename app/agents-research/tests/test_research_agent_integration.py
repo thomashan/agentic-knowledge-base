@@ -76,4 +76,4 @@ def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

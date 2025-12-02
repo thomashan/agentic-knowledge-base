@@ -67,4 +67,4 @@ def test_planner_agent_generate_plan(mock_llm):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

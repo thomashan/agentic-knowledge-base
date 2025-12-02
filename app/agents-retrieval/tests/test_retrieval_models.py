@@ -79,4 +79,4 @@ def test_retrieval_result_model_validation():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

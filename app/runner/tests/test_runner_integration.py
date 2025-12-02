@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+import pytest
 from agents_core.core import AbstractAgent, AbstractOrchestrator, AbstractTask, ExecutionResult
 
 
@@ -58,3 +59,7 @@ def test_runner_uses_orchestrator():
     # run it, and return the expected result.
     # A more complex setup with spies or a factory pattern could inspect the instance,
     # but for now, this confirms the decoupling.
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

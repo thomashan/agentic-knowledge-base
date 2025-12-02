@@ -106,4 +106,4 @@ def test_retrieval_agent_integration(real_embedding_model, mock_qdrant_tool_for_
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

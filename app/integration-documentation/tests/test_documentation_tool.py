@@ -23,7 +23,7 @@ class ConcreteDocumentationTool(DocumentationTool):
     def base_url(self) -> str:
         return "http://example.com"
 
-    def create_or_update_document(self, title: str, content: str) -> dict[str, Any]:
+    def create_or_update_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         # Check if a document with the same title already exists
         for doc_id, doc_data in self.published_documents.items():
             if doc_data["title"] == title:
@@ -202,4 +202,4 @@ def test_create_or_update_document():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

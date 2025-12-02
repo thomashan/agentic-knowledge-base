@@ -121,4 +121,4 @@ def test_search_vectors_integration(qdrant_tool):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

@@ -87,4 +87,4 @@ def test_llm_json_fails_after_max_retries():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

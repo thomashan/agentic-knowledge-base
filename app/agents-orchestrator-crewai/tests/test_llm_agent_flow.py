@@ -95,4 +95,4 @@ def test_simple_agent_flow(llm_factory):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])
