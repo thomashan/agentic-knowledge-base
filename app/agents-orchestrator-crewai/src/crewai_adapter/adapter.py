@@ -1,13 +1,13 @@
 from typing import Any
 
 from agents_core.core import AbstractAgent, AbstractLLM, AbstractOrchestrator, AbstractTask, AbstractTool, ExecutionResult
-from crewai import Agent, Crew, Task
+from crewai import LLM, Agent, Crew, Task
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
 
 class CrewAILLM(AbstractLLM):
-    def __init__(self, crew_llm):
+    def __init__(self, crew_llm: LLM):
         self.crew_llm = crew_llm
 
     def call(self, prompt: str) -> str:

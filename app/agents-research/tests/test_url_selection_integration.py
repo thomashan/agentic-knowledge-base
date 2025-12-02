@@ -6,7 +6,7 @@ from agents_research.url_selection import UrlSelectionAgent
 @pytest.mark.integration
 def test_url_selection_agent_integration(llm_factory):
     # Arrange
-    llm = llm_factory("gemma2:2b")
+    llm = llm_factory("ollama/gemma2:2b")
     agent = UrlSelectionAgent(topic="artificial intelligence", llm=llm, relevance_threshold=6, max_retries=10)
     search_results = [
         SearchResult(
@@ -43,7 +43,7 @@ def test_url_selection_agent_integration(llm_factory):
 @pytest.mark.integration
 def test_url_selection_agent_crew_ai_integration(llm_factory):
     # Arrange
-    llm = llm_factory("gemma2:2b")
+    llm = llm_factory("ollama/gemma2:2b")
     agent = UrlSelectionAgent(topic="What is CrewAI?", llm=llm, relevance_threshold=4, max_retries=10)
     search_results = [
         SearchResult(
