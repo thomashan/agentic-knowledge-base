@@ -52,4 +52,4 @@ def test_intelligence_report_with_research_output():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

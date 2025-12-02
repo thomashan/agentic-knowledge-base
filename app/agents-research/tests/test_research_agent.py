@@ -136,4 +136,4 @@ def test_run_research_scraping_same_url_multiple_times(mock_llm, mock_search_too
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

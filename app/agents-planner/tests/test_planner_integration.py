@@ -34,4 +34,4 @@ def test_planner_agent_with_real_llm(llm_factory):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

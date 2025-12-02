@@ -93,4 +93,4 @@ def test_retrieval_agent_retrieve_method(mock_embedding_model, mock_qdrant_tool)
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

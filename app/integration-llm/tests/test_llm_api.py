@@ -56,4 +56,4 @@ def test_llm_connection_refused(llm_factory):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

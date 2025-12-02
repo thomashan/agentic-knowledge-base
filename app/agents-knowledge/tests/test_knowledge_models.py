@@ -31,4 +31,4 @@ def test_knowledge_persistence_result_invalid():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

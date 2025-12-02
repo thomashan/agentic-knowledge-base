@@ -131,4 +131,4 @@ def test_delete_document(outline_tool):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

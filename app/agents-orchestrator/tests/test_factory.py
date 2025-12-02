@@ -50,4 +50,4 @@ def test_orchestrator_factory_create_unknown_orchestrator():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

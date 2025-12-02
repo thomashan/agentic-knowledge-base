@@ -138,4 +138,4 @@ def test_crewai_orchestrator_execute_initializes_crew_correctly(mock_crew):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

@@ -62,4 +62,4 @@ def test_generate_report_unit(mock_llm):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

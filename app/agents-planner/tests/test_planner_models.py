@@ -32,4 +32,4 @@ def test_task_validation_error():
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

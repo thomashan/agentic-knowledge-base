@@ -89,4 +89,4 @@ def test_select_urls_retries_on_bad_json(mock_llm):  # Use mock_llm fixture
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])

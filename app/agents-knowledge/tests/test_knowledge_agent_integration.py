@@ -65,4 +65,4 @@ def test_knowledge_agent_integration(mock_qdrant_client, mock_requests_post, emb
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([__file__])
