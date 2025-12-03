@@ -15,6 +15,7 @@ import requests
 import structlog
 from crewai import LLM
 from filelock import FileLock
+from integration_llm.factory import create_llm
 from testcontainers.compose import DockerCompose
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.container import DockerContainer as GenericContainer
@@ -216,19 +217,18 @@ def ollama_service(tmp_path_factory, worker_id) -> Generator[dict[str, Any], Non
 @pytest.fixture(scope="session")
 def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
     """
-    This fixture provides a factory to create LLM clients for different models.
-    It also handles pulling the model if it's not already available.
+    This fixture provides a factory to create LLM clients for different models and providers.
+    It also handles pulling the model if it's not already available for the 'ollama' provider.
     """
     log.info("Setting up llm_factory fixture...")
     ollama_base_url = ollama_service["base_url"]
-    __temp_file(tmp_path_factory, "ollama_model.json")
     lock_file = __temp_file(tmp_path_factory, "ollama_model.json.lock")
-    __read_service_file(tmp_path_factory, "ollama_model.json")
 
     @cache
     def pull_model(model_name: str):
+        model_name = model_name.replace("ollama/", "")
         ollama_models = __read_service_file(tmp_path_factory, "ollama_model.json")
-        models: set[str] = ollama_models.get("models", set())
+        models: set[str] = set(ollama_models.get("models", []))
         log.info(f"models: {models}")
 
         with FileLock(lock_file):
@@ -252,7 +252,6 @@ def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
                                 end_time = time.time()
                                 duration = end_time - start_time
                                 log.info(f"Model {model_name} pulled successfully in {duration:.2f} seconds.")
-                                models = ollama_models.get("models", set())
                                 models.add(model_name)
                                 ollama_models["models"] = list(models)
                                 __write_service_file(tmp_path_factory, "ollama_model.json", ollama_models)
@@ -263,15 +262,34 @@ def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
                     log.info(f"Failed to pull model '{model_name}' calling {pull_url}: {e}")
                     pytest.fail(f"Failed to pull model '{model_name}': {e}")
 
-    def _factory(model_name: str, timeout_s: int | float = 60, base_url: str | None = None) -> LLM:
-        log.info(f"Creating LLM for model: {model_name}...")
-        pull_model(model_name)
-        url = base_url or ollama_service["base_url"]
-        log.info(f"url: {url}")
+    def _factory(
+        model_name: str,
+        provider: str = "ollama",
+        timeout_s: int | float = 60,
+        base_url: str | None = None,
+    ) -> LLM:
+        log.info(f"Creating LLM for model: {model_name} with provider {provider}...")
+        if provider == "ollama":
+            pull_model(model_name)
+            # If a base_url is provided for Ollama, use it. Otherwise, use the one from the service fixture.
+            url = base_url or ollama_base_url
+        else:
+            # For other providers, the base_url might not be from the ollama_service fixture.
+            # The create_llm function will handle the default URL if not provided.
+            url = base_url
+
         log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
-        llm = LLM(model=f"ollama/{model_name}", base_url=url, timeout=timeout_s)
+        # We need to adapt the returned LLM to the one expected by the tests (crewai.LLM)
+        # The create_llm function returns an AbstractLLM, so we need to get the underlying crew_llm
+        abstract_llm = create_llm(provider=provider, model=model_name, base_url=url)
+
+        # The create_llm function returns a CrewAILLM instance, which has a 'crew_llm' attribute.
+        # We need to pass this underlying crewai.LLM object to the tests.
+        crew_llm = abstract_llm.crew_llm
+        crew_llm.timeout = timeout_s
+
         log.info(f"LLM for model {model_name} created.")
-        return llm
+        return crew_llm
 
     return _factory
 
