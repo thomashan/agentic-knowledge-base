@@ -6,12 +6,15 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel
 
 
-class CrewAILLM(AbstractLLM):
+class CrewAILLM(AbstractLLM[LLM]):
     def __init__(self, crew_llm: LLM):
         self.crew_llm = crew_llm
 
     def call(self, prompt: str) -> str:
         return self.crew_llm.call(prompt)
+
+    def llm(self) -> LLM:
+        return self.crew_llm
 
 
 class NoArgs(BaseModel):

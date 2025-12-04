@@ -1,7 +1,6 @@
 import os
 
 import crewai
-import requests
 from agents_core.core import AbstractLLM
 from crewai_adapter.adapter import CrewAILLM
 from dotenv import load_dotenv
@@ -64,48 +63,3 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
-
-
-def check_openrouter_health() -> bool:
-    """
-    Performs a health check on the OpenRouter API to verify connectivity and API key validity.
-
-    Returns:
-        bool: True if the OpenRouter API is reachable and credentials are valid, False otherwise.
-
-    Raises:
-        ValueError: If required OpenRouter environment variables are not set.
-        requests.exceptions.HTTPError: For HTTP errors (e.g., 401 Unauthorized, 404 Not Found).
-        requests.exceptions.ConnectionError: For network-related errors.
-    """
-    load_dotenv()
-
-    base_url = os.getenv("LLM_BASE_URL")
-    if not base_url:
-        raise ValueError("LLM_BASE_URL environment variable is not set for OpenRouter health check.")
-    if not base_url.startswith("https://openrouter.ai"):
-        raise ValueError("LLM_BASE_URL must be 'https://openrouter.ai/api/v1' for OpenRouter health check.")
-
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key:
-        raise ValueError("OPENROUTER_API_KEY environment variable is not set for OpenRouter health check.")
-
-    referer = os.getenv("OPENROUTER_REFERER")
-    if not referer:
-        raise ValueError("OPENROUTER_REFERER environment variable is not set for OpenRouter health check.")
-
-    headers = {"Authorization": f"Bearer {api_key}", "HTTP-Referer": referer}
-
-    # OpenRouter's /models endpoint is a good way to check connectivity and auth
-    check_url = f"{base_url}/models"
-
-    try:
-        response = requests.get(check_url, headers=headers, timeout=5)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-        return True
-    except requests.exceptions.ConnectionError:
-        return False
-    except requests.exceptions.HTTPError:
-        return False
-    except Exception:
-        return False

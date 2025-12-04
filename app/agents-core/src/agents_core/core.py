@@ -1,19 +1,26 @@
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from typing import Any
+from typing import Any, TypeVar
 
 import structlog
 from agents_core.json_utils import to_json_object
 from pydantic import BaseModel, Field
 
+L = TypeVar("L")
 
-class AbstractLLM(ABC):
+
+class AbstractLLM[L](ABC):
     """Abstract interface for a Language Model."""
 
     @abstractmethod
     def call(self, prompt: str) -> str:
         """Calls the LLM with a given prompt and returns the response."""
+        pass
+
+    @property
+    @abstractmethod
+    def llm(self) -> L:
         pass
 
 

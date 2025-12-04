@@ -6,7 +6,7 @@ from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool, LLMError
 # A mock LLM class for testing purposes
 
 
-class MockLLM(AbstractLLM):
+class MockLLM(AbstractLLM[None]):
     def __init__(self, fail_count=0):
         self.fail_count = fail_count
         self.call_count = 0
@@ -16,6 +16,9 @@ class MockLLM(AbstractLLM):
         if self.call_count <= self.fail_count:
             raise Exception("Connection timed out")
         return "Mock response"
+
+    def llm(self) -> None:
+        return None
 
 
 # A simple concrete implementation of AbstractAgent for testing
