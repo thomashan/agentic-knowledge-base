@@ -13,6 +13,7 @@ from typing import Any
 import pytest
 import requests
 import structlog
+from agents_core.core import AbstractLLM
 from crewai import LLM
 from filelock import FileLock
 from integration_llm.factory import create_llm
@@ -281,11 +282,11 @@ def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
         log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
         # We need to adapt the returned LLM to the one expected by the tests (crewai.LLM)
         # The create_llm function returns an AbstractLLM, so we need to get the underlying crew_llm
-        abstract_llm = create_llm(provider=provider, model=model_name, base_url=url)
+        abstract_llm: AbstractLLM = create_llm(provider=provider, model=model_name, base_url=url)
 
         # The create_llm function returns a CrewAILLM instance, which has a 'crew_llm' attribute.
         # We need to pass this underlying crewai.LLM object to the tests.
-        crew_llm = abstract_llm.crew_llm
+        crew_llm = abstract_llm.llm()
         crew_llm.timeout = timeout_s
 
         log.info(f"LLM for model {model_name} created.")

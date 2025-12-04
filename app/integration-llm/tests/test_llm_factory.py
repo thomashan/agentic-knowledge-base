@@ -1,10 +1,9 @@
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
-import requests.exceptions
 from agents_core.core import AbstractLLM
-from integration_llm.factory import check_openrouter_health, create_llm
+from integration_llm.factory import create_llm
 
 
 @patch("crewai.LLM")
@@ -90,79 +89,6 @@ def test_create_llm_uses_arguments_over_env(mock_crew_llm):
             timeout_s=300,  # Added timeout_s
             extra_headers={"HTTP-Referer": "https://test.app"},
         )
-
-
-# Tests for check_openrouter_health
-@patch("integration_llm.factory.requests.get")
-def test_check_openrouter_health_success(mock_get):
-    """Test successful OpenRouter health check."""
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.raise_for_status.return_value = None
-    mock_get.return_value = mock_response
-
-    with patch.dict(os.environ, {"LLM_BASE_URL": "https://openrouter.ai/api/v1", "OPENROUTER_API_KEY": "test-key", "OPENROUTER_REFERER": "https://test.app"}):
-        assert check_openrouter_health() is True
-        mock_get.assert_called_once_with("https://openrouter.ai/api/v1/models", headers={"Authorization": "Bearer test-key", "HTTP-Referer": "https://test.app"}, timeout=5)
-
-
-def test_check_openrouter_health_missing_base_url():
-    """Test missing LLM_BASE_URL for OpenRouter health check."""
-    with (
-        patch.dict(os.environ, {"OPENROUTER_API_KEY": "test-key", "OPENROUTER_REFERER": "https://test.app"}, clear=True),
-        pytest.raises(ValueError, match="LLM_BASE_URL environment variable is not set for OpenRouter health check."),
-    ):
-        check_openrouter_health()
-
-
-def test_check_openrouter_health_incorrect_base_url():
-    """Test incorrect LLM_BASE_URL for OpenRouter health check."""
-    with (
-        patch.dict(os.environ, {"LLM_BASE_URL": "http://wrong-url.com", "OPENROUTER_API_KEY": "test-key", "OPENROUTER_REFERER": "https://test.app"}, clear=True),
-        pytest.raises(ValueError, match="LLM_BASE_URL must be 'https://openrouter.ai/api/v1' for OpenRouter health check."),
-    ):
-        check_openrouter_health()
-
-
-def test_check_openrouter_health_missing_api_key():
-    """Test missing OPENROUTER_API_KEY for OpenRouter health check."""
-    with (
-        patch.dict(os.environ, {"LLM_BASE_URL": "https://openrouter.ai/api/v1", "OPENROUTER_REFERER": "https://test.app"}, clear=True),
-        pytest.raises(ValueError, match="OPENROUTER_API_KEY environment variable is not set for OpenRouter health check."),
-    ):
-        check_openrouter_health()
-
-
-def test_check_openrouter_health_missing_referer():
-    """Test missing OPENROUTER_REFERER for OpenRouter health check."""
-    with (
-        patch.dict(os.environ, {"LLM_BASE_URL": "https://openrouter.ai/api/v1", "OPENROUTER_API_KEY": "test-key"}, clear=True),
-        pytest.raises(ValueError, match="OPENROUTER_REFERER environment variable is not set for OpenRouter health check."),
-    ):
-        check_openrouter_health()
-
-
-@patch("integration_llm.factory.requests.get")
-def test_check_openrouter_health_http_error(mock_get):
-    """Test HTTP error during OpenRouter health check."""
-    mock_response = Mock()
-    mock_response.status_code = 401
-    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("Unauthorized", response=mock_response)
-    mock_get.return_value = mock_response
-
-    with patch.dict(os.environ, {"LLM_BASE_URL": "https://openrouter.ai/api/v1", "OPENROUTER_API_KEY": "test-key", "OPENROUTER_REFERER": "https://test.app"}):
-        assert check_openrouter_health() is False
-        mock_get.assert_called_once()
-
-
-@patch("integration_llm.factory.requests.get")
-def test_check_openrouter_health_connection_error(mock_get):
-    """Test connection error during OpenRouter health check."""
-    mock_get.side_effect = requests.exceptions.ConnectionError("Connection refused")
-
-    with patch.dict(os.environ, {"LLM_BASE_URL": "https://openrouter.ai/api/v1", "OPENROUTER_API_KEY": "test-key", "OPENROUTER_REFERER": "https://agentic-knowledge-base.com"}):
-        assert check_openrouter_health() is False
-        mock_get.assert_called_once()
 
 
 if __name__ == "__main__":
