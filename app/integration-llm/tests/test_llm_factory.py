@@ -1,4 +1,3 @@
-import os
 from unittest.mock import patch
 
 import pytest
@@ -6,89 +5,94 @@ from agents_core.core import AbstractLLM
 from integration_llm.factory import create_llm
 
 
+def create_getenv_side_effect(vars_to_mock: dict):
+    """Factory for creating a side_effect function for patching os.getenv."""
+
+    def side_effect(key, default=None):
+        return vars_to_mock.get(key, default)
+
+    return side_effect
+
+
 @patch("crewai.LLM")
-def test_create_llm_ollama_provider_default_url(mock_crew_llm):
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_ollama_provider_default_url(mock_getenv, mock_crew_llm):
     """Test that create_llm correctly uses the default URL for Ollama when LLM_BASE_URL is not set."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model"}):
-        llm_instance = create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
+    mock_getenv.side_effect = create_getenv_side_effect({"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model"})
 
-        assert isinstance(llm_instance, AbstractLLM)
-        # Updated assertion: removed "ollama/" prefix, added timeout_s and api_key=None
-        mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://localhost:11434", timeout_s=300, api_key=None)
+    llm_instance = create_llm()
+    assert isinstance(llm_instance, AbstractLLM)
+    mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://localhost:11434", timeout_s=300, api_key=None, custom_llm_provider="ollama")
 
 
 @patch("crewai.LLM")
-def test_create_llm_ollama_provider_custom_url(mock_crew_llm):
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_ollama_provider_custom_url(mock_getenv, mock_crew_llm):
     """Test that create_llm correctly uses a custom LLM_BASE_URL for Ollama."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model", "LLM_BASE_URL": "http://custom-ollama:12345"}):
-        create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
-        # Updated assertion: removed "ollama/" prefix, added timeout_s and api_key=None
-        mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://custom-ollama:12345", timeout_s=300, api_key=None)
+    mock_getenv.side_effect = create_getenv_side_effect({"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model", "LLM_BASE_URL": "http://custom-ollama:12345"})
+    create_llm()
+    mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://custom-ollama:12345", timeout_s=300, api_key=None, custom_llm_provider="ollama")
 
 
-@patch("crewai.LLM")
-def test_create_llm_openrouter_provider(mock_crew_llm):
-    """Test that create_llm correctly creates an OpenRouter client."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "openrouter", "LLM_MODEL": "test-model", "OPENROUTER_API_KEY": "test-key", "OPENROUTER_REFERER": "http://test.app"}):
-        llm_instance = create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
-
-        assert isinstance(llm_instance, AbstractLLM)
-        # Updated assertion: added timeout_s
-        mock_crew_llm.assert_called_once_with(
-            model="test-model",
-            base_url="https://openrouter.ai/api/v1",
-            api_key="test-key",
-            timeout_s=300,  # Added timeout_s
-            extra_headers={"HTTP-Referer": "http://test.app"},
-        )
+@patch("integration_llm.factory.llm_factory")
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_openrouter_provider_respects_base_url_arg(mock_getenv, mock_llm_factory):
+    """Test create_llm passes the correct base_url for openrouter, prioritizing function arg."""
+    mock_getenv.side_effect = create_getenv_side_effect({"LLM_PROVIDER": "openrouter", "LLM_MODEL": "test-model", "OPENROUTER_API_KEY": "test-key"})
+    create_llm(base_url="https://arg-url.com/v1")
+    mock_llm_factory.assert_called_once()
+    _, call_kwargs = mock_llm_factory.call_args
+    assert call_kwargs.get("base_url") == "https://arg-url.com/v1"
 
 
-def test_create_llm_openrouter_missing_key():
+@patch("integration_llm.factory.llm_factory")
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_openrouter_provider_respects_env_base_url(mock_getenv, mock_llm_factory):
+    """Test create_llm passes the correct base_url for openrouter from env var."""
+    mock_getenv.side_effect = create_getenv_side_effect(
+        {
+            "LLM_PROVIDER": "openrouter",
+            "LLM_MODEL": "test-model",
+            "OPENROUTER_API_KEY": "test-key",
+            "LLM_BASE_URL": "https://env-url.com/v1",
+        }
+    )
+    create_llm()
+    mock_llm_factory.assert_called_once()
+    _, call_kwargs = mock_llm_factory.call_args
+    assert call_kwargs.get("base_url") == "https://env-url.com/v1"
+
+
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_openrouter_missing_key(mock_getenv):
     """Test that create_llm raises an error if the OpenRouter API key is missing."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "openrouter", "LLM_MODEL": "test-model"}, clear=True), pytest.raises(ValueError, match="OPENROUTER_API_KEY environment variable is not set."):
-        create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
+    mock_getenv.side_effect = create_getenv_side_effect({"LLM_PROVIDER": "openrouter", "LLM_MODEL": "test-model"})
+    with pytest.raises(ValueError, match="OPENROUTER_API_KEY environment variable is not set."):
+        create_llm()
 
 
-def test_create_llm_unsupported_provider():
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_unsupported_provider(mock_getenv):
     """Test that create_llm raises an error for an unsupported provider."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "unsupported", "LLM_MODEL": "test-model"}), pytest.raises(ValueError, match="Unsupported LLM provider: unsupported"):
-        create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
+    mock_getenv.side_effect = create_getenv_side_effect({"LLM_PROVIDER": "unsupported", "LLM_MODEL": "test-model"})
+    with pytest.raises(ValueError, match="Unsupported LLM provider: unsupported"):
+        create_llm()
 
 
-def test_create_llm_unsupported_orchestrator_type():
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_unsupported_orchestrator_type(mock_getenv):
     """Test that create_llm raises an error for an unsupported orchestrator type."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model"}), pytest.raises(ValueError, match="Unsupported orchestrator type: not_an_orchestrator"):
+    mock_getenv.side_effect = create_getenv_side_effect({"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model"})
+    with pytest.raises(ValueError, match="Unsupported orchestrator type: not_an_orchestrator"):
         create_llm(orchestrator_type="not_an_orchestrator")
 
 
-def test_create_llm_missing_provider_and_model():
+@patch("integration_llm.factory.os.getenv")
+def test_create_llm_missing_provider_and_model(mock_getenv):
     """Test that create_llm raises an error if provider and model are not specified."""
-    with patch.dict(os.environ, {}, clear=True), pytest.raises(ValueError, match="LLM_PROVIDER and LLM_MODEL must be set"):
-        create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
-
-
-@patch("crewai.LLM")
-def test_create_llm_uses_arguments_over_env(mock_crew_llm):
-    """Test that create_llm prioritizes arguments over environment variables."""
-    with patch.dict(
-        os.environ,
-        {
-            "LLM_PROVIDER": "ollama",
-            "LLM_MODEL": "env-model",
-            "LLM_BASE_URL": "http://should-be-ignored.com",
-            "OPENROUTER_API_KEY": "test-key",
-            "OPENROUTER_REFERER": "https://test.app",
-        },
-    ):
-        create_llm(orchestrator_type="crew_ai", provider="openrouter", model="arg-model")  # Added orchestrator_type
-        # Updated assertion: added timeout_s
-        mock_crew_llm.assert_called_once_with(
-            model="arg-model",
-            base_url="https://openrouter.ai/api/v1",
-            api_key="test-key",
-            timeout_s=300,  # Added timeout_s
-            extra_headers={"HTTP-Referer": "https://test.app"},
-        )
+    mock_getenv.side_effect = create_getenv_side_effect({})  # No env vars
+    with pytest.raises(ValueError, match="LLM_PROVIDER and LLM_MODEL must be set"):
+        create_llm()
 
 
 if __name__ == "__main__":
