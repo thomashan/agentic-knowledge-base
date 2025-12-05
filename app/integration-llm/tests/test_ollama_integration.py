@@ -42,7 +42,6 @@ def test_ollama_llm_timeout(llm_factory):
     # Modified llm_factory call to explicitly pass model_name and provider
     llm = llm_factory(model_name="ollama/gemma2:2b", provider="ollama", timeout_s=0.001)
 
-    # Changed expected exception from APIConnectionError to Timeout
     with pytest.raises(litellm.exceptions.APIConnectionError):
         llm.call("This is a test prompt.")
 

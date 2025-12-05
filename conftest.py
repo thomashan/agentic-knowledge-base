@@ -272,11 +272,8 @@ def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
         log.info(f"Creating LLM for model: {model_name} with provider {provider}...")
         if provider == "ollama":
             pull_model(model_name)
-            # If a base_url is provided for Ollama, use it. Otherwise, use the one from the service fixture.
             url = base_url or ollama_base_url
         else:
-            # For other providers, the base_url might not be from the ollama_service fixture.
-            # The create_llm function will handle the default URL if not provided.
             url = base_url
 
         log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
