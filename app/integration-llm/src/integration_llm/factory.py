@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", timeout_s: int = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
     if orchestrator_type == "crew_ai":
-        crew_ai_llm = crewai.LLM(model=model, timeout_s=timeout_s, base_url=base_url, api_key=api_key, **kwargs)
+        crew_ai_llm = crewai.LLM(model=model, timeout=timeout_s, base_url=base_url, api_key=api_key, **kwargs)
         return CrewAILLM(crew_ai_llm)
     else:
         raise ValueError(f"Unsupported orchestrator type: {orchestrator_type}")
@@ -59,7 +59,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
 
         referer = os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")
         headers = {"HTTP-Referer": referer}
-        return llm_factory(model, base_url="https://openrouter.ai/api/v1", api_key=api_key, orchestrator_type=orchestrator_type, extra_headers=headers, **kwargs)
+        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, extra_headers=headers, **kwargs)
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
