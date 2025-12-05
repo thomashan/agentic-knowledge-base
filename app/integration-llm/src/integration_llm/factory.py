@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import crewai
 from agents_core.core import AbstractLLM
@@ -39,27 +40,30 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
     """
     load_dotenv()
 
-    provider = provider or os.getenv("LLM_PROVIDER")
-    model = model or os.getenv("LLM_MODEL")
-    # Prioritize argument, then environment variable for base_url
-    base_url = base_url or os.getenv("LLM_BASE_URL", "http://localhost:11434")
-
-    if not provider or not model:
-        raise ValueError("LLM_PROVIDER and LLM_MODEL must be set in the environment or passed as arguments.")
-
-    provider = provider.lower()
+    provider = str(_check_mandatory_env_vars(provider, "LLM_PROVIDER")).lower()
+    model = _check_mandatory_env_vars(model, "LLM_MODEL")
+    base_url = _check_mandatory_env_vars(base_url, "LLM_BASE_URL", "http://localhost:11434")
 
     if provider == "ollama":
         return llm_factory(model=model, base_url=base_url, orchestrator_type=orchestrator_type, **kwargs)
 
     elif provider == "openrouter":
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            raise ValueError("OPENROUTER_API_KEY environment variable is not set.")
-
+        api_key = _check_mandatory_env_vars(
+            None,
+            "OPENROUTER_API_KEY",
+        )
+        if base_url.startswith("http://localhost") or base_url.startswith("https://localhost"):
+            raise ValueError("LLM_BASE_URL environment variable must be set to a valid URL.")
         referer = os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")
         headers = {"HTTP-Referer": referer}
         return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, extra_headers=headers, **kwargs)
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
+
+
+def _check_mandatory_env_vars(parameter: Any, env_var: str, env_var_default_value: str | None = None) -> Any:
+    returned_valued = parameter or os.getenv(env_var, env_var_default_value)
+    if not returned_valued:
+        raise ValueError(f"{env_var} must be set in the environment or passed as arguments.")
+    return returned_valued
