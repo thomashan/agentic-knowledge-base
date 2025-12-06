@@ -11,7 +11,7 @@ class CrewAILLM(AbstractLLM[LLM]):
         self.crew_llm = crew_llm
 
     def call(self, prompt: str) -> str:
-        return self.crew_llm.call(prompt)
+        return self.crew_llm.call(prompt, stream=False)
 
     def llm(self) -> LLM:
         return self.crew_llm
