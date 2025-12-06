@@ -54,9 +54,9 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
         )
         if base_url.startswith("http://localhost") or base_url.startswith("https://localhost"):
             raise ValueError("LLM_BASE_URL environment variable must be set to a valid URL.")
-        referer = os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")
-        headers = {"HTTP-Referer": referer}
-        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, extra_headers=headers, **kwargs)
+        os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")
+        # FIXME: how is the headers passed to the LLM?
+        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, **kwargs)
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")

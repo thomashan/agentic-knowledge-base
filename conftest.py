@@ -269,22 +269,102 @@ def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
         timeout_s: int | float = 60,
         base_url: str | None = None,
     ) -> LLM:
-        log.info(f"Creating LLM for model: {model_name} with provider ollama...")
+        log.info(f"Creating LLM for model: {model_name} with provider {provider}...")
         pull_model(model_name)
         url = base_url or ollama_base_url
 
         log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
         # We need to adapt the returned LLM to the one expected by the tests (crewai.LLM)
         # The create_llm function returns an AbstractLLM, so we need to get the underlying crew_llm
-        abstract_llm: AbstractLLM = create_llm(provider="ollama", model=f"ollama/{model_name}", base_url=url)
+        abstract_llm: AbstractLLM = create_llm(provider=provider, model=model_name, base_url=url)
 
         # The create_llm function returns a CrewAILLM instance, which has a 'crew_llm' attribute.
         # We need to pass this underlying crewai.LLM object to the tests.
         crew_llm = abstract_llm.llm()
         crew_llm.timeout = timeout_s
 
+        crew_llm = abstract_llm.llm()
+        # CrewAI LLM expects 'timeout' not 'timeout_s'
+        crew_llm.timeout = timeout_s
+
         log.info(f"LLM for model {model_name} created.")
         return crew_llm
+
+    return _factory
+
+
+@pytest.fixture(scope="session")
+def openrouter_llm_factory(tmp_path_factory):
+    """
+    This fixture provides a factory to create LLM clients for OpenRouter models.
+    It sets up the necessary environment variables.
+    """
+
+    def _factory(
+        model_name: str,
+        timeout_s: int | float = 60,
+        base_url: str = "https://openrouter.ai/api/v1",
+        api_key: str | None = None,
+        **kwargs,
+    ) -> LLM:
+        log.info(f"Creating LLM for OpenRouter model: {model_name}...")
+
+        # Set environment variables for OpenRouter
+        os.environ["LLM_PROVIDER"] = "openrouter"
+        os.environ["LLM_MODEL"] = model_name
+        os.environ["LLM_BASE_URL"] = base_url
+        if api_key:
+            os.environ["OPENROUTER_API_KEY"] = api_key
+        else:
+            # Attempt to get from existing env if not passed
+            api_key = os.getenv("OPENROUTER_API_KEY")
+            if not api_key:
+                pytest.fail("OPENROUTER_API_KEY must be set for OpenRouter models.")
+
+        # The create_llm function handles the actual instantiation
+        abstract_llm: AbstractLLM = create_llm(
+            provider="openrouter",
+            model=model_name,
+            base_url=base_url,
+            api_key=api_key,
+            timeout_s=timeout_s,
+            **kwargs,
+        )
+
+        crew_llm = abstract_llm.llm()
+        # CrewAI LLM expects 'timeout' not 'timeout_s'
+        crew_llm.timeout = timeout_s
+
+        log.info(f"LLM for OpenRouter model {model_name} created.")
+        return crew_llm
+
+    return _factory
+
+
+@pytest.fixture(scope="session")
+def llm_factory(ollama_llm_factory, openrouter_llm_factory):
+    """
+    This is a meta-fixture that provides a factory to create LLM clients for different providers.
+    """
+
+    def _factory(model_full_name: str, **kwargs):
+        # Parse the model_full_name to extract provider and model
+        parts = model_full_name.split("/", 1)
+        if len(parts) == 2:
+            provider_prefix, model_name = parts
+        else:
+            # Assume 'ollama' if no provider prefix is given
+            provider_prefix = "ollama"
+            model_name = model_full_name
+
+        if provider_prefix == "ollama":
+            # Call the factory function returned by ollama_llm_factory
+            return ollama_llm_factory(model_name=model_name, provider=provider_prefix, **kwargs)
+        elif provider_prefix == "openrouter":
+            # Call the factory function returned by openrouter_llm_factory
+            return openrouter_llm_factory(model_name=model_name, **kwargs)
+        else:
+            raise ValueError(f"Unsupported provider: {provider_prefix}")
 
     return _factory
 
