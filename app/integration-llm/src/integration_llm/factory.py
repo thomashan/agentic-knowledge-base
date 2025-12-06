@@ -1,3 +1,4 @@
+import requests
 import os
 from typing import Any
 
@@ -7,9 +8,9 @@ from crewai_adapter.adapter import CrewAILLM
 from dotenv import load_dotenv
 
 
-def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", timeout_s: int = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
+def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", timeout_s: int = 300, api_key: str | None = None, custom_llm_provider: str | None = None, **kwargs) -> AbstractLLM:
     if orchestrator_type == "crew_ai":
-        crew_ai_llm = crewai.LLM(model=model, timeout=timeout_s, base_url=base_url, api_key=api_key, **kwargs)
+        crew_ai_llm = crewai.LLM(model=model, timeout=timeout_s, base_url=base_url, api_key=api_key, custom_llm_provider=custom_llm_provider, **kwargs)
         return CrewAILLM(crew_ai_llm)
     else:
         raise ValueError(f"Unsupported orchestrator type: {orchestrator_type}")
@@ -45,7 +46,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
     base_url = _check_mandatory_env_vars(base_url, "LLM_BASE_URL", "http://localhost:11434")
 
     if provider == "ollama":
-        return llm_factory(model=model, base_url=base_url, orchestrator_type=orchestrator_type, **kwargs)
+        return llm_factory(model=model, base_url=base_url, orchestrator_type=orchestrator_type, custom_llm_provider=provider, **kwargs)
 
     elif provider == "openrouter":
         api_key = _check_mandatory_env_vars(
@@ -56,7 +57,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
             raise ValueError("LLM_BASE_URL environment variable must be set to a valid URL.")
         referer = os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")
         headers = {"HTTP-Referer": referer}
-        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, extra_headers=headers, **kwargs)
+        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, custom_llm_provider=provider, **kwargs)
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")

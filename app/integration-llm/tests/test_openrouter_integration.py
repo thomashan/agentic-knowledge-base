@@ -186,7 +186,7 @@ def test_openrouter_connectivity(llm_factory):
     Tests basic connectivity to the OpenRouter API and verifies a simple response.
     """
     log.debug("Getting OpenRouter LLM from factory...")
-    llm = llm_factory(model_name="google/gemma-7b-it", provider="openrouter", timeout_s=360)
+    llm = llm_factory("openrouter/google/gemma-7b-it", timeout_s=360)
     log.debug("OpenRouter LLM obtained from factory.")
 
     try:

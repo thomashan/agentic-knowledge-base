@@ -94,6 +94,11 @@ def test_llm_tool_use(llm):
     """
     Tests an end-to-end agent flow involving tool usage.
     """
+    # Skip this test if using Ollama due to known litellm incompatibility with tool calling
+    llm_crewai_instance = llm.llm() # Get the underlying crewai.LLM instance
+    if llm_crewai_instance.model_dump().get("custom_llm_provider") == "ollama":
+        pytest.skip("Skipping Ollama tool use test due to litellm incompatibility.")
+
     orchestrator = CrewAIOrchestrator()
 
     agent = ToolAgent(llm=llm, max_retries=10)
