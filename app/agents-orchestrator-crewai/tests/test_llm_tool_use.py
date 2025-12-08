@@ -9,8 +9,8 @@ log = structlog.get_logger()
 
 
 @pytest.fixture(scope="module")
-def llm(ollama_llm_factory) -> AbstractLLM:
-    crew_llm = ollama_llm_factory("ollama", "gemma2:2b", timeout_s=300)  # Increased timeout
+def llm(llm_factory) -> AbstractLLM:
+    crew_llm = llm_factory("ollama", "gemma2:2b", timeout_s=300)  # Increased timeout
     return CrewAILLM(crew_llm)
 
 
