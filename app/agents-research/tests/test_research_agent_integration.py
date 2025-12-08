@@ -52,7 +52,7 @@ def test_research_agent_real_llm_mock_tools(ollama_llm_factory, mock_search_tool
     the LLM can make a decision without network dependencies.
     """
     # 1. Get a real LLM from the factory
-    llm = ollama_llm_factory("gemma2:2b", "ollama")
+    llm = ollama_llm_factory("ollama", "gemma2:2b")
 
     # 2. Instantiate the ResearchAgent
     agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
