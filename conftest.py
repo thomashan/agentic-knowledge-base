@@ -266,7 +266,7 @@ def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
     def _factory(
         provider: str,
         model_name: str,
-        timeout_s: int | float = 60,
+        timeout_s: int | float = 300,
         base_url: str | None = None,
     ) -> LLM:
         log.info(f"Creating LLM for model: {model_name} with provider ollama...")
@@ -276,15 +276,10 @@ def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
         log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
         # We need to adapt the returned LLM to the one expected by the tests (crewai.LLM)
         # The create_llm function returns an AbstractLLM, so we need to get the underlying crew_llm
-        abstract_llm: AbstractLLM = create_llm(provider="ollama", model=f"ollama/{model_name}", base_url=url)
-
-        # The create_llm function returns a CrewAILLM instance, which has a 'crew_llm' attribute.
-        # We need to pass this underlying crewai.LLM object to the tests.
-        crew_llm = abstract_llm.llm()
-        crew_llm.timeout = timeout_s
+        abstract_llm: AbstractLLM = create_llm(provider="ollama", model=f"ollama/{model_name}", base_url=url, timeout_s=timeout_s)
 
         log.info(f"LLM for model {model_name} created.")
-        return crew_llm
+        return abstract_llm.llm()
 
     return _factory
 

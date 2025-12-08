@@ -7,7 +7,7 @@ from crewai_adapter.adapter import CrewAILLM
 from dotenv import load_dotenv
 
 
-def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", timeout_s: int = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
+def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", timeout_s: int | float = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
     if orchestrator_type == "crew_ai":
         crew_ai_llm = crewai.LLM(model=model, timeout=timeout_s, base_url=base_url, api_key=api_key, **kwargs)
         return CrewAILLM(crew_ai_llm)
@@ -16,7 +16,7 @@ def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", t
 
 
 # Modified create_llm function signature and internal calls
-def create_llm(provider: str = None, model: str = None, base_url: str = None, orchestrator_type: str = "crew_ai", **kwargs) -> AbstractLLM:
+def create_llm(provider: str = None, model: str = None, base_url: str = None, orchestrator_type: str = "crew_ai", timeout_s: int | float = 300, **kwargs) -> AbstractLLM:
     """
     Creates an LLM client based on the specified provider and model,
     with configuration loaded from environment variables.
@@ -30,6 +30,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
                                   Defaults to the `LLM_BASE_URL` environment variable.
         orchestrator_type (str, optional): The type of orchestrator to create (e.g., 'crew_ai').
                                            Defaults to 'crew_ai'.
+        timeout_s (int, optional): The timeout for LLM requests, in seconds. Defaults to 300.
         **kwargs: Additional keyword arguments to pass to the underlying LLM factory.
 
     Returns:
@@ -45,7 +46,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
     base_url = _check_mandatory_env_vars(base_url, "LLM_BASE_URL", "http://localhost:11434")
 
     if provider == "ollama":
-        return llm_factory(model=model, base_url=base_url, orchestrator_type=orchestrator_type, **kwargs)
+        return llm_factory(model=model, base_url=base_url, orchestrator_type=orchestrator_type, timeout_s=timeout_s, **kwargs)
 
     elif provider == "openrouter":
         api_key = _check_mandatory_env_vars(
@@ -56,7 +57,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
             raise ValueError("LLM_BASE_URL environment variable must be set to a valid URL.")
         referer = os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")
         headers = {"HTTP-Referer": referer}
-        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, extra_headers=headers, **kwargs)
+        return llm_factory(model, base_url=base_url, api_key=api_key, orchestrator_type=orchestrator_type, timeout_s=timeout_s, extra_headers=headers, **kwargs)
 
     else:
         raise ValueError(f"Unsupported LLM provider: {provider}")
