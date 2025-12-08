@@ -66,12 +66,12 @@ class SimpleTask(AbstractTask):
 
 
 @pytest.mark.integration
-def test_simple_agent_flow(ollama_llm_factory):
+def test_simple_agent_flow(llm_factory):
     """
     Tests a simple end-to-end agent flow using the CrewAIOrchestrator
     with a real LLM client.
     """
-    crew_llm = ollama_llm_factory("ollama", "gemma2:2b", timeout_s=360)
+    crew_llm = llm_factory("ollama", "gemma2:2b", timeout_s=360)
     llm_adapter = CrewAILLM(crew_llm)
     orchestrator = CrewAIOrchestrator()
 

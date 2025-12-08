@@ -216,27 +216,21 @@ def ollama_service(tmp_path_factory, worker_id) -> Generator[dict[str, Any], Non
 
 
 @pytest.fixture(scope="session")
-def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
-    """
-    This fixture provides a factory to create LLM clients for different models and providers.
-    It also handles pulling the model if it's not already available for the 'ollama' provider.
-    """
-    log.info("Setting up llm_factory fixture...")
-    ollama_base_url = ollama_service["base_url"]
-    lock_file = __temp_file(tmp_path_factory, "ollama_model.json.lock")
-
+def llm_factory(request, tmp_path_factory):
     @cache
-    def pull_model(model_name: str):
+    def pull_ollama_model(base_url: str, model_name: str):
+        log.info(f"Pulling ollama model: {model_name} from {base_url}...")
+        lock_file = __temp_file(tmp_path_factory, "ollama_model.json.lock")
         model_name = model_name.replace("ollama/", "")
         ollama_models = __read_service_file(tmp_path_factory, "ollama_model.json")
         models: set[str] = set(ollama_models.get("models", []))
-        log.info(f"models: {models}")
+        log.info(f"known Ollama models: {models}")
 
         with FileLock(lock_file):
             if model_name not in models:
                 """Pull the model using the REST API and cache the result."""
                 log.info(f"Pulling model: {model_name}...")
-                pull_url = f"{ollama_base_url}/api/pull"
+                pull_url = f"{base_url}/api/pull"
                 log.info(f"pull_url: {pull_url}")
                 start_time = time.time()
                 try:
@@ -267,18 +261,30 @@ def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
         provider: str,
         model_name: str,
         timeout_s: int | float = 300,
-        base_url: str | None = None,
+        **kwargs,
     ) -> LLM:
-        log.info(f"Creating LLM for model: {model_name} with provider ollama...")
-        pull_model(model_name)
-        url = base_url or ollama_base_url
+        base_url = os.getenv("LLM_BASE_URL", "http://localhost:11434")
+        log.info(f"Setting up llm_factory fixture... provider: {provider}, model_name: {model_name}, base_url: {base_url}")
+        full_model_name = f"{provider}/{model_name}"
 
-        log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
-        # We need to adapt the returned LLM to the one expected by the tests (crewai.LLM)
-        # The create_llm function returns an AbstractLLM, so we need to get the underlying crew_llm
-        abstract_llm: AbstractLLM = create_llm(provider="ollama", model=f"ollama/{model_name}", base_url=url, timeout_s=timeout_s)
+        # Set environment variables for OpenRouter
+        os.environ["LLM_PROVIDER"] = provider
+        os.environ["LLM_MODEL"] = full_model_name
 
-        log.info(f"LLM for model {model_name} created.")
+        if provider == "ollama":
+            dynamic_ollama_service = request.getfixturevalue("ollama_service")
+            base_url = dynamic_ollama_service["base_url"]
+            pull_ollama_model(base_url, model_name)
+
+        # The create_llm function handles the actual instantiation
+        abstract_llm: AbstractLLM = create_llm(
+            provider=provider,
+            model=full_model_name,
+            timeout_s=timeout_s,
+            **kwargs,
+        )
+
+        log.info(f"LLM for provider: {provider}, model_name: {model_name} created.")
         return abstract_llm.llm()
 
     return _factory

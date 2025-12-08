@@ -5,12 +5,12 @@ from agents_research.models import ResearchOutput, ResearchResult
 
 
 @pytest.mark.integration
-def test_intelligence_agent_integration(ollama_llm_factory):
+def test_intelligence_agent_integration(llm_factory):
     """
     Integration test for the IntelligenceAgent with a real LLM.
     """
     # Arrange
-    llm = ollama_llm_factory("ollama", "gemma2:2b", timeout_s=360)
+    llm = llm_factory("ollama", "gemma2:2b", timeout_s=360)
     agent = IntelligenceAgent(llm=llm, max_retries=20)
 
     # Create a sample ResearchOutput with content about CrewAI

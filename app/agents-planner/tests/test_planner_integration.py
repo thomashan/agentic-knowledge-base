@@ -4,12 +4,12 @@ from agents_planner.planner import PlannerAgent
 
 
 @pytest.mark.integration
-def test_planner_agent_with_real_llm(ollama_llm_factory):
+def test_planner_agent_with_real_llm(llm_factory):
     """
     Tests the PlannerAgent's ability to generate a plan using a real LLM.
     """
     # 1. Get a real LLM from the factory
-    llm = ollama_llm_factory("ollama", "gemma2:2b", timeout_s=360)
+    llm = llm_factory("ollama", "gemma2:2b", timeout_s=360)
 
     # 2. Instantiate the PlannerAgenta
     planner_agent = PlannerAgent(llm=llm, max_retries=10)
