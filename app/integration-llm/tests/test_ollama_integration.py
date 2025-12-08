@@ -12,9 +12,7 @@ def test_ollama_llm_connectivity(llm_factory):
     """
     Tests basic connectivity to the configured real LLM and verifies a simple response.
     """
-    log.debug("Getting LLM from factory...")
-    # Modified llm_factory call to explicitly pass model_name and provider
-    llm = llm_factory()
+    llm = llm_factory("ollama", "gemma2:2b", base_url="http://localhost:11434")
     log.debug("LLM obtained from factory.")
     # Changed to use LLM_PROVIDER env var for clarity
     log.debug(f"Testing LLM connectivity with provider: {os.getenv('LLM_PROVIDER', 'mock')}")
@@ -40,7 +38,7 @@ def test_ollama_llm_timeout(llm_factory):
     """
     # Create an LLM with a very short timeout
     # Modified llm_factory call to explicitly pass model_name and provider
-    llm = llm_factory(timeout_s=0.001)
+    llm = llm_factory("ollama", "gemma2:2b", base_url="http://localhost:11434", timeout_s=0.001)
 
     with pytest.raises(litellm.exceptions.APIConnectionError):
         llm.call("This is a test prompt.")
@@ -53,7 +51,7 @@ def test_ollama_llm_connection_refused(llm_factory):
     """
     # Create an LLM with a base_url that is not listening
     # Modified llm_factory call to explicitly pass model_name and provider
-    llm = llm_factory(base_url="http://localhost:12345")
+    llm = llm_factory("ollama", "gemma2:2b", base_url="http://localhost:12345")
 
     with pytest.raises(litellm.exceptions.APIConnectionError):
         llm.call("This is a test prompt.")

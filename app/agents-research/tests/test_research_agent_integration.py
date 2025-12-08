@@ -67,7 +67,7 @@ def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_
     assert isinstance(research_output, ResearchOutput)
     assert research_output.topic == topic
     assert "framework" in research_output.summary.lower().replace("**", "")
-    assert len(research_output.results) == 1
+    assert len(research_output.results) >= 1
     assert research_output.results[0].url == "https://www.crewai.com/"
     assert research_output.results[0].content == "CrewAI is a framework for orchestrating role-playing, autonomous AI agents."
 

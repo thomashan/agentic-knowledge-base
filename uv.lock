@@ -39,6 +39,7 @@ dev = [
     { name = "pydeps" },
     { name = "pytest" },
     { name = "pytest-xdist" },
+    { name = "python-dotenv" },
     { name = "ruff" },
 ]
 
@@ -73,6 +74,7 @@ dev = [
     { name = "pydeps", specifier = "==3.0.1" },
     { name = "pytest", specifier = "==9.0.1" },
     { name = "pytest-xdist", specifier = "==3.8.0" },
+    { name = "python-dotenv", specifier = "==1.1.1" },
     { name = "ruff", specifier = "==0.14.4" },
 ]
 

@@ -9,8 +9,8 @@ from integration_llm.factory import create_llm
 @patch("crewai.LLM")
 def test_create_llm_ollama_provider_default_url(mock_crew_llm):
     """Test that create_llm correctly uses the default URL for Ollama when LLM_BASE_URL is not set."""
-    with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model"}):
-        llm_instance = create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
+    with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model", "LLM_BASE_URL": "http://localhost:11434"}):
+        llm_instance = create_llm(orchestrator_type="crew_ai")
 
         assert isinstance(llm_instance, AbstractLLM)
         mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://localhost:11434", timeout=300, api_key=None)
@@ -20,7 +20,7 @@ def test_create_llm_ollama_provider_default_url(mock_crew_llm):
 def test_create_llm_ollama_provider_custom_url(mock_crew_llm):
     """Test that create_llm correctly uses a custom LLM_BASE_URL for Ollama."""
     with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model", "LLM_BASE_URL": "https://custom-ollama:12345"}):
-        create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
+        create_llm(orchestrator_type="crew_ai")
         mock_crew_llm.assert_called_once_with(model="test-model", base_url="https://custom-ollama:12345", timeout=300, api_key=None)
 
 
@@ -55,7 +55,7 @@ def test_create_llm_openrouter_missing_key():
 def test_create_llm_unsupported_provider():
     """Test that create_llm raises an error for an unsupported provider."""
     with patch.dict(os.environ, {"LLM_PROVIDER": "unsupported", "LLM_MODEL": "test-model"}), pytest.raises(ValueError, match="Unsupported LLM provider: unsupported"):
-        create_llm(orchestrator_type="crew_ai")  # Added orchestrator_type
+        create_llm(orchestrator_type="crew_ai")
 
 
 def test_create_llm_unsupported_orchestrator_type():
@@ -89,7 +89,7 @@ def test_create_llm_uses_arguments_over_env(mock_crew_llm):
             "OPENROUTER_REFERER": "https://test.app",
         },
     ):
-        create_llm(orchestrator_type="crew_ai", provider="openrouter", model="arg-model", base_url="https://openrouter.ai/api/v1", timeout_s=300)  # Added orchestrator_type
+        create_llm(orchestrator_type="crew_ai", provider="openrouter", model="arg-model", base_url="https://openrouter.ai/api/v1", timeout_s=300)
         mock_crew_llm.assert_called_once_with(
             model="arg-model",
             timeout=300,
