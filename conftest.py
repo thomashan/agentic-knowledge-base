@@ -264,8 +264,8 @@ def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
                     pytest.fail(f"Failed to pull model '{model_name}': {e}")
 
     def _factory(
-        model_name: str,
         provider: str,
+        model_name: str,
         timeout_s: int | float = 60,
         base_url: str | None = None,
     ) -> LLM:
