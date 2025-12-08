@@ -181,12 +181,12 @@ def test_openrouter_agent_workflow_integration(mock_search_tool, mock_scraper_to
 @pytest.mark.integration
 @pytest.mark.skipif(not os.getenv("OPENROUTER_API_KEY"), reason="OPENROUTER_API_KEY is not set")
 @patch.dict(os.environ, {"OPENROUTER_REFERER": "https://agentic-knowledge-base.com/tests"})
-def test_openrouter_connectivity(llm_factory):
+def test_openrouter_connectivity(ollama_llm_factory):
     """
     Tests basic connectivity to the OpenRouter API and verifies a simple response.
     """
     log.debug("Getting OpenRouter LLM from factory...")
-    llm = llm_factory(model_name="google/gemma-7b-it", provider="openrouter", timeout_s=360)
+    llm = ollama_llm_factory(model_name="google/gemma-7b-it", provider="openrouter", timeout_s=360)
     log.debug("OpenRouter LLM obtained from factory.")
 
     try:

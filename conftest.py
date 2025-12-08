@@ -216,7 +216,7 @@ def ollama_service(tmp_path_factory, worker_id) -> Generator[dict[str, Any], Non
 
 
 @pytest.fixture(scope="session")
-def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
+def ollama_llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
     """
     This fixture provides a factory to create LLM clients for different models and providers.
     It also handles pulling the model if it's not already available for the 'ollama' provider.
@@ -265,21 +265,18 @@ def llm_factory(tmp_path_factory, ollama_service: dict[str, Any]):
 
     def _factory(
         model_name: str,
-        provider: str = "ollama",
+        provider: str,
         timeout_s: int | float = 60,
         base_url: str | None = None,
     ) -> LLM:
-        log.info(f"Creating LLM for model: {model_name} with provider {provider}...")
-        if provider == "ollama":
-            pull_model(model_name)
-            url = base_url or ollama_base_url
-        else:
-            url = base_url
+        log.info(f"Creating LLM for model: {model_name} with provider ollama...")
+        pull_model(model_name)
+        url = base_url or ollama_base_url
 
         log.info(f"Using base_url: {url}, timeout_s: {timeout_s}s")
         # We need to adapt the returned LLM to the one expected by the tests (crewai.LLM)
         # The create_llm function returns an AbstractLLM, so we need to get the underlying crew_llm
-        abstract_llm: AbstractLLM = create_llm(provider=provider, model=model_name, base_url=url)
+        abstract_llm: AbstractLLM = create_llm(provider="ollama", model=f"ollama/{model_name}", base_url=url)
 
         # The create_llm function returns a CrewAILLM instance, which has a 'crew_llm' attribute.
         # We need to pass this underlying crewai.LLM object to the tests.
