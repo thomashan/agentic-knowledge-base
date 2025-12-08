@@ -46,13 +46,13 @@ def mock_scrape_tool():
 
 
 @pytest.mark.integration
-def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_scrape_tool):
+def test_research_agent_real_llm_mock_tools(ollama_llm_factory, mock_search_tool, mock_scrape_tool):
     """
     Tests the ResearchAgent with a real LLM but mock tools to ensure
     the LLM can make a decision without network dependencies.
     """
     # 1. Get a real LLM from the factory
-    llm = llm_factory("ollama/gemma2:2b")
+    llm = ollama_llm_factory("gemma2:2b", "ollama")
 
     # 2. Instantiate the ResearchAgent
     agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
