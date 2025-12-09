@@ -28,7 +28,7 @@ def mock_qdrant_tool_for_integration():
             "id": "doc_id_1",
             "score": 0.98,
             "payload": {
-                "document_url": "http://example.com/integration_doc1",
+                "document_url": "https://example.com/integration_doc1",
                 "text": "Integration test chunk one.",
             },
             "vector": [0.1] * 384,  # Dummy vector, length 384 for all-MiniLM-L6-v2
@@ -37,7 +37,7 @@ def mock_qdrant_tool_for_integration():
             "id": "doc_id_2",
             "score": 0.90,
             "payload": {
-                "document_url": "http://example.com/integration_doc2",
+                "document_url": "https://example.com/integration_doc2",
                 "text": "Integration test chunk two.",
             },
             "vector": [0.2] * 384,

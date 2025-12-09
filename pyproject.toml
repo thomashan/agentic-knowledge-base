@@ -63,7 +63,7 @@ crewai = [
 dev = [
     "ansible==12.2.0",
     "filelock==3.15.4",
-    "pydeps==3.0.1",
+    "pylint==4.0.4",
     "pytest==9.0.1",
     "pytest-xdist==3.8.0",
     "python-dotenv==1.1.1",
