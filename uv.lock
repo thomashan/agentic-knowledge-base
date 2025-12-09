@@ -31,8 +31,6 @@ dependencies = [
 crewai = [
     { name = "crewai" },
 ]
-
-[package.dev-dependencies]
 dev = [
     { name = "ansible" },
     { name = "filelock" },
@@ -54,7 +52,9 @@ requires-dist = [
     { name = "agents-planner", editable = "app/agents-planner" },
     { name = "agents-research", editable = "app/agents-research" },
     { name = "agents-retrieval", editable = "app/agents-retrieval" },
+    { name = "ansible", marker = "extra == 'dev'", specifier = "==12.2.0" },
     { name = "crewai", marker = "extra == 'crewai'", specifier = "==0.203.1" },
+    { name = "filelock", marker = "extra == 'dev'", specifier = "==3.15.4" },
     { name = "integration-documentation", editable = "app/integration-documentation" },
     { name = "integration-documentation-outline", editable = "app/integration-documentation-outline" },
     { name = "integration-llm", editable = "app/integration-llm" },
@@ -62,21 +62,15 @@ requires-dist = [
     { name = "integration-search", editable = "app/integration-search" },
     { name = "integration-vectordb", editable = "app/integration-vectordb" },
     { name = "integration-vectordb-qdrant", editable = "app/integration-vectordb-qdrant" },
+    { name = "pydeps", marker = "extra == 'dev'", specifier = "==3.0.1" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.0.1" },
+    { name = "pytest-xdist", marker = "extra == 'dev'", specifier = "==3.8.0" },
+    { name = "python-dotenv", marker = "extra == 'dev'", specifier = "==1.1.1" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.14.4" },
     { name = "runner", editable = "app/runner" },
     { name = "structlog", specifier = "==25.4.0" },
 ]
-provides-extras = ["crewai"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "ansible", specifier = "==12.2.0" },
-    { name = "filelock", specifier = "==3.15.4" },
-    { name = "pydeps", specifier = "==3.0.1" },
-    { name = "pytest", specifier = "==9.0.1" },
-    { name = "pytest-xdist", specifier = "==3.8.0" },
-    { name = "python-dotenv", specifier = "==1.1.1" },
-    { name = "ruff", specifier = "==0.14.4" },
-]
+provides-extras = ["crewai", "dev"]
 
 [[package]]
 name = "agents-core"

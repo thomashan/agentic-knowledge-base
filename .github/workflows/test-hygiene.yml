@@ -31,6 +31,10 @@ jobs:
           activate-environment: agentic-knowledge-base
           conda-remove-defaults: true
 
+      - name: Update dependencies
+        shell: bash -el {0}
+        run: uv sync --extra dev
+
       - name: Check uv.lock is up to date
         shell: bash -el {0}
         run: git diff --exit-code uv.lock

@@ -56,7 +56,10 @@ integration-vectordb = { path = "app/integration-vectordb", editable = true }
 integration-vectordb-qdrant = { path = "app/integration-vectordb-qdrant", editable = true }
 runner = { path = "app/runner", editable = true }
 
-[dependency-groups]
+[project.optional-dependencies]
+crewai = [
+    "crewai==0.203.1",
+]
 dev = [
     "ansible==12.2.0",
     "filelock==3.15.4",
@@ -67,11 +70,6 @@ dev = [
     "ruff==0.14.4",
 ]
 
-[project.optional-dependencies]
-crewai = [
-    "crewai==0.203.1",
-]
-
 [tool.pytest.ini_options]
 filterwarnings = [
     "ignore:The @wait_container_is_ready decorator is deprecated:DeprecationWarning",
@@ -80,25 +78,6 @@ filterwarnings = [
 ]
 markers = [
     "integration: marks tests as integration tests",
-]
-pythonpath = [
-    "app/agents-core/src",
-    "app/agents-intelligence/src",
-    "app/agents-knowledge/src",
-    "app/agents-orchestrator/src",
-    "app/agents-orchestrator-crewai/src",
-    "app/agents-orchestrator-langchain/src",
-    "app/agents-planner/src",
-    "app/agents-research/src",
-    "app/agents-retrieval/src",
-    "app/integration-documentation/src",
-    "app/integration-documentation-outline/src",
-    "app/integration-llm/src",
-    "app/integration-scraper/src",
-    "app/integration-search/src",
-    "app/integration-vectordb/src",
-    "app/integration-vectordb-qdrant/src",
-    "app/runner/src",
 ]
 testpaths = [
     "app/agents-core/tests",
