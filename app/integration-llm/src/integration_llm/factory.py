@@ -49,10 +49,7 @@ def create_llm(provider: str = None, model: str = None, base_url: str = None, or
         return llm_factory(model=model, base_url=base_url, orchestrator_type=orchestrator_type, timeout_s=timeout_s, **kwargs)
 
     elif provider == "openrouter":
-        api_key = _check_mandatory_env_vars(
-            None,
-            "OPENROUTER_API_KEY",
-        )
+        api_key = _check_mandatory_env_vars(None, "OPENROUTER_API_KEY")
         if base_url.startswith("http://localhost") or base_url.startswith("https://localhost"):
             raise ValueError("LLM_BASE_URL environment variable must be set to a valid URL.")
         referer = os.getenv("OPENROUTER_REFERER", "https://agentic-knowledge-base.com")

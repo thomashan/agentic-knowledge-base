@@ -14,6 +14,7 @@ import requests
 import structlog
 from agents_core.core import AbstractLLM
 from crewai import LLM
+from dotenv import load_dotenv
 from filelock import FileLock
 from integration_llm.factory import create_llm
 from testcontainers.compose import DockerCompose
@@ -24,6 +25,31 @@ from testcontainers.qdrant import QdrantContainer
 from vectordb.qdrant_tool import QdrantTool
 
 import docker
+
+
+@pytest.fixture(scope="session", autouse=True)
+def load_test_environment():
+    """
+    Load environment variables from .test.env (or .ci.test.env if in CI)
+    file before the test session starts.
+    This fixture runs automatically for every test session.
+    """
+    is_ci = os.getenv("CI") == "true"
+    if is_ci:
+        dotenv_filename = ".ci.test.env"
+        log.info(f"CI environment detected. Attempting to load environment variables from {dotenv_filename}...")
+    else:
+        dotenv_filename = ".test.env"
+        log.info(f"Local environment detected. Attempting to load environment variables from {dotenv_filename}...")
+
+    # Assuming conftest.py is in the project root.
+    dotenv_path = Path(__file__).parent / dotenv_filename
+
+    if dotenv_path.exists():
+        load_dotenv(dotenv_path=dotenv_path)
+        log.info(f"Successfully loaded environment variables from: {dotenv_path}")
+    else:
+        log.warning(f"{dotenv_filename} file not found at {dotenv_path}. Skipping dedicated test environment loading.")
 
 
 # Configure structlog for testing
@@ -255,28 +281,35 @@ def _pull_ollama_model(tmp_path_factory, base_url: str, model_name: str):
                 pytest.fail(f"Failed to pull model '{model_name}': {e}")
 
 
-def ollama_url(url: str, ollama_service: dict[str, Any]) -> str:
+def _ollama_url(url: str, ollama_service: dict[str, Any]) -> str:
     return ollama_service["base_url"] if url == default_ollam_url else url
+
+
+def _check_mandatory_env_vars(parameter: Any, env_var: str, env_var_default_value: str | None = None) -> Any:
+    returned_valued = parameter or os.getenv(env_var, env_var_default_value)
+    if not returned_valued:
+        raise ValueError(f"{env_var} must be set in the environment or passed as arguments.")
+    return returned_valued
 
 
 @pytest.fixture(scope="session")
 def llm_factory(request, tmp_path_factory):
     def _factory(
-        provider: str = "ollama",
-        model_name: str = "gemma2:2b",
+        provider: str | None = None,
+        model_name: str | None = None,
         timeout_s: int | float = 300,
-        base_url: str = default_ollam_url,
+        base_url: str | None = None,
         **kwargs,
     ) -> LLM:
-        provider = os.getenv("LLM_PROVIDER", provider)
-        model_name = os.getenv("LLM_MODEL", model_name)
-        base_url = os.getenv("LLM_BASE_URL", base_url)
+        provider = _check_mandatory_env_vars(provider, "LLM_PROVIDER", "ollama")
+        model_name = _check_mandatory_env_vars(model_name, "LLM_MODEL", "gemma2:2b")
+        base_url = _check_mandatory_env_vars(base_url, "LLM_BASE_URL", default_ollam_url)
         log.info(f"Setting up llm_factory fixture... provider: {provider}, model_name: {model_name}, base_url: {base_url}")
         full_model_name = f"{provider}/{model_name}"
 
         if provider == "ollama":
             dynamic_ollama_service = request.getfixturevalue("ollama_service")
-            ollama_base_url = ollama_url(base_url, dynamic_ollama_service)
+            ollama_base_url = _ollama_url(base_url, dynamic_ollama_service)
             if base_url != default_ollam_url and ollama_base_url != base_url:
                 raise Exception(f"LLM_BASE_URL: {base_url} does not match ollama_service base_url: {ollama_base_url}.")
             _pull_ollama_model(tmp_path_factory, ollama_base_url, model_name)

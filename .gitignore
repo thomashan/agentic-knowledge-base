@@ -5,6 +5,7 @@ out
 
 # .env
 .env
+.test.env
 
 # gemini cli
 .gemini
