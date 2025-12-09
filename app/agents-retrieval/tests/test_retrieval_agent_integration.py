@@ -86,21 +86,21 @@ def test_retrieval_agent_integration(real_embedding_model, mock_qdrant_tool_for_
 
     # Check first chunk details
     first_chunk = result.retrieved_chunks[0]
-    assert first_chunk.document_url == "http://example.com/integration_doc1"
+    assert first_chunk.document_url == "https://example.com/integration_doc1"
     assert first_chunk.text == "Integration test chunk one."
     assert first_chunk.score == 0.98
     assert first_chunk.metadata == {
-        "document_url": "http://example.com/integration_doc1",
+        "document_url": "https://example.com/integration_doc1",
         "text": "Integration test chunk one.",
     }
 
     # Check second chunk details
     second_chunk = result.retrieved_chunks[1]
-    assert second_chunk.document_url == "http://example.com/integration_doc2"
+    assert second_chunk.document_url == "https://example.com/integration_doc2"
     assert second_chunk.text == "Integration test chunk two."
     assert second_chunk.score == 0.90
     assert second_chunk.metadata == {
-        "document_url": "http://example.com/integration_doc2",
+        "document_url": "https://example.com/integration_doc2",
         "text": "Integration test chunk two.",
     }
 
