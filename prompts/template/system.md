@@ -86,7 +86,7 @@ escaped using double curly braces (`{{` and `}}`).
 For local LLM integration, use `llm_factory` in `conftest.py`
 
 ```python
-llm = llm_factory("gemma2:2b")
+llm = llm_factory("ollama", "gemma2:2b")
 ```
 
 ## Git Operations

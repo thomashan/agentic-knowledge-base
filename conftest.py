@@ -5,7 +5,6 @@ import subprocess
 import time
 import uuid
 from collections.abc import Callable, Generator
-from functools import cache
 from os import PathLike
 from pathlib import Path
 from typing import Any
@@ -60,6 +59,7 @@ def configure_structlog(request):
 
 # Get a logger
 log = structlog.get_logger()
+default_ollam_url = "http://localhost:11434"
 
 if "DOCKER_HOST" not in os.environ:
     # For macOS, the Docker socket is typically located in the user's Library.
@@ -131,7 +131,7 @@ def __is_ollama_ready(url):
 def __use_native_ollama():
     log.info("Local ollama command found.")
 
-    ollama_base_url = "http://localhost:11434"
+    ollama_base_url = default_ollam_url
     # 2. Check if local ollama serve is already running
     if __is_ollama_ready(ollama_base_url):
         log.info("Local Ollama server is already running. Using existing instance.")
@@ -215,71 +215,78 @@ def ollama_service(tmp_path_factory, worker_id) -> Generator[dict[str, Any], Non
     )
 
 
+def _pull_ollama_model(tmp_path_factory, base_url: str, model_name: str):
+    log.info(f"Pulling ollama model: {model_name} from {base_url}...")
+    lock_file = __temp_file(tmp_path_factory, "ollama_model.json.lock")
+    model_name = model_name.replace("ollama/", "")
+    ollama_models = __read_service_file(tmp_path_factory, "ollama_model.json")
+    models: set[str] = set(ollama_models.get("models", []))
+    log.info(f"known Ollama models: {models}")
+
+    with FileLock(lock_file):
+        if model_name not in models:
+            """Pull the model using the REST API and cache the result."""
+            log.info(f"Pulling model: {model_name}...")
+            pull_url = f"{base_url}/api/pull"
+            log.info(f"pull_url: {pull_url}")
+            start_time = time.time()
+            try:
+                response = requests.post(pull_url, json={"name": model_name}, stream=True)
+                response.raise_for_status()
+
+                # Wait for the pull to complete
+                for line in response.iter_lines():
+                    if line:
+                        data = json.loads(line)
+                        if "error" in data:
+                            raise Exception(f"Error pulling model: {data['error']}")
+                        if data.get("status") == "success":
+                            end_time = time.time()
+                            duration = end_time - start_time
+                            log.info(f"Model {model_name} pulled successfully in {duration:.2f} seconds.")
+                            models.add(model_name)
+                            ollama_models["models"] = list(models)
+                            __write_service_file(tmp_path_factory, "ollama_model.json", ollama_models)
+                            return
+                else:
+                    raise Exception(f"Model {model_name} not pulled successfully")
+            except Exception as e:
+                log.info(f"Failed to pull model '{model_name}' calling {pull_url}: {e}")
+                pytest.fail(f"Failed to pull model '{model_name}': {e}")
+
+
+def ollama_url(url: str, ollama_service: dict[str, Any]) -> str:
+    return ollama_service["base_url"] if url == default_ollam_url else url
+
+
 @pytest.fixture(scope="session")
 def llm_factory(request, tmp_path_factory):
-    @cache
-    def pull_ollama_model(base_url: str, model_name: str):
-        log.info(f"Pulling ollama model: {model_name} from {base_url}...")
-        lock_file = __temp_file(tmp_path_factory, "ollama_model.json.lock")
-        model_name = model_name.replace("ollama/", "")
-        ollama_models = __read_service_file(tmp_path_factory, "ollama_model.json")
-        models: set[str] = set(ollama_models.get("models", []))
-        log.info(f"known Ollama models: {models}")
-
-        with FileLock(lock_file):
-            if model_name not in models:
-                """Pull the model using the REST API and cache the result."""
-                log.info(f"Pulling model: {model_name}...")
-                pull_url = f"{base_url}/api/pull"
-                log.info(f"pull_url: {pull_url}")
-                start_time = time.time()
-                try:
-                    response = requests.post(pull_url, json={"name": model_name}, stream=True)
-                    response.raise_for_status()
-
-                    # Wait for the pull to complete
-                    for line in response.iter_lines():
-                        if line:
-                            data = json.loads(line)
-                            if "error" in data:
-                                raise Exception(f"Error pulling model: {data['error']}")
-                            if data.get("status") == "success":
-                                end_time = time.time()
-                                duration = end_time - start_time
-                                log.info(f"Model {model_name} pulled successfully in {duration:.2f} seconds.")
-                                models.add(model_name)
-                                ollama_models["models"] = list(models)
-                                __write_service_file(tmp_path_factory, "ollama_model.json", ollama_models)
-                                return
-                    else:
-                        raise Exception(f"Model {model_name} not pulled successfully")
-                except Exception as e:
-                    log.info(f"Failed to pull model '{model_name}' calling {pull_url}: {e}")
-                    pytest.fail(f"Failed to pull model '{model_name}': {e}")
-
     def _factory(
-        provider: str,
-        model_name: str,
+        provider: str = "ollama",
+        model_name: str = "gemma2:2b",
         timeout_s: int | float = 300,
+        base_url: str = default_ollam_url,
         **kwargs,
     ) -> LLM:
-        base_url = os.getenv("LLM_BASE_URL", "http://localhost:11434")
+        provider = os.getenv("LLM_PROVIDER", provider)
+        model_name = os.getenv("LLM_MODEL", model_name)
+        base_url = os.getenv("LLM_BASE_URL", base_url)
         log.info(f"Setting up llm_factory fixture... provider: {provider}, model_name: {model_name}, base_url: {base_url}")
         full_model_name = f"{provider}/{model_name}"
 
-        # Set environment variables for OpenRouter
-        os.environ["LLM_PROVIDER"] = provider
-        os.environ["LLM_MODEL"] = full_model_name
-
         if provider == "ollama":
             dynamic_ollama_service = request.getfixturevalue("ollama_service")
-            base_url = dynamic_ollama_service["base_url"]
-            pull_ollama_model(base_url, model_name)
+            ollama_base_url = ollama_url(base_url, dynamic_ollama_service)
+            if base_url != default_ollam_url and ollama_base_url != base_url:
+                raise Exception(f"LLM_BASE_URL: {base_url} does not match ollama_service base_url: {ollama_base_url}.")
+            _pull_ollama_model(tmp_path_factory, ollama_base_url, model_name)
+            base_url = ollama_base_url
 
         # The create_llm function handles the actual instantiation
         abstract_llm: AbstractLLM = create_llm(
             provider=provider,
             model=full_model_name,
+            base_url=base_url,
             timeout_s=timeout_s,
             **kwargs,
         )

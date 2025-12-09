@@ -52,7 +52,7 @@ def test_research_agent_real_llm_mock_tools(llm_factory, mock_search_tool, mock_
     the LLM can make a decision without network dependencies.
     """
     # 1. Get a real LLM from the factory
-    llm = llm_factory("ollama", "gemma2:2b")
+    llm = llm_factory()
 
     # 2. Instantiate the ResearchAgent
     agent = ResearchAgent(llm=llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
