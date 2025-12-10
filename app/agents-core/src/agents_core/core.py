@@ -4,8 +4,9 @@ from collections.abc import Callable
 from typing import Any, TypeVar
 
 import structlog
-from agents_core.json_utils import to_json_object
 from pydantic import BaseModel, Field
+
+from agents_core.json_utils import to_json_object
 
 L = TypeVar("L")
 

@@ -4,7 +4,7 @@ import pytest
 from agents_retrieval.models import RetrievalResult, RetrievedChunk
 from agents_retrieval.retrieval import RetrievalAgent
 from sentence_transformers import SentenceTransformer
-from vectordb.qdrant_tool import QdrantTool
+from vectordb_qdrant.qdrant_tool import QdrantTool
 
 
 @pytest.fixture(scope="module")
