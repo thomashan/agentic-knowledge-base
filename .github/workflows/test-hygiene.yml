@@ -49,4 +49,4 @@ jobs:
 
       - name: Check circular dependencies
         shell: bash -el {0}
-        run: ./scripts/check_circular_dependencies.sh
+        run: uv run pylint --enable=R0401 --disable=all --score=no --reports=no app
