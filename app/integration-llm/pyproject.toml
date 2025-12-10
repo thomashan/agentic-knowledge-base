@@ -5,6 +5,7 @@ version = "0.1.0"
 dependencies = [
     "agents-core",
     "agentic-knowledge-base[crewai]",
+    "litellm==1.80.9",
     "requests==2.32.5",
     "testcontainers==4.13.3",
 ]
