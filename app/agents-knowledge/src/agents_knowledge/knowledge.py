@@ -4,10 +4,11 @@ from typing import Any
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractTool
 from agents_intelligence.models import IntelligenceReport
-from agents_knowledge.models import KnowledgePersistenceResult
 from documentation.documentation_tool import DocumentationTool
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+
+from agents_knowledge.models import KnowledgePersistenceResult
 
 
 class KnowledgeAgent(AbstractAgent):

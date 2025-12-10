@@ -3,6 +3,7 @@ from typing import Any
 
 import structlog
 from agents_core.core import AbstractAgent, AbstractLLM
+
 from agents_research.models import SearchResult, UrlRelevanceScore
 
 log = structlog.get_logger()
