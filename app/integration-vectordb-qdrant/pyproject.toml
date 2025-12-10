@@ -4,5 +4,5 @@ version = "0.1.0"
 
 dependencies = [
     "integration-vectordb",
-    "qdrant-client==1.16.0",
+    "qdrant-client==1.16.1",
 ]
