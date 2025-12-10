@@ -1,6 +1,7 @@
-from agents_retrieval.models import RetrievalResult, RetrievedChunk
 from sentence_transformers import SentenceTransformer
-from vectordb.qdrant_tool import QdrantTool
+from vectordb_qdrant.qdrant_tool import QdrantTool
+
+from agents_retrieval.models import RetrievalResult, RetrievedChunk
 
 
 class RetrievalAgent:

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from documentation.documentation_tool import DocumentationTool
-from documentation.outline_tool import OutlineTool
+from documentation_outline.outline_tool import OutlineTool
 
 
 @pytest.fixture

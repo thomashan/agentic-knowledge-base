@@ -2,8 +2,8 @@
 Public API for the agents_planner package.
 """
 
-from .agents_planner.models import Plan, Task
-from .agents_planner.planner import PlannerAgent
+from .models import Plan, Task
+from .planner import PlannerAgent
 
 __all__ = [
     "PlannerAgent",

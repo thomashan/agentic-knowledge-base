@@ -22,7 +22,7 @@ from testcontainers.core.container import DockerContainer
 from testcontainers.core.container import DockerContainer as GenericContainer
 from testcontainers.core.wait_strategies import LogMessageWaitStrategy
 from testcontainers.qdrant import QdrantContainer
-from vectordb.qdrant_tool import QdrantTool
+from vectordb_qdrant.qdrant_tool import QdrantTool
 
 import docker
 

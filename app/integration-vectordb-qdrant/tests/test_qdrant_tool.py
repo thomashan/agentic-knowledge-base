@@ -2,7 +2,7 @@ import uuid
 from unittest.mock import MagicMock, patch
 
 import pytest
-from vectordb.qdrant_tool import QdrantTool
+from vectordb_qdrant.qdrant_tool import QdrantTool
 
 
 @pytest.fixture

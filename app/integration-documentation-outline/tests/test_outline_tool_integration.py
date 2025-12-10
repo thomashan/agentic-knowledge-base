@@ -1,7 +1,7 @@
 import time
 
 import pytest
-from documentation.outline_tool import OutlineTool
+from documentation_outline.outline_tool import OutlineTool
 
 
 @pytest.fixture

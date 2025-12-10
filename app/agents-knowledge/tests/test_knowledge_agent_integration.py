@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from agents_intelligence.models import IntelligenceReport, KeyFinding
 from agents_knowledge.knowledge import KnowledgeAgent
-from documentation.outline_tool import OutlineTool
+from documentation_outline.outline_tool import OutlineTool
 from sentence_transformers import SentenceTransformer
-from vectordb.qdrant_tool import QdrantTool
+from vectordb_qdrant.qdrant_tool import QdrantTool
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def embedding_model():
 
 
 @patch("requests.post")
-@patch("vectordb.qdrant_tool.QdrantClient")
+@patch("vectordb_qdrant.qdrant_tool.QdrantClient")
 @pytest.mark.integration
 def test_knowledge_agent_integration(mock_qdrant_client, mock_requests_post, embedding_model):
     """
