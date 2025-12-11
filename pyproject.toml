@@ -58,7 +58,7 @@ runner = { path = "app/runner", editable = true }
 
 [project.optional-dependencies]
 crewai = [
-    "crewai==0.203.1",
+    "crewai==1.6.0",
 ]
 dev = [
     "ansible==13.1.0",

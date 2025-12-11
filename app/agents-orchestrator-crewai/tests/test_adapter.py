@@ -1,15 +1,19 @@
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from agents_core.core import AbstractAgent, AbstractTask, AbstractTool, ExecutionResult
+from crewai.llm import LLM
 from crewai_adapter.adapter import CrewAIOrchestrator
 
 
 class MockAgent(AbstractAgent):
+    def __init__(self, llm: LLM | None = None):
+        self._llm = llm
+
     @property
-    def llm(self) -> None:
-        return None
+    def llm(self) -> LLM | None:
+        return self._llm
 
     @property
     def role(self) -> str:
@@ -78,7 +82,8 @@ def test_crewai_orchestrator_initialization():
 def test_crewai_orchestrator_add_agent():
     """Tests the add_agent method of the CrewAIOrchestrator."""
     orchestrator = CrewAIOrchestrator()
-    mock_agent = MockAgent()
+    mock_llm = MagicMock(spec=LLM)  # Create mock LLM
+    mock_agent = MockAgent(llm=mock_llm)  # Pass the mock LLM
     orchestrator.add_agent(mock_agent)
 
     assert len(orchestrator.crewai_agents) == 1
@@ -92,7 +97,8 @@ def test_crewai_orchestrator_add_agent():
 def test_crewai_orchestrator_add_task():
     """Tests the add_task method of the CrewAIOrchestrator."""
     orchestrator = CrewAIOrchestrator()
-    mock_agent = MockAgent()
+    mock_llm = MagicMock(spec=LLM)  # Create mock LLM
+    mock_agent = MockAgent(llm=mock_llm)  # Pass the mock LLM
     orchestrator.add_agent(mock_agent)
 
     mock_task = MockTask(mock_agent)
@@ -110,7 +116,8 @@ def test_crewai_orchestrator_execute_initializes_crew_correctly(mock_crew):
     """Tests that the execute method initializes and runs a CrewAI Crew correctly."""
     # 1. Arrange
     orchestrator = CrewAIOrchestrator(config={"some_config": "value"})
-    mock_agent = MockAgent()
+    mock_llm = MagicMock(spec=LLM)  # Create mock LLM
+    mock_agent = MockAgent(llm=mock_llm)  # Pass the mock LLM
     orchestrator.add_agent(mock_agent)
     mock_task = MockTask(mock_agent)
     orchestrator.add_task(mock_task)
