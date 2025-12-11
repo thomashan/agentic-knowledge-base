@@ -2477,10 +2477,28 @@ version = "0.1.0"
 source = { editable = "app/runner" }
 dependencies = [
     { name = "agents-core" },
+    { name = "agents-orchestrator-crewai" },
+    { name = "agents-planner" },
+    { name = "integration-documentation" },
+    { name = "integration-llm" },
+    { name = "integration-scraper" },
+    { name = "integration-search" },
+    { name = "integration-vectordb" },
+    { name = "typer" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "agents-core" }]
+requires-dist = [
+    { name = "agents-core" },
+    { name = "agents-orchestrator-crewai" },
+    { name = "agents-planner" },
+    { name = "integration-documentation" },
+    { name = "integration-llm" },
+    { name = "integration-scraper" },
+    { name = "integration-search" },
+    { name = "integration-vectordb" },
+    { name = "typer", specifier = "==0.20.0" },
+]
 
 [[package]]
 name = "safetensors"
