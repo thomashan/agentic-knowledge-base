@@ -1,12 +1,12 @@
 import uuid
-from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, AbstractTool
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool
 from agents_intelligence.models import IntelligenceReport
 from documentation.documentation_tool import DocumentationTool
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+from vectordb import VectorDBTool
 
 from agents_knowledge.models import KnowledgePersistenceResult
 
@@ -19,8 +19,9 @@ class KnowledgeAgent(AbstractAgent):
 
     def __init__(
         self,
+        llm: AbstractLLM,
         documentation_tool: DocumentationTool,
-        vectordb_tool: AbstractTool,
+        vectordb_tool: VectorDBTool,
         embedding_model: SentenceTransformer,
         agent_file: str = "agent-prompts/agents-knowledge.md",
         max_retries: int = 3,
@@ -30,6 +31,7 @@ class KnowledgeAgent(AbstractAgent):
         self._embedding_model = embedding_model
         self._text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         self._max_retries = max_retries
+        self._llm = llm
 
         reader = AgentDefinitionReader(AgentSchema)
         self.agent_definition = reader.read_agent(agent_file)
@@ -53,8 +55,8 @@ class KnowledgeAgent(AbstractAgent):
         return self.agent_definition.prompt_template
 
     @property
-    def llm(self) -> Any:
-        return None  # Not used
+    def llm(self) -> AbstractLLM:  # Changed return type
+        return self._llm
 
     @property
     def llm_config(self) -> dict:

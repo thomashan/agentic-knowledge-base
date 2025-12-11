@@ -11,7 +11,7 @@ from agents_knowledge.models import KnowledgePersistenceResult
 def mock_outline_tool():
     """Fixture for a mocked OutlineTool."""
     mock_outline_tool = MagicMock()
-    mock_outline_tool.base_url = "http://example.com"
+    mock_outline_tool.base_url = "https://example.com"
     return mock_outline_tool
 
 
@@ -31,9 +31,10 @@ def mock_embedding_model():
 
 
 @pytest.fixture
-def agent(mock_outline_tool, mock_qdrant_tool, mock_embedding_model):
+def agent(llm_factory, mock_outline_tool, mock_qdrant_tool, mock_embedding_model):
     """Fixture to create a KnowledgeAgent with mocked dependencies."""
-    return KnowledgeAgent(documentation_tool=mock_outline_tool, vectordb_tool=mock_qdrant_tool, embedding_model=mock_embedding_model)
+    llm = llm_factory()
+    return KnowledgeAgent(llm=llm, documentation_tool=mock_outline_tool, vectordb_tool=mock_qdrant_tool, embedding_model=mock_embedding_model)
 
 
 def test_knowledge_agent_instantiation(agent, mock_outline_tool, mock_qdrant_tool, mock_embedding_model):
@@ -79,7 +80,7 @@ def test_persist_report(agent, mock_outline_tool, mock_qdrant_tool):
 
     # Assert the final result
     assert isinstance(result, KnowledgePersistenceResult)
-    assert result.document_url == "http://example.com/doc/123"
+    assert result.document_url == "https://example.com/doc/123"
     assert result.vector_ids == ["vec-1"]
 
 

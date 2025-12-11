@@ -342,6 +342,7 @@ def __start_docker_compose(
     service_file = __temp_file(tmp_path_factory, f"{service_file_name}.json")
     lock_file = __temp_file(tmp_path_factory, f"{service_file_name}.lock")
     worker_count_file = __temp_file(tmp_path_factory, f"{service_file_name}.count")
+    log.info(f"{service_file_name} service file in {service_file}", worker_id=worker_id)
 
     with FileLock(str(lock_file)):
         worker_count_file.write_text(f"{__container_worker_count(worker_count_file) + 1}")
@@ -517,6 +518,7 @@ def __start_docker_container(
     lock_file = __temp_file(tmp_path_factory, f"{service_file_name}.lock")
     worker_count = __temp_file(tmp_path_factory, f"{service_file_name}.count")
     container_id = __temp_file(tmp_path_factory, f"{service_file_name}.id")
+    log.info(f"{service_file_name} service file in {service_file}", worker_id=worker_id)
 
     with FileLock(lock_file):
         worker_count.write_text(f"{__container_worker_count(worker_count) + 1}")
