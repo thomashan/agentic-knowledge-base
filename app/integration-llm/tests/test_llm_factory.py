@@ -6,6 +6,12 @@ from agents_core.core import AbstractLLM
 from integration_llm.factory import create_llm
 
 
+def test_create_llm():
+    with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model", "LLM_BASE_URL": "http://localhost:11434"}):
+        llm = create_llm()
+        assert isinstance(llm, AbstractLLM)
+
+
 @patch("crewai.LLM")
 def test_create_llm_ollama_provider_default_url(mock_crew_llm):
     """Test that create_llm correctly uses the default URL for Ollama when LLM_BASE_URL is not set."""
@@ -13,7 +19,7 @@ def test_create_llm_ollama_provider_default_url(mock_crew_llm):
         llm_instance = create_llm(orchestrator_type="crewai")
 
         assert isinstance(llm_instance, AbstractLLM)
-        mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://localhost:11434", timeout=300, api_key=None)
+        mock_crew_llm.assert_called_once_with(model="test-model", base_url="http://localhost:11434", timeout=300, api_key=None, provider="ollama")
 
 
 @patch("crewai.LLM")
@@ -21,7 +27,7 @@ def test_create_llm_ollama_provider_custom_url(mock_crew_llm):
     """Test that create_llm correctly uses a custom LLM_BASE_URL for Ollama."""
     with patch.dict(os.environ, {"LLM_PROVIDER": "ollama", "LLM_MODEL": "test-model", "LLM_BASE_URL": "https://custom-ollama:12345"}):
         create_llm(orchestrator_type="crewai")
-        mock_crew_llm.assert_called_once_with(model="test-model", base_url="https://custom-ollama:12345", timeout=300, api_key=None)
+        mock_crew_llm.assert_called_once_with(model="test-model", base_url="https://custom-ollama:12345", timeout=300, api_key=None, provider="ollama")
 
 
 @patch("crewai.LLM")
@@ -39,6 +45,7 @@ def test_create_llm_openrouter_provider(mock_crew_llm):
             timeout=300,
             base_url="https://openrouter.ai/api/v1",
             api_key="test-key",
+            provider="openrouter",
             extra_headers={"HTTP-Referer": "https://test.app"},
         )
 
@@ -95,6 +102,7 @@ def test_create_llm_uses_arguments_over_env(mock_crew_llm):
             timeout=300,
             base_url="https://openrouter.ai/api/v1",
             api_key="test-key",
+            provider="openrouter",
             extra_headers={"HTTP-Referer": "https://test.app"},
         )
 
