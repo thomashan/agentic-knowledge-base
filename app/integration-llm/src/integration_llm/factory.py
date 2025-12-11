@@ -7,8 +7,8 @@ from crewai_adapter.adapter import CrewAILLM
 from dotenv import load_dotenv
 
 
-def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", timeout_s: int | float = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
-    if orchestrator_type == "crew_ai":
+def llm_factory(model: str, base_url: str, orchestrator_type: str = "crewai", timeout_s: int | float = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
+    if orchestrator_type == "crewai":
         crew_ai_llm = crewai.LLM(model=model, timeout=timeout_s, base_url=base_url, api_key=api_key, **kwargs)
         return CrewAILLM(crew_ai_llm)
     else:
@@ -16,7 +16,7 @@ def llm_factory(model: str, base_url: str, orchestrator_type: str = "crew_ai", t
 
 
 # Modified create_llm function signature and internal calls
-def create_llm(provider: str = None, model: str = None, base_url: str = None, orchestrator_type: str = "crew_ai", timeout_s: int | float = 300, **kwargs) -> AbstractLLM:
+def create_llm(provider: str = None, model: str = None, base_url: str = None, orchestrator_type: str = "crewai", timeout_s: int | float = 300, **kwargs) -> AbstractLLM:
     """
     Creates an LLM client based on the specified provider and model,
     with configuration loaded from environment variables.
