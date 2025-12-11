@@ -17,7 +17,7 @@ def embedding_model():
 @patch("requests.post")
 @patch("vectordb_qdrant.qdrant_tool.QdrantClient")
 @pytest.mark.integration
-def test_knowledge_agent_integration(mock_qdrant_client, mock_requests_post, embedding_model):
+def test_knowledge_agent_integration(mock_qdrant_client, mock_requests_post, embedding_model, llm_factory):
     """
     Tests the full data flow of the KnowledgeAgent with real tools and a real embedding model,
     but with network calls mocked.
@@ -39,10 +39,11 @@ def test_knowledge_agent_integration(mock_qdrant_client, mock_requests_post, emb
     mock_qdrant_instance = mock_qdrant_client.return_value
     mock_qdrant_instance.upsert.return_value = None
 
+    llm = llm_factory()
     outline_tool = OutlineTool(api_key="fake_key", base_url="http://outline.test", collection_id="test_collection_id")
     qdrant_tool = QdrantTool(host="localhost", grpc_port=6334, http_port=6333)
 
-    agent = KnowledgeAgent(documentation_tool=outline_tool, vectordb_tool=qdrant_tool, embedding_model=embedding_model)
+    agent = KnowledgeAgent(llm=llm, documentation_tool=outline_tool, vectordb_tool=qdrant_tool, embedding_model=embedding_model)
 
     report = IntelligenceReport(topic="Real Test Topic", executive_summary="An executive summary.", key_findings=[KeyFinding(finding_id=1, title="TF1", summary="TS1", citations=[])])
 
