@@ -43,8 +43,8 @@ class PlannerAgent(AbstractAgent):
         return self._prompt_template
 
     @property
-    def tools(self) -> list[AbstractTool] | None:
-        return None
+    def tools(self) -> list[AbstractTool]:
+        return []
 
     @property
     def llm_config(self) -> dict[str, Any] | None:

@@ -145,7 +145,17 @@ class AbstractAgent(ABC):
 
     def llm_json(self, prompt) -> Any:
         def llm_response_to_json(response_text: str) -> Any:
-            return to_json_object(response_text)
+            import re
+
+            # Use regex to find the json block, robust to ```json ... ``` or just ``` ... ```
+            match = re.search(r"```(json)?\n(.*?)\n```", response_text, re.DOTALL)
+            if match:
+                # If a JSON block is found, extract and parse it
+                json_str = match.group(2)
+                return to_json_object(json_str)
+            else:
+                # Otherwise, try to parse the whole response as a fallback
+                return to_json_object(response_text)
 
         def llm_error_handler(e: Exception) -> LLMError:
             return LLMError(f"Failed to parse LLM response as JSON after {self.max_retries} attempts. Original error: {e}")

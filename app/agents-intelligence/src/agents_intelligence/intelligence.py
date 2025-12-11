@@ -60,8 +60,8 @@ class IntelligenceAgent(AbstractAgent):
         return self.agent_definition.prompt_template
 
     @property
-    def tools(self) -> list[Any] | None:
-        return None
+    def tools(self) -> list[Any]:
+        return []
 
     @property
     def llm_config(self) -> dict[str, Any] | None:

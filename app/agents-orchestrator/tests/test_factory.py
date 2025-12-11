@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from agents_core.core import AbstractOrchestrator
+from agents_orchestrator.factory.factory import OrchestratorFactory
 from crewai_adapter.adapter import CrewAIOrchestrator
-from factory.factory import OrchestratorFactory
 
 
 class MockOrchestrator(AbstractOrchestrator):
@@ -32,7 +32,7 @@ def test_orchestrator_factory_create_known_orchestrator(monkeypatch):
     mock_crewai_orchestrator_instance = MagicMock()
     mock_crewai_orchestrator_class.return_value = mock_crewai_orchestrator_instance
 
-    monkeypatch.setattr("factory.factory.CrewAIOrchestrator", mock_crewai_orchestrator_class)
+    monkeypatch.setattr("agents_orchestrator.factory.factory.CrewAIOrchestrator", mock_crewai_orchestrator_class)
 
     factory = OrchestratorFactory()
     config = {"api_key": "test_key"}

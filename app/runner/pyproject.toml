@@ -4,4 +4,6 @@ version = "0.1.0"
 
 dependencies = [
     "agents-core",
+    "agents-orchestrator",
+    "pydantic-settings",
 ]
