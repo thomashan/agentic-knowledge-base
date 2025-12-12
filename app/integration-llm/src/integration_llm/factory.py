@@ -15,7 +15,6 @@ def _llm_factory(provider: str, model: str, base_url: str, orchestrator_type: st
         raise ValueError(f"Unsupported orchestrator type: {orchestrator_type}")
 
 
-# Modified create_llm function signature and internal calls
 def create_llm(provider: str = None, model: str = None, base_url: str = None, orchestrator_type: str = "crewai", timeout_s: int | float = 300, **kwargs) -> AbstractLLM:
     """
     Creates an LLM client based on the specified provider and model,
