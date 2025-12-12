@@ -1,6 +1,9 @@
 import uuid
+from typing import Any
 
 import pytest
+from agents_core.core import AbstractAgent, AbstractLLM, AbstractTask, AbstractTool
+from crewai_adapter.adapter import CrewAIOrchestrator, CrewAILLM
 from qdrant_client.http import models
 
 
@@ -116,6 +119,133 @@ def test_search_vectors_integration(qdrant_tool):
     assert search_results[0]["score"] > search_results[1]["score"]
     assert search_results[1]["score"] > search_results[2]["score"]
 
+    # Clean up
+    qdrant_tool._client.delete_collection(collection_name=collection_name)
+
+
+class TestAgent(AbstractAgent):
+    def __init__(self, role: str, goal: str, backstory: str, llm: AbstractLLM, tools: list[AbstractTool]):
+        self._role = role
+        self._goal = goal
+        self._backstory = backstory
+        self._llm = llm
+        self._tools = tools
+
+    @property
+    def role(self) -> str:
+        return self._role
+
+    @property
+    def goal(self) -> str:
+        return self._goal
+
+    @property
+    def backstory(self) -> str:
+        return self._backstory
+
+    @property
+    def prompt_template(self) -> str | None:
+        return None
+
+    @property
+    def tools(self) -> list[AbstractTool] | None:
+        return self._tools
+
+    @property
+    def llm_config(self) -> dict[str, Any] | None:
+        return None
+    
+    @property
+    def llm(self) -> AbstractLLM | None:
+        return self._llm
+
+    @property
+    def max_retries(self) -> int:
+        return 3
+
+class TestTask(AbstractTask):
+    def __init__(self, description: str, expected_output: str, agent: AbstractAgent):
+        self._description = description
+        self._expected_output = expected_output
+        self._agent = agent
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def expected_output(self) -> str:
+        return self._expected_output
+
+    @property
+    def agent(self) -> AbstractAgent:
+        return self._agent
+    
+    @property
+    def dependencies(self) -> list["AbstractTask"]:
+        return []
+
+
+@pytest.mark.integration
+def test_agent_triggers_qdrant_tool(qdrant_tool, llm_factory):
+    """
+    Tests that a crewAI agent can be prompted to use the QdrantTool
+    to perform an upsert operation.
+    """
+    # Arrange
+    llm = CrewAILLM(llm_factory("ollama", "gemma2:2b"))
+    
+    agent = TestAgent(
+        role="Vector Database Administrator",
+        goal="Manage vector data in a Qdrant database.",
+        backstory="An expert in vector databases.",
+        llm=llm,
+        tools=[qdrant_tool],
+    )
+    
+    collection_name = f"test-agent-collection-{uuid.uuid4()}"
+    vector_size = 4
+    # The qdrant_tool doesn't create collections, so create it manually first.
+    qdrant_tool._client.recreate_collection(
+        collection_name=collection_name,
+        vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.DOT),
+    )
+    
+    point_id = str(uuid.uuid4())
+    task_prompt = f"""
+    Your goal is to manage vector data in a Qdrant database using the "Qdrant VectorDB Tool".
+    Execute the tool with the following parameters:
+    - command: "upsert_vectors"
+    - collection_name: '{collection_name}'
+    - vectors: [[0.1, 0.2, 0.3, 0.4]]
+    - payloads: [{{"source": "agent-test"}}]
+    - ids: ["{point_id}"]
+    """
+    
+    task = TestTask(
+        description=task_prompt,
+        expected_output="Confirmation of the upsert operation.",
+        agent=agent,
+    )
+    
+    orchestrator = CrewAIOrchestrator(config={"verbose": True})
+    orchestrator.add_agent(agent)
+    orchestrator.add_task(task)
+    
+    # Act
+    orchestrator.execute()
+    
+    # Assert
+    # Verify that the vector was inserted by the agent
+    retrieved_points = qdrant_tool._client.retrieve(
+        collection_name=collection_name,
+        ids=[point_id],
+        with_payload=True,
+    )
+    assert len(retrieved_points) == 1
+    assert retrieved_points[0].id == point_id
+    assert retrieved_points[0].payload == {"source": "agent-test"}
+    
     # Clean up
     qdrant_tool._client.delete_collection(collection_name=collection_name)
 
