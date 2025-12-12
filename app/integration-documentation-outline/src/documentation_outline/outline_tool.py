@@ -22,6 +22,25 @@ class OutlineTool(DocumentationTool):
     def base_url(self) -> str:
         return self._base_url
 
+    @property
+    def description(self) -> str:
+        """
+        A tool for creating, updating, and managing documents in Outline.
+        It accepts a 'command' argument which can be:
+        - 'create_or_update_document': Creates a new document or updates an existing one. Requires 'title' (str), 'content' (str).
+        - 'publish_document': Publishes a new document. Requires 'title' (str), 'content' (str).
+        - 'get_document': Retrieves a document. Requires 'document_id' (str).
+        - 'delete_document': Deletes a document. Requires 'document_id' (str), optional 'permanent' (bool).
+        """
+        return """
+        A tool for creating, updating, and managing documents in Outline.
+        It accepts a 'command' argument which can be:
+        - 'create_or_update_document': Creates a new document or updates an existing one. Requires 'title' (str), 'content' (str).
+        - 'publish_document': Publishes a new document. Requires 'title' (str), 'content' (str).
+        - 'get_document': Retrieves a document. Requires 'document_id' (str).
+        - 'delete_document': Deletes a document. Requires 'document_id' (str), optional 'permanent' (bool).
+        """
+
     @staticmethod
     def _handle_response(response: requests.Response) -> dict[str, Any]:
         response.raise_for_status()
@@ -46,6 +65,25 @@ class OutlineTool(DocumentationTool):
             if document.get("document", {}).get("title") == title:
                 return document.get("document")
         return None
+
+    def execute(self, **kwargs: Any) -> Any:
+        """
+        Executes a command on the Outline documentation platform.
+        """
+        command = kwargs.pop("command", None)
+        if not command:
+            raise ValueError("A 'command' argument must be provided to execute.")
+
+        if command == "create_or_update_document":
+            return self.create_or_update_document(**kwargs)
+        elif command == "publish_document":
+            return self.publish_document(**kwargs)
+        elif command == "get_document":
+            return self.get_document(**kwargs)
+        elif command == "delete_document":
+            return self.delete_document(**kwargs)
+        else:
+            raise ValueError(f"Unknown command: {command}")
 
     def update_document(self, document_id: str, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         """

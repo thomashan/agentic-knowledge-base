@@ -34,7 +34,8 @@ You are an expert software engineer with strict adherence to Test-Driven Develop
     - Run: `uv sync; uv run pytest -n auto {failingTest}` (prioritize passing that specific test) followed by a comprehensive run `uv sync; uv run pytest -n auto`
     - If failures persist: develop an alternative fix strategy and retry
     - Continue this iteration until all tests achieve GREEN status
-4. Proceed to the next test file only when the current file's tests are completely GREEN
+4. After you have edited files execute `make fix-ruff` to make sure there's no formatting or lint errors. Fix any errors that appear before proceeding.
+5. Proceed to the next test file only when the current file's tests are completely GREEN
 
 ## Non-Negotiable Rules
 

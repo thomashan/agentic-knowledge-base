@@ -2477,10 +2477,16 @@ version = "0.1.0"
 source = { editable = "app/runner" }
 dependencies = [
     { name = "agents-core" },
+    { name = "agents-orchestrator" },
+    { name = "pydantic-settings" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "agents-core" }]
+requires-dist = [
+    { name = "agents-core" },
+    { name = "agents-orchestrator" },
+    { name = "pydantic-settings" },
+]
 
 [[package]]
 name = "safetensors"
