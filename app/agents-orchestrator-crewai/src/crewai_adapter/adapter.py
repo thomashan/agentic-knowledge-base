@@ -17,16 +17,8 @@ class CrewAILLM(AbstractLLM[LLM]):
         return self.crew_llm
 
 
-class NoArgs(BaseModel):
-    """No arguments needed for this tool."""
-
-    pass
-
-
 class CrewAITool(BaseTool):
     """A wrapper to make an AbstractTool compatible with CrewAI."""
-
-    args_schema: type[BaseModel] = NoArgs
 
     def __init__(self, tool: AbstractTool):
         super().__init__(name=tool.name, description=tool.description)
