@@ -21,7 +21,14 @@ class QdrantTool(VectorDBTool):
     @property
     def description(self) -> str:
         """A clear description of what the tool does and its parameters."""
-        return "A tool to create, update, and query vector collections in a Qdrant database."
+        return (
+            "A tool to create, update, and query vector collections in a Qdrant database."
+            "To use the tool, you must provide a `command` argument."
+            "Available commands are:"
+            "- `upsert_vectors`: Upserts vectors into a collection. Requires `collection_name`, `vectors`, `payloads`, and `ids`."
+            "- `delete_vectors`: Deletes vectors from a collection. Requires `collection_name` and `ids`."
+            "- `search_vectors`: Searches for vectors in a collection. Requires `collection_name`, `query_vector`, and `limit`."
+        )
 
     def execute(self, **kwargs: Any) -> Any:
         """
