@@ -18,7 +18,7 @@ Constraints:
 - Use existing project dependencies only
 - For local LLM integration, llm_factory in `conftest.py`
 ```python
-llm = llm_factory("ollama", "gemma2:2b")
+llm = llm_factory()
 ```
 
 Important notes:
