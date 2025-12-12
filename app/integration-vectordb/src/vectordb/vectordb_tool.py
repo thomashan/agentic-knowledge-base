@@ -10,6 +10,22 @@ class VectorDBTool(AbstractTool):
     """
 
     @abstractmethod
+    def create_collection(self, collection_name: str, vector_size: int, distance: str = "Cosine") -> str:
+        pass
+
+    @abstractmethod
+    def list_collections(self) -> list[str]:
+        pass
+
+    @abstractmethod
+    def get_collection_info(self, collection_name: str) -> dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def delete_collection(self, collection_name: str) -> str:
+        pass
+
+    @abstractmethod
     def upsert_vectors(self, collection_name: str, vectors: list[list[float]], payloads: list[dict[str, Any]], ids: list[str]) -> list[str]:
         pass
 

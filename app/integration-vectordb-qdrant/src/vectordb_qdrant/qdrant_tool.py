@@ -1,8 +1,61 @@
 from typing import Any
 
+from pydantic import BaseModel, Field
 from qdrant_client import QdrantClient
+from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
 from vectordb.vectordb_tool import VectorDBTool
+
+
+class CreateCollectionArgs(BaseModel):
+    """Arguments for the create_collection command."""
+
+    collection_name: str = Field(..., description="The name of the collection.")
+    vector_size: int = Field(..., description="The size of the vectors.")
+    distance: str = Field("Cosine", description="The distance metric to use (Cosine, Euclid, Dot).")
+
+
+class ListCollectionsArgs(BaseModel):
+    """Arguments for the list_collections command."""
+
+    pass
+
+
+class GetCollectionInfoArgs(BaseModel):
+    """Arguments for the get_collection_info command."""
+
+    collection_name: str = Field(..., description="The name of the collection to inspect.")
+
+
+class DeleteCollectionArgs(BaseModel):
+    """Arguments for the delete_collection command."""
+
+    collection_name: str = Field(..., description="The name of the collection to delete.")
+
+
+class UpsertVectorsArgs(BaseModel):
+    """Arguments for the upsert_vectors command."""
+
+    collection_name: str = Field(..., description="The name of the collection.")
+    vectors: list[list[float]] = Field(..., description="The vectors to upsert.")
+    payloads: list[dict] = Field(..., description="The payloads to upsert.")
+    ids: list[str] = Field(..., description="The IDs of the vectors.")
+
+
+class DeleteVectorsArgs(BaseModel):
+    """Arguments for the delete_vectors command."""
+
+    collection_name: str = Field(..., description="The name of the collection.")
+    ids: list[str] = Field(..., description="The IDs of the vectors to delete.")
+
+
+class SearchVectorsArgs(BaseModel):
+    """Arguments for the search_vectors command."""
+
+    collection_name: str = Field(..., description="The name of the collection.")
+    query_vector: list[float] = Field(..., description="The vector to search for.")
+    limit: int = Field(..., description="The maximum number of results to return.")
+    with_payload: bool = Field(True, description="Whether to include the payload in the search results.")
 
 
 class QdrantTool(VectorDBTool):
@@ -12,6 +65,15 @@ class QdrantTool(VectorDBTool):
 
     def __init__(self, host: str, grpc_port: int, http_port: int):
         self._client = QdrantClient(host=host, grpc_port=grpc_port, port=http_port)
+        self._command_methods = {
+            "create_collection": self.create_collection,
+            "list_collections": self.list_collections,
+            "get_collection_info": self.get_collection_info,
+            "delete_collection": self.delete_collection,
+            "upsert_vectors": self.upsert_vectors,
+            "delete_vectors": self.delete_vectors,
+            "search_vectors": self.search_vectors,
+        }
 
     @property
     def name(self) -> str:
@@ -25,10 +87,25 @@ class QdrantTool(VectorDBTool):
             "A tool to create, update, and query vector collections in a Qdrant database."
             "To use the tool, you must provide a `command` argument."
             "Available commands are:"
+            "- `create_collection`: Creates a new collection. Requires `collection_name`, `vector_size`, and optional `distance`."
+            "- `list_collections`: Lists all collection names."
+            "- `get_collection_info`: Gets info about a collection. Requires `collection_name`."
+            "- `delete_collection`: Deletes a collection. Requires `collection_name`."
             "- `upsert_vectors`: Upserts vectors into a collection. Requires `collection_name`, `vectors`, `payloads`, and `ids`."
             "- `delete_vectors`: Deletes vectors from a collection. Requires `collection_name` and `ids`."
             "- `search_vectors`: Searches for vectors in a collection. Requires `collection_name`, `query_vector`, and `limit`."
         )
+
+    def get_command_schemas(self) -> dict[str, type[BaseModel]] | None:
+        return {
+            "create_collection": CreateCollectionArgs,
+            "list_collections": ListCollectionsArgs,
+            "get_collection_info": GetCollectionInfoArgs,
+            "delete_collection": DeleteCollectionArgs,
+            "upsert_vectors": UpsertVectorsArgs,
+            "delete_vectors": DeleteVectorsArgs,
+            "search_vectors": SearchVectorsArgs,
+        }
 
     def execute(self, **kwargs: Any) -> Any:
         """
@@ -41,18 +118,70 @@ class QdrantTool(VectorDBTool):
         Returns:
             The result of the command execution.
         """
+        import inspect
+
         command = kwargs.pop("command", None)
         if not command:
             raise ValueError("A 'command' argument must be provided to execute.")
 
-        if command == "upsert_vectors":
-            return self.upsert_vectors(**kwargs)
-        elif command == "delete_vectors":
-            return self.delete_vectors(**kwargs)
-        elif command == "search_vectors":
-            return self.search_vectors(**kwargs)
-        else:
+        method = self._command_methods.get(command)
+        if not method:
             raise ValueError(f"Unknown command: {command}")
+
+        # Filter kwargs to only include arguments accepted by the method
+        sig = inspect.signature(method)
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in sig.parameters}
+
+        return method(**filtered_kwargs)
+
+    def create_collection(self, collection_name: str, vector_size: int, distance: str = "Cosine") -> str:
+        """
+        Creates a new collection in Qdrant.
+        """
+        distance_map = {
+            "Cosine": models.Distance.COSINE,
+            "Euclid": models.Distance.EUCLID,
+            "Dot": models.Distance.DOT,
+        }
+
+        # Default to Cosine if invalid distance provided
+        metric = distance_map.get(distance, models.Distance.COSINE)
+
+        if self._client.collection_exists(collection_name):
+            self._client.delete_collection(collection_name)
+
+        self._client.create_collection(
+            collection_name=collection_name,
+            vectors_config=models.VectorParams(size=vector_size, distance=metric),
+        )
+        return f"Collection '{collection_name}' created successfully."
+
+    def list_collections(self) -> list[str]:
+        """
+        Lists all collection names in Qdrant.
+        """
+        result = self._client.get_collections()
+        return [c.name for c in result.collections]
+
+    def get_collection_info(self, collection_name: str) -> dict[str, Any]:
+        """
+        Returns configuration info (vector size, distance) for a collection.
+        """
+        info = self._client.get_collection(collection_name)
+        # Flatten structure for easier LLM consumption
+        return {
+            "status": str(info.status),
+            "vector_size": info.config.params.vectors.size,
+            "distance": str(info.config.params.vectors.distance),
+            "points_count": info.points_count,
+        }
+
+    def delete_collection(self, collection_name: str) -> str:
+        """
+        Deletes a collection from Qdrant.
+        """
+        self._client.delete_collection(collection_name=collection_name)
+        return f"Collection '{collection_name}' deleted successfully."
 
     def upsert_vectors(self, collection_name: str, vectors: list[list[float]], payloads: list[dict], ids: list[str]) -> list[str]:
         """
@@ -66,7 +195,7 @@ class QdrantTool(VectorDBTool):
         """
         Deletes vectors from a Qdrant collection by their IDs.
         """
-        self._client.delete(collection_name=collection_name, points_selector=ids, wait=True)
+        self._client.delete(collection_name=collection_name, points_selector=models.PointIdsList(points=ids), wait=True)
         return ids
 
     def search_vectors(self, collection_name: str, query_vector: list[float], limit: int, with_payload: bool = True) -> list[dict[str, Any]]:
