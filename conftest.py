@@ -564,7 +564,7 @@ def __stop_container(container_id: str, service_file_name: str, worker_id: str):
         log.warning(f"Container {container_id} could not be stopped: {e}")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def qdrant_tool(qdrant_service: dict[str, Any]):
     """
     Fixture that provides an instance of the QdrantTool, configured to
