@@ -7,7 +7,15 @@ from crewai_adapter.adapter import CrewAILLM
 from dotenv import load_dotenv
 
 
+def _provider(provider: str) -> str | None:
+    if provider == "openrouter":
+        return None
+    return provider
+
+
 def _llm_factory(provider: str, model: str, base_url: str, orchestrator_type: str = "crewai", timeout_s: int | float = 300, api_key: str | None = None, **kwargs) -> AbstractLLM:
+    # some providers expect the provider to be dropped
+    provider = _provider(provider)
     if orchestrator_type == "crewai":
         crew_ai_llm = crewai.LLM(model=model, timeout=timeout_s, base_url=base_url, api_key=api_key, provider=provider, **kwargs)
         return CrewAILLM(crew_ai_llm)

@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any
 
 from agents_core.core import AbstractTool
+from pydantic import BaseModel
 
 
 class DocumentationTool(AbstractTool):
@@ -109,3 +110,6 @@ class DocumentationTool(AbstractTool):
             return self.delete_document(**kwargs)
         else:
             raise ValueError(f"Unknown command: {command}")
+
+    def get_command_schemas(self) -> dict[str, type[BaseModel]] | None:
+        return None
