@@ -1,10 +1,9 @@
 from typing import Any
 
-from pydantic import BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
-from vectordb.vectordb_tool import CreateCollectionArgs, DeleteCollectionArgs, DeleteVectorsArgs, GetCollectionInfoArgs, ListCollectionsArgs, SearchVectorsArgs, UpsertVectorsArgs, VectorDBTool
+from vectordb.vectordb_tool import VectorDBTool
 
 
 class QdrantTool(VectorDBTool):
@@ -44,17 +43,6 @@ class QdrantTool(VectorDBTool):
             "- `delete_vectors`: Deletes vectors from a collection. Requires `collection_name` and `ids`."
             "- `search_vectors`: Searches for vectors in a collection. Requires `collection_name`, `query_vector`, and `limit`."
         )
-
-    def get_command_schemas(self) -> dict[str, type[BaseModel]] | None:
-        return {
-            "create_collection": CreateCollectionArgs,
-            "list_collections": ListCollectionsArgs,
-            "get_collection_info": GetCollectionInfoArgs,
-            "delete_collection": DeleteCollectionArgs,
-            "upsert_vectors": UpsertVectorsArgs,
-            "delete_vectors": DeleteVectorsArgs,
-            "search_vectors": SearchVectorsArgs,
-        }
 
     def execute(self, **kwargs: Any) -> Any:
         """

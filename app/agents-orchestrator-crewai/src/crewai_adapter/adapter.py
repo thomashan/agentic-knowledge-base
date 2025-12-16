@@ -93,12 +93,7 @@ def _create_crewai_tools_from_abstract_tool(tool: AbstractTool) -> list[BaseTool
 
     tools = []
     for command_name, schema in command_schemas.items():
-        # Create a new Pydantic model for the arguments of this specific command
-        args_model: type[BaseModel] = create_model(
-            f"{tool.name.replace(' ', '')}{command_name.capitalize()}Args", **{name: (field.annotation, field.default) for name, field in schema.model_fields.items()}
-        )
-
-        command_tool_instance = CrewAITool(tool=tool, command_name=command_name, args_schema=args_model)
+        command_tool_instance = CrewAITool(tool=tool, command_name=command_name, args_schema=schema)
         tools.append(command_tool_instance)
     return tools
 
@@ -153,9 +148,9 @@ class CrewAIOrchestrator(AbstractOrchestrator):
         """
         Executes the defined orchestration process and returns a standardized result.
         """
-        crew = Crew(agents=self.crewai_agents, tasks=self.crewai_tasks, **self.config)
+        crew = Crew(name="Agentic Knowledge Base Crew", agents=self.crewai_agents, tasks=self.crewai_tasks, **self.config)
 
         result = crew.kickoff()
 
         raw_output = result.raw if hasattr(result, "raw") else result
-        return ExecutionResult(raw_output=raw_output)
+        return ExecutionResult(raw_output=raw_output, structured_output=None)

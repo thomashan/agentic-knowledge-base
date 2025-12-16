@@ -245,14 +245,6 @@ def test_agent_triggers_qdrant_tool(qdrant_tool, llm_factory):
     assert qdrant_tool._client.collection_exists(collection_name)
 
     # --- Step 1.5: List Collections ---
-    agent_list = TestAgent(
-        role="Vector Database Administrator",
-        goal="Manage vector data in a Qdrant database.",
-        backstory="An expert in vector databases.",
-        llm=CrewAILLM(llm_factory()),
-        tools=[qdrant_tool],
-    )
-
     list_task_prompt = """
     List all collections in the Qdrant database.
     Use the 'Qdrant VectorDB Tool' with the 'list_collections' command.
@@ -262,17 +254,7 @@ def test_agent_triggers_qdrant_tool(qdrant_tool, llm_factory):
         "command": "list_collections"
     }
     """
-
-    list_task = TestTask(
-        description=list_task_prompt,
-        expected_output="A list of collection names.",
-        agent=agent_list,
-    )
-
-    orchestrator_list = CrewAIOrchestrator(config={"verbose": True})
-    orchestrator_list.add_agent(agent_list)
-    orchestrator_list.add_task(list_task)
-    list_result = orchestrator_list.execute()
+    list_result = execute_qdrant_task(crew_ai_llm, qdrant_tool, list_task_prompt, "A list of collection names.")
 
     # Assert Collection is listed
     assert collection_name in list_result.raw_output
@@ -318,7 +300,6 @@ def test_agent_triggers_qdrant_tool(qdrant_tool, llm_factory):
         "query_vector": [0.1, 0.2, 0.3, 0.4],
         "limit": 1
     }}
-
     """
 
     search_result = execute_qdrant_task(crew_ai_llm, qdrant_tool, search_task_prompt, "The ID and payload of the found vector.")
