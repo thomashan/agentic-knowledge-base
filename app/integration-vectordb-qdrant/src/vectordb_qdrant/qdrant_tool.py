@@ -1,61 +1,10 @@
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.http.models import PointStruct
-from vectordb.vectordb_tool import VectorDBTool
-
-
-class CreateCollectionArgs(BaseModel):
-    """Arguments for the create_collection command."""
-
-    collection_name: str = Field(..., description="The name of the collection.")
-    vector_size: int = Field(..., description="The size of the vectors.")
-    distance: str = Field("Cosine", description="The distance metric to use (Cosine, Euclid, Dot).")
-
-
-class ListCollectionsArgs(BaseModel):
-    """Arguments for the list_collections command."""
-
-    pass
-
-
-class GetCollectionInfoArgs(BaseModel):
-    """Arguments for the get_collection_info command."""
-
-    collection_name: str = Field(..., description="The name of the collection to inspect.")
-
-
-class DeleteCollectionArgs(BaseModel):
-    """Arguments for the delete_collection command."""
-
-    collection_name: str = Field(..., description="The name of the collection to delete.")
-
-
-class UpsertVectorsArgs(BaseModel):
-    """Arguments for the upsert_vectors command."""
-
-    collection_name: str = Field(..., description="The name of the collection.")
-    vectors: list[list[float]] = Field(..., description="The vectors to upsert.")
-    payloads: list[dict] = Field(..., description="The payloads to upsert.")
-    ids: list[str] = Field(..., description="The IDs of the vectors.")
-
-
-class DeleteVectorsArgs(BaseModel):
-    """Arguments for the delete_vectors command."""
-
-    collection_name: str = Field(..., description="The name of the collection.")
-    ids: list[str] = Field(..., description="The IDs of the vectors to delete.")
-
-
-class SearchVectorsArgs(BaseModel):
-    """Arguments for the search_vectors command."""
-
-    collection_name: str = Field(..., description="The name of the collection.")
-    query_vector: list[float] = Field(..., description="The vector to search for.")
-    limit: int = Field(..., description="The maximum number of results to return.")
-    with_payload: bool = Field(True, description="Whether to include the payload in the search results.")
+from vectordb.vectordb_tool import CreateCollectionArgs, DeleteCollectionArgs, DeleteVectorsArgs, GetCollectionInfoArgs, ListCollectionsArgs, SearchVectorsArgs, UpsertVectorsArgs, VectorDBTool
 
 
 class QdrantTool(VectorDBTool):

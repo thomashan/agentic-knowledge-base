@@ -4,6 +4,7 @@ import pytest
 import structlog
 from agents_core.core import AbstractAgent, AbstractLLM, AbstractTask, AbstractTool
 from crewai_adapter.adapter import CrewAILLM, CrewAIOrchestrator
+from pydantic import BaseModel
 
 log = structlog.get_logger()
 
@@ -26,6 +27,9 @@ class SimpleTool(AbstractTool):
 
     def execute(self, **kwargs: Any) -> Any:
         return "Tool executed successfully!"
+
+    def get_command_schemas(self) -> dict[str, type[BaseModel]] | None:
+        return None
 
 
 # Concrete implementation of AbstractAgent for testing tool use

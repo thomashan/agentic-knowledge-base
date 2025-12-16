@@ -45,7 +45,7 @@ def test_create_llm_openrouter_provider(mock_crew_llm):
             timeout=300,
             base_url="https://openrouter.ai/api/v1",
             api_key="test-key",
-            provider="openrouter",
+            provider=None,
             extra_headers={"HTTP-Referer": "https://test.app"},
         )
 
@@ -102,7 +102,7 @@ def test_create_llm_uses_arguments_over_env(mock_crew_llm):
             timeout=300,
             base_url="https://openrouter.ai/api/v1",
             api_key="test-key",
-            provider="openrouter",
+            provider=None,
             extra_headers={"HTTP-Referer": "https://test.app"},
         )
 

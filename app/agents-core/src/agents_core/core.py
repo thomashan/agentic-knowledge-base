@@ -89,12 +89,13 @@ class AbstractTool(ABC):
         """Executes the tool with the given arguments."""
         pass
 
+    @abstractmethod
     def get_command_schemas(self) -> dict[str, type[BaseModel]] | None:
         """
         Returns a dictionary of command names to their Pydantic schemas.
         If the tool does not have commands, it returns None.
         """
-        return None
+        pass
 
 
 class AbstractAgent(ABC):
