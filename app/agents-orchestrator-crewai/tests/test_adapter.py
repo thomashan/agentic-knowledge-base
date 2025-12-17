@@ -131,6 +131,7 @@ def test_crewai_orchestrator_execute_initializes_crew_correctly(mock_crew):
     # 3. Assert
     # Check that Crew was instantiated correctly
     mock_crew.assert_called_once_with(
+        name="Agentic Knowledge Base Crew",
         agents=orchestrator.crewai_agents,
         tasks=orchestrator.crewai_tasks,
         some_config="value",
