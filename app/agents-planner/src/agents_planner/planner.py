@@ -1,7 +1,7 @@
 from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
-from agents_core.core import AbstractAgent, AbstractLLM, AbstractTool
+from agents_core.core import AbstractAgent, AbstractLLM
 from pydantic import ValidationError
 
 from .models import Plan
@@ -43,11 +43,11 @@ class PlannerAgent(AbstractAgent):
         return self._prompt_template
 
     @property
-    def tools(self) -> list[AbstractTool] | None:
+    def tools(self) -> None:
         return None
 
     @property
-    def llm_config(self) -> dict[str, Any] | None:
+    def llm_config(self) -> None:
         return None
 
     @property
