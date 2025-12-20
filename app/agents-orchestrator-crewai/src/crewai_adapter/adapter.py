@@ -3,7 +3,7 @@ from typing import Any
 from agents_core.core import AbstractAgent, AbstractLLM, AbstractOrchestrator, AbstractTask, AbstractTool, ExecutionResult
 from crewai import LLM, Agent, Crew, Task
 from crewai.tools import BaseTool
-from pydantic import BaseModel, PrivateAttr, create_model
+from pydantic import BaseModel, PrivateAttr
 
 
 class CrewAILLM(AbstractLLM[LLM]):
