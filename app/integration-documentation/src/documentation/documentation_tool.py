@@ -17,7 +17,22 @@ class DocumentationTool(AbstractTool):
 
     @property
     def description(self) -> str:
-        return "A tool for creating, updating, and managing documents."
+        """
+        A tool for creating, updating, and managing documents.
+        It accepts a 'command' argument which can be:
+        - 'create_or_update_document': Creates a new document or updates an existing one. Requires 'title' (str), 'content' (str).
+        - 'publish_document': Publishes a new document. Requires 'title' (str), 'content' (str).
+        - 'get_document': Retrieves a document. Requires 'document_id' (str).
+        - 'delete_document': Deletes a document. Requires 'document_id' (str), optional 'permanent' (bool).
+        """
+        return """
+        A tool for creating, updating, and managing documents.
+        It accepts a 'command' argument which can be:
+        - 'create_or_update_document': Creates a new document or updates an existing one. Requires 'title' (str), 'content' (str).
+        - 'publish_document': Publishes a new document. Requires 'title' (str), 'content' (str).
+        - 'get_document': Retrieves a document. Requires 'document_id' (str).
+        - 'delete_document': Deletes a document. Requires 'document_id' (str), optional 'permanent' (bool).
+        """
 
     @property
     @abstractmethod
@@ -111,5 +126,6 @@ class DocumentationTool(AbstractTool):
         else:
             raise ValueError(f"Unknown command: {command}")
 
+    # FIXME: create the command schema for documentation tools
     def get_command_schemas(self) -> dict[str, type[BaseModel]] | None:
         return None
