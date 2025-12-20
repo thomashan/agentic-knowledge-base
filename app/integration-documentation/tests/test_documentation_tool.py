@@ -21,7 +21,7 @@ class ConcreteDocumentationTool(DocumentationTool):
 
     @property
     def base_url(self) -> str:
-        return "http://example.com"
+        return "https://example.com"
 
     def create_or_update_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         # Check if a document with the same title already exists
@@ -30,7 +30,7 @@ class ConcreteDocumentationTool(DocumentationTool):
                 # Update existing document
                 self.published_documents[doc_id]["content"] = content
                 self.updated_documents[doc_id] = self.published_documents[doc_id]
-                return {"id": doc_id, "title": title, "url": f"http://example.com/{doc_id}"}
+                return {"id": doc_id, "title": title, "url": f"https://example.com/{doc_id}"}
 
         # Create a new document if title not found
         return self.publish_document(title, content)
@@ -38,14 +38,14 @@ class ConcreteDocumentationTool(DocumentationTool):
     def publish_document(self, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         doc_id = f"doc_{len(self.published_documents) + 1}"
         self.published_documents[doc_id] = {"title": title, "content": content, "kwargs": kwargs}
-        return {"id": doc_id, "title": title, "url": f"http://example.com/{doc_id}"}
+        return {"id": doc_id, "title": title, "url": f"https://example.com/{doc_id}"}
 
     def update_document(self, document_id: str, title: str, content: str, **kwargs: Any) -> dict[str, Any]:
         if document_id not in self.published_documents:
             raise ValueError(f"Document with ID {document_id} not found.")
         self.updated_documents[document_id] = {"title": title, "content": content, "kwargs": kwargs}
         self.published_documents[document_id].update({"title": title, "content": content})
-        return {"id": document_id, "title": title, "url": f"http://example.com/{document_id}"}
+        return {"id": document_id, "title": title, "url": f"https://example.com/{document_id}"}
 
     def get_document(self, document_id: str) -> dict[str, Any]:
         if document_id not in self.published_documents:
