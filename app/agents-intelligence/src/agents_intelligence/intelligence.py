@@ -1,4 +1,3 @@
-from typing import Any
 
 from agents_core.agent_reader import AgentDefinitionReader, AgentSchema
 from agents_core.core import AbstractAgent, AbstractLLM
@@ -60,11 +59,11 @@ class IntelligenceAgent(AbstractAgent):
         return self.agent_definition.prompt_template
 
     @property
-    def tools(self) -> list[Any] | None:
+    def tools(self) -> None:
         return None
 
     @property
-    def llm_config(self) -> dict[str, Any] | None:
+    def llm_config(self) -> None:
         return None
 
     @property
