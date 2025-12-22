@@ -2,7 +2,7 @@
 
 ## Role
 
-Strategy Analyst
+Intelligence Agent
 
 ## Goal
 

@@ -34,7 +34,7 @@ def mock_scrape_tool():
 def test_research_agent_instantiation(mock_llm, mock_search_tool, mock_scrape_tool):
     agent = ResearchAgent(llm=mock_llm, search_tool=mock_search_tool, scrape_tool=mock_scrape_tool)
     assert agent is not None
-    assert agent.role == "Senior Research Analyst"
+    assert agent.role == "Research Agent"
     assert agent.goal == "To conduct thorough, unbiased, and data-driven research on any given topic."
     assert agent.backstory == (
         "You are a master of digital investigation, known for your ability to quickly find the most relevant and trustworthy information on the web.\n"

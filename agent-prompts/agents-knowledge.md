@@ -2,7 +2,7 @@
 
 ## Role
 
-- **Role:** Knowledge Manager
+Knowledge Agent
 
 ## Goal
 
