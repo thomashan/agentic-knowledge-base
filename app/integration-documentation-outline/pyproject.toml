@@ -3,6 +3,6 @@ name = "integration-documentation-outline"
 version = "0.1.0"
 
 dependencies = [
-    "requests==2.32.5",
+    "requests==2.33.0",
     "integration-documentation",
 ]

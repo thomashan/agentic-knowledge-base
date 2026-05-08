@@ -7,6 +7,6 @@ dependencies = [
     "agents-intelligence",
     "integration-documentation",
     "integration-vectordb-qdrant",
-    "langchain-text-splitters==1.0.0",
+    "langchain-text-splitters==1.1.2",
     "sentence-transformers==5.1.2",
 ]
